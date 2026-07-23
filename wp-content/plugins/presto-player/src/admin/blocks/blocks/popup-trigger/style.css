@@ -1,0 +1,35 @@
+:where(.wp-block-presto-player-popup-trigger) {
+  /* reduce specificity */
+  display: grid;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+/* Play icon overlay for popup image trigger variation */
+:where(.presto-popup-image-trigger) {
+  position: relative;
+  cursor: pointer;
+}
+
+:where(.presto-popup-image-trigger)::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background-image: url("../../../../../img/play-button.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+:where(.presto-popup-image-trigger img) {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: brightness(0.5);
+}

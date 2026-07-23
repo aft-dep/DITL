@@ -1,0 +1,106 @@
+.wp-block-presto-player-popup.is-selected .wp-block-presto-player-popup-media {
+  display: initial;
+}
+
+.wp-block-presto-player-popup.has-child-selected .wp-block-presto-player-popup-media {
+  display: initial;
+}
+
+.presto-popup__overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100000;
+  overflow: hidden;
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 0 5%;
+  visibility: hidden;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+
+  --presto-popup-media-width: 1280px;
+  --presto-popup-background-color: rgba(0, 0, 0, 0.917);
+}
+
+.presto-popup--active {
+  visibility: visible;
+  opacity: 1;
+}
+
+.presto-popup--active .presto-popup__content {
+  transform: scale(1);
+}
+
+.presto-popup__content {
+  position: relative;
+  z-index: 9999999999;
+  width: 100%;
+  max-width: var(--presto-popup-media-width);
+  transform: scale(0.9);
+  transition: transform 0.2s ease;
+}
+
+.presto-popup__close-button {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 16px);
+  right: calc(env(safe-area-inset-right) + 16px);
+  padding: 0;
+  cursor: pointer;
+  z-index: 5000000;
+  min-width: 24px;
+  min-height: 24px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  box-shadow: none;
+  transition: opacity 0.2s ease;
+}
+
+.presto-popup__close-button:hover,
+.presto-popup__close-button:focus {
+  opacity: 0.8;
+  background: none;
+  border: none;
+}
+
+.presto-popup__close-button:not(:hover):not(:active):not(.has-background) {
+  background: none;
+  border: none;
+}
+
+.presto-popup__close-button svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+.presto-popup__scrim {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  z-index: 2000000;
+  background-color: var(--presto-popup-background-color, rgb(255, 255, 255));
+}
+
+.presto-popup__speak {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

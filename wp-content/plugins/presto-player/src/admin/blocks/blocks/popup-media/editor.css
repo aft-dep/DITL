@@ -1,0 +1,22 @@
+.wp-block-presto-player-popup-media {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    visibility: visible !important;
+    opacity: 1 !important;
+    margin-top: 25px;
+    min-height: 400px;
+    height: auto;
+    z-index: unset !important;
+    background-color: var(--presto-popup-background-color, rgb(255, 255, 255));
+}
+
+.presto-popup__content {
+    max-width: 90%;
+    z-index: unset;
+}
+
+.presto-popup__close-button svg {
+    width: 16px;
+    height: 16px;
+}

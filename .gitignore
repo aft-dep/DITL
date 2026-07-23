@@ -1,0 +1,65 @@
+# --- Fichiers de travail internes (ne jamais pousser) ---
+CLAUDE.md
+.claude/
+
+# --- WordPress ---
+wp-config.php
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/upgrade-temp-backup/
+wp-content/backup*/
+wp-content/backups/
+wp-content/ai1wm-backups/
+wp-content/updraft/
+wp-content/languages/
+wp-content/debug.log
+wp-content/temp-write-test-*
+*.log.php
+
+# --- Backups presents sur ce site (contiennent des dumps et credentials prod) ---
+wp-content/wpvividbackups/
+wp-content/wpvivid_staging/
+wp-content/wpvivid_uploads/
+wp-content/aiowps_backups/
+
+# --- Fichiers generes / specifiques a l'environnement (AIOS, serveur) ---
+.htaccess
+.user.ini
+aios-bootstrap.php
+
+# --- Systeme / OS ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- IDE / editeurs ---
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# --- Dependances ---
+node_modules/
+vendor/
+
+# --- Environnement / secrets ---
+.env
+.env.*
+!.env.example
+*.local
+
+# --- Logs / caches / builds ---
+*.log
+logs/
+cache/
+tmp/
+temp/
+dist/
+build/
+
+# --- Archives / dumps ---
+*.zip
+*.tar.gz
+*.sql
+*.sql.gz

@@ -1,0 +1,58 @@
+[
+  {
+    "title": "Blaze – Where Stories Light the Way",
+    "is_pro": 1,
+    "thumbnail": "/templates/blaze.jpg",
+    "demo_url": "https://postkit.pro/demo-pages/blaze/",
+    "import_url": "/templates/blaze.zip"
+  },
+  {
+    "title": "FlipPage – Fresh Perspectives Every Day",
+    "is_pro": 1,
+    "thumbnail": "/templates/flippage.jpg",
+    "demo_url": "https://postkit.pro/demo-pages/flippage/",
+    "import_url": "/templates/flippage.zip"
+  },
+  {
+    "title": "FreshMag – Your Daily Dose of Stories",
+    "is_pro": 1,
+    "thumbnail": "/templates/freshmag.jpg",
+    "demo_url": "https://postkit.pro/demo-pages/freshmag/",
+    "import_url": "/templates/freshmag.zip"
+  },
+  {
+    "title": "GameGeek – Where Gamers Connect",
+    "is_pro": 1,
+    "thumbnail": "/templates/gamegeek.jpg",
+    "demo_url": "https://postkit.pro/demo-pages/game-geek/",
+    "import_url": "/templates/gamegeek.zip"
+  },
+  {
+    "title": "Todaynews - Smart News for Modern Minds",
+    "is_pro": 1,
+    "thumbnail": "/templates/todaynews.jpg",
+    "demo_url": "https://postkit.pro/demo-pages/today-news/",
+    "import_url": "/templates/todaynews.zip"
+  },
+  {
+    "title": "Newsly – Quick bites. Big stories",
+    "is_pro": 1,
+    "thumbnail": "/templates/newsly.jpg",
+    "demo_url": "https://postkit.pro/demo-pages/newsly/",
+    "import_url": "/templates/newsly.zip"
+  },
+  {
+    "title": "Travelbd – Travel moments captured",
+    "is_pro": 1,
+    "thumbnail": "/templates/travelbd.jpg",
+    "demo_url": "https://postkit.pro/demo-pages/travelbd/",
+    "import_url": "/templates/travelbd.zip"
+  },
+  {
+    "title": "TrendDesk – Where news meets now",
+    "is_pro": 1,
+    "thumbnail": "/templates/trenddesk.jpg",
+    "demo_url": "https://postkit.pro/demo-pages/trenddesk/",
+    "import_url": "/templates/trenddesk.zip"
+  }
+]

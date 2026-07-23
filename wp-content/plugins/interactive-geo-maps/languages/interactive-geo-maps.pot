@@ -1,0 +1,3676 @@
+# Copyright (C) 2024 Interactive Geo Maps
+# This file is distributed under the same license as the Interactive Geo Maps package.
+msgid ""
+msgstr ""
+"Project-Id-Version: Interactive Geo Maps 1.6.13\n"
+"Report-Msgid-Bugs-To: https://saltus.dev/\n"
+"POT-Creation-Date: 2024-02-26 04:34:04+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2024-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Saltus <hello@saltus.dev>\n"
+"Language-Team: Saltus <hello@saltus.dev>\n"
+"Language: en_US\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Country: United States\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: "
+"__;_e;_x:1,2c;_ex:1,2c;_n:1,2;_nx:1,2,4c;_n_noop:1,2;_nx_noop:1,2,3c;esc_"
+"attr__;esc_html__;esc_attr_e;esc_html_e;esc_attr_x:1,2c;esc_html_x:1,2c;\n"
+"X-Poedit-Basepath: ../\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-Bookmarks: \n"
+"X-Textdomain-Support: yes\n"
+"X-Generator: grunt-wp-i18n 1.0.3\n"
+
+#: interactive-geo-maps.php:115
+msgid "Free 7 Day Pro Trial"
+msgstr ""
+
+#: interactive-geo-maps.php:116
+msgid "Get Pro Features"
+msgstr ""
+
+#: src/Plugin/Actions.php:40
+#. translators: "None" is one of the options for "Click Action"
+msgid "None"
+msgstr ""
+
+#: src/Plugin/Actions.php:42
+#. translators: "Open URL" is one of the options for "Click Action"
+msgid "Open URL"
+msgstr ""
+
+#: src/Plugin/Actions.php:44
+#. translators: "Open URL (new tab)" is one of the options for "Click Action"
+msgid "Open URL (new tab)"
+msgstr ""
+
+#: src/Plugin/Assets.php:159 src/Plugin/Pro/Extras/ProGeolocateContent.php:391
+#. translators: region code refers to a alphanumeric code that represents a
+#. particular region
+msgid "Region Code"
+msgstr ""
+
+#: src/Plugin/Assets.php:160
+msgid "Region Name"
+msgstr ""
+
+#: src/Plugin/Assets.php:161
+msgid "Full Available Data"
+msgstr ""
+
+#: src/Plugin/Assets.php:162
+msgid "Error: can't process data"
+msgstr ""
+
+#: src/Plugin/Assets.php:163
+msgid ""
+"<strong>Attention!</strong> Your map has too many entries for your server "
+"to handle when saving it. <br> To prevent loosing map data, avoid updating "
+"your map until this issue is solved. <a "
+"href=\"https://interactivegeomaps.com/docs/max-input-vars-issue\" "
+"target=\"_blank\">Read more about this issue here</a>."
+msgstr ""
+
+#: src/Plugin/Assets.php:164
+msgid "Add this region to map"
+msgstr ""
+
+#: src/Plugin/Assets.php:165
+msgid "Click + to add region to the map"
+msgstr ""
+
+#: src/Plugin/Assets.php:166
+msgid "Are you sure you want to reset the labels positions?"
+msgstr ""
+
+#: src/Plugin/Blocks/MapBlock.php:59
+#: src/Plugin/Integrations/ElementorMapWidget.php:142
+#. translators: used in block editor when no map is selected.
+msgid "Please select a map"
+msgstr ""
+
+#: src/Plugin/Integrations/ElementorMapWidget.php:39
+msgid "Interactive Geo Map"
+msgstr ""
+
+#: src/Plugin/Integrations/ElementorMapWidget.php:96
+msgid "Select Map to display"
+msgstr ""
+
+#: src/Plugin/Integrations/ElementorMapWidget.php:101
+#: src/models/post-type.php:442
+msgid "Map to display"
+msgstr ""
+
+#: src/Plugin/Integrations/ElementorMapWidget.php:109
+#: src/models/post-type.php:96 src/models/post-type.php:102
+#: src/models/post-type.php:104
+msgid "Map"
+msgstr ""
+
+#: src/Plugin/Integrations/ElementorMapWidget.php:140
+msgid "Preview Only"
+msgstr ""
+
+#: src/Plugin/MapList.php:26
+msgid "Portugal Maps"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProDropdownMapEntries.php:41
+#: src/Plugin/Pro/Extras/ProDropdownMapEntries.php:53
+#: src/Plugin/Pro/Extras/ProListMapEntries.php:41
+msgid "Please set a map ID for this list."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:264
+msgid "Geolocate Content"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:270
+msgid ""
+"This is an EXPERIMENTAL feature, still in BETA.<br>You can enable "
+"geolocation features for selected post types.<br>It will add extra meta "
+"boxes to the edit screen of those post types with options to associate "
+"coordinates for a specific location or a region or country code.<br>You can "
+"then have a map automatically be populated with this data."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:275
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:354
+#: src/Plugin/Pro/ProMeta.php:2472 src/Plugin/Pro/ProMeta.php:2562
+#: src/Plugin/Pro/ProMeta.php:2721 src/Plugin/Pro/ProMeta.php:3192
+#: src/Plugin/Pro/ProMeta.php:3235 src/Plugin/Pro/ProMeta.php:3302
+#: src/Plugin/Pro/ProSettings.php:164
+#. translators: field type = input type (textarea, rich text editor...)
+msgid "Enable"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:276
+msgid "Enable Geolocation features for selected content types like posts or pages."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:282
+#. translators: field type = input type (textarea, rich text editor...)
+msgid "Types of Content"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:283
+msgid "Enable the geolocation features on selected types of content"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:298
+msgid "Populate with Geolocated entries"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:299
+msgid ""
+"BETA/EXPERIMENTAL FEATURE.<br>If enabled, the map will be automatically "
+"populated with the entries added using the Geolocation option."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:305
+msgid "Populate with a single geolocated entry"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:306
+msgid ""
+"When enabled, the map will only render the geolocated data of the page/post "
+"where the map is added."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:312
+msgid "Advanced Query Parameters"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:313
+msgid ""
+"Use JSON format with WP_Query paramaters you want to add to this query. You "
+"can use this for example to filter entries from a specific taxonomy."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:339
+msgid "Geolocation (Beta)"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:349
+msgid "Options"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:355
+msgid "Enable Geolocation features this."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:361
+#: src/Plugin/Pro/ProMeta.php:557 src/Plugin/Pro/ProMeta.php:939
+#: src/Plugin/Pro/ProMeta.php:2586 src/Plugin/Pro/ProMeta.php:2726
+msgid "Type"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:362
+msgid ""
+"Type of location you want to specify. <br> Either a specific location "
+"(using coordinates) or a full region or country (using a region code)."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:365
+msgid "Specific Location"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:366
+msgid "Region or Country"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:373
+msgid ""
+"Use the search form below to find out the coordinates or write them "
+"directly in the available fields below."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:379
+msgid "Location Coordinates"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:385
+msgid ""
+"Write the region or country name or the ID code as listed in \"Available "
+"regions\" section of the correspondent map where it will be used."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:402
+msgid "Content"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:407
+msgid "The information below will be used in the map when this entry is included."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:413
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:451
+msgid "Since the option to geolocate this entry is disabled, no options display."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:419
+#: src/Plugin/Pro/ProMeta.php:1221 src/Plugin/Pro/ProMeta.php:1544
+#: src/Plugin/Pro/ProMeta.php:2014 src/models/post-type.php:597
+#: src/models/post-type.php:725
+msgid "Tooltip Content"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:425
+#: src/Plugin/Pro/ProMeta.php:1225 src/Plugin/Pro/ProMeta.php:1548
+#: src/Plugin/Pro/ProMeta.php:2018 src/models/post-type.php:601
+#: src/models/post-type.php:729
+msgid "Action Content"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:431
+#: src/Plugin/Pro/ProMeta.php:143 src/Plugin/Pro/ProMeta.php:711
+#: src/Plugin/Pro/ProMeta.php:1298 src/Plugin/Pro/ProMeta.php:1644
+msgid "Value"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:446
+msgid "Style & Actions"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:457
+msgid "Type or Marker"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:458
+msgid ""
+"Type of marker to be used when populating the map automatically. Leave the "
+"default \"inherit\" value to control this on the map options."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:461
+msgid "Inherit"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:462
+msgid "Round Marker"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:463
+msgid "Vector Icon"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:464
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:522
+#: src/Plugin/Pro/ProMeta.php:1236 src/Plugin/Pro/ProMeta.php:1310
+msgid "Image"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:472
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:480
+#: src/Plugin/Pro/ProMeta.php:107 src/Plugin/Pro/ProMeta.php:669
+#: src/Plugin/Pro/ProMeta.php:1230 src/Plugin/Pro/ProMeta.php:1553
+#: src/Plugin/Pro/ProMeta.php:2023 src/Plugin/Pro/ProMeta.php:2339
+msgid "Use defaults"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:473
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:481
+#: src/Plugin/Pro/ProMeta.php:108 src/Plugin/Pro/ProMeta.php:670
+#: src/Plugin/Pro/ProMeta.php:1554 src/Plugin/Pro/ProMeta.php:2024
+#: src/Plugin/Pro/ProMeta.php:2340
+msgid "Use default colors and actions."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:488
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:588
+#: src/Plugin/Pro/ProMeta.php:115 src/Plugin/Pro/ProMeta.php:579
+#: src/Plugin/Pro/ProMeta.php:683 src/Plugin/Pro/ProMeta.php:967
+#: src/Plugin/Pro/ProMeta.php:1616 src/Plugin/Pro/ProMeta.php:1709
+#: src/Plugin/Pro/ProMeta.php:2035 src/Plugin/Pro/ProMeta.php:2577
+#: src/models/post-type.php:615 src/models/post-type.php:747
+#. translators: color for the marker
+#. translators: color for the shape/region on the map
+#. translators: color for the marker
+#. translators: color for the shape/region on the map
+#. translators: color for the shape/region on the map
+#. translators: color to use to fill the map region
+msgid "Fill Color"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:496
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:596
+#: src/Plugin/Pro/ProMeta.php:123 src/Plugin/Pro/ProMeta.php:475
+#: src/Plugin/Pro/ProMeta.php:690 src/Plugin/Pro/ProMeta.php:1623
+#: src/Plugin/Pro/ProMeta.php:1715 src/Plugin/Pro/ProMeta.php:2041
+#: src/Plugin/Pro/ProMeta.php:2102 src/models/post-type.php:621
+#: src/models/post-type.php:752
+#. translators: color for when marker is hovered
+#. translators: color for the shape/region on the map when hovered
+#. translators: color for when marker is hovered
+#. translators: color to use to fill the map region when hovering it
+msgid "Hover Color"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:505
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:604
+#: src/Plugin/Pro/ProMeta.php:129 src/Plugin/Pro/ProMeta.php:696
+#: src/Plugin/Pro/ProMeta.php:1283 src/Plugin/Pro/ProMeta.php:1350
+#: src/Plugin/Pro/ProMeta.php:1629 src/Plugin/Pro/ProMeta.php:1720
+#: src/Plugin/Pro/ProMeta.php:2070 src/Plugin/Pro/ProMeta.php:2107
+#: src/models/post-type.php:634 src/models/post-type.php:757
+#. translators: action that gets triggered on click
+msgid "Click Action"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:506
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:605
+#: src/Plugin/Pro/ProMeta.php:130 src/Plugin/Pro/ProMeta.php:699
+#: src/Plugin/Pro/ProMeta.php:1286 src/Plugin/Pro/ProMeta.php:1351
+#: src/Plugin/Pro/ProMeta.php:1632 src/Plugin/Pro/ProMeta.php:1721
+#: src/Plugin/Pro/ProMeta.php:2071 src/Plugin/Pro/ProMeta.php:2108
+#: src/models/post-type.php:635 src/models/post-type.php:758
+msgid "More information about click actions"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:516
+#: src/Plugin/Pro/ProMeta.php:677 src/Plugin/Pro/ProMeta.php:961
+#: src/models/post-type.php:743
+#. translators: Circle radius, size of the marker
+#. translators: Circle radius, size of the marker
+#. translators: Circle radius
+msgid "Radius"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:532
+#: src/Plugin/Pro/ProMeta.php:1246 src/Plugin/Pro/ProMeta.php:1318
+#: src/Plugin/Pro/ProMeta.php:2030 src/Plugin/Pro/ProMeta.php:2092
+msgid "Size"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:538
+#: src/Plugin/Pro/ProMeta.php:1559 src/Plugin/Pro/ProMeta.php:1656
+msgid "Icon"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:540
+#: src/Plugin/Pro/ProMeta.php:1561 src/Plugin/Pro/ProMeta.php:1658
+msgid "Change Icon"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:553
+#: src/Plugin/Pro/ProMeta.php:1599 src/Plugin/Pro/ProMeta.php:1693
+msgid "Scale"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:559
+#: src/Plugin/Pro/ProMeta.php:1257 src/Plugin/Pro/ProMeta.php:1328
+#: src/Plugin/Pro/ProMeta.php:1566 src/Plugin/Pro/ProMeta.php:1662
+msgid "Horizontal Center"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:560
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:574
+#: src/Plugin/Pro/ProMeta.php:1258 src/Plugin/Pro/ProMeta.php:1271
+#: src/Plugin/Pro/ProMeta.php:1329 src/Plugin/Pro/ProMeta.php:1340
+#: src/Plugin/Pro/ProMeta.php:1567 src/Plugin/Pro/ProMeta.php:1580
+#: src/Plugin/Pro/ProMeta.php:1663 src/Plugin/Pro/ProMeta.php:1675
+msgid "Point position in relation to the marker."
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:563
+#: src/Plugin/Pro/ProMeta.php:905 src/Plugin/Pro/ProMeta.php:1261
+#: src/Plugin/Pro/ProMeta.php:1332 src/Plugin/Pro/ProMeta.php:1570
+#: src/Plugin/Pro/ProMeta.php:1666 src/Plugin/Pro/ProMeta.php:2051
+#: src/Plugin/Pro/ProMeta.php:2141 src/Plugin/Pro/ProMeta.php:2494
+#: src/Plugin/Pro/ProMeta.php:2506 src/Plugin/Pro/ProMeta.php:2601
+#: src/Plugin/Pro/ProMeta.php:2613 src/Plugin/Pro/ProMeta.php:3118
+#: src/Plugin/Pro/ProMeta.php:3208 src/Plugin/Pro/ProMeta.php:3311
+msgid "Left"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:564
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:578
+#: src/Plugin/Pro/ProMeta.php:1262 src/Plugin/Pro/ProMeta.php:1275
+#: src/Plugin/Pro/ProMeta.php:1333 src/Plugin/Pro/ProMeta.php:1344
+#: src/Plugin/Pro/ProMeta.php:1571 src/Plugin/Pro/ProMeta.php:1584
+#: src/Plugin/Pro/ProMeta.php:1667 src/Plugin/Pro/ProMeta.php:1679
+#: src/Plugin/Pro/ProMeta.php:2053 src/Plugin/Pro/ProMeta.php:2065
+#: src/Plugin/Pro/ProMeta.php:2143 src/Plugin/Pro/ProMeta.php:2154
+#: src/Plugin/Pro/ProMeta.php:2522 src/Plugin/Pro/ProMeta.php:2630
+#: src/Plugin/Pro/ProMeta.php:3129
+msgid "Middle"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:565
+#: src/Plugin/Pro/ProMeta.php:906 src/Plugin/Pro/ProMeta.php:1263
+#: src/Plugin/Pro/ProMeta.php:1334 src/Plugin/Pro/ProMeta.php:1572
+#: src/Plugin/Pro/ProMeta.php:1668 src/Plugin/Pro/ProMeta.php:2052
+#: src/Plugin/Pro/ProMeta.php:2142 src/Plugin/Pro/ProMeta.php:2495
+#: src/Plugin/Pro/ProMeta.php:2508 src/Plugin/Pro/ProMeta.php:2602
+#: src/Plugin/Pro/ProMeta.php:2615 src/Plugin/Pro/ProMeta.php:3119
+#: src/Plugin/Pro/ProMeta.php:3209 src/Plugin/Pro/ProMeta.php:3312
+msgid "Right"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:573
+#: src/Plugin/Pro/ProMeta.php:1270 src/Plugin/Pro/ProMeta.php:1339
+#: src/Plugin/Pro/ProMeta.php:1579 src/Plugin/Pro/ProMeta.php:1674
+msgid "Vertical Center"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:577
+#: src/Plugin/Pro/ProMeta.php:904 src/Plugin/Pro/ProMeta.php:1274
+#: src/Plugin/Pro/ProMeta.php:1343 src/Plugin/Pro/ProMeta.php:1583
+#: src/Plugin/Pro/ProMeta.php:1678 src/Plugin/Pro/ProMeta.php:2063
+#: src/Plugin/Pro/ProMeta.php:2152 src/Plugin/Pro/ProMeta.php:2496
+#: src/Plugin/Pro/ProMeta.php:2520 src/Plugin/Pro/ProMeta.php:2603
+#: src/Plugin/Pro/ProMeta.php:2628 src/Plugin/Pro/ProMeta.php:3128
+#: src/Plugin/Pro/ProMeta.php:3219 src/Plugin/Pro/ProMeta.php:3322
+msgid "Top"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:579
+#: src/Plugin/Pro/ProMeta.php:903 src/Plugin/Pro/ProMeta.php:1276
+#: src/Plugin/Pro/ProMeta.php:1345 src/Plugin/Pro/ProMeta.php:1585
+#: src/Plugin/Pro/ProMeta.php:1680 src/Plugin/Pro/ProMeta.php:2064
+#: src/Plugin/Pro/ProMeta.php:2153 src/Plugin/Pro/ProMeta.php:2497
+#: src/Plugin/Pro/ProMeta.php:2521 src/Plugin/Pro/ProMeta.php:2604
+#: src/Plugin/Pro/ProMeta.php:2629 src/Plugin/Pro/ProMeta.php:3130
+#: src/Plugin/Pro/ProMeta.php:3220 src/Plugin/Pro/ProMeta.php:3323
+msgid "Bottom"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:528
+msgid "Open content in Lightbox"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:529
+msgid "Open URL in Lightbox (iframe)"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:530
+msgid "Open Image in Lightbox"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:531
+msgid "Display content below"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:532
+msgid "Display content below & scroll"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:533
+msgid "Display content above"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:534
+msgid "Display content to right"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:535
+msgid "Display page below (beta)"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:536
+msgid "Display page below & scroll (beta)"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:537
+msgid "Display specific map (beta)"
+msgstr ""
+
+#: src/Plugin/Pro/ProActions.php:640
+msgid "Error: not possible to render the same map in this action content"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:178
+msgid "Icons"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:71 src/Plugin/Pro/ProMeta.php:87
+#: src/Plugin/Pro/ProMeta.php:1357 src/Plugin/Pro/ProMeta.php:1727
+#: src/Plugin/Pro/ProMeta.php:2114 src/models/post-type.php:641
+msgid "Custom Javascript Action"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:73 src/Plugin/Pro/ProMeta.php:89
+#: src/Plugin/Pro/ProMeta.php:1358 src/Plugin/Pro/ProMeta.php:2115
+#. translators: "object with the data" refers to a javascript object
+msgid ""
+"When a marker is clicked a function will be called where the object with "
+"the data from the clicked region will be passed. You can write the contents "
+"of the function here. <a "
+"href=\"https://interactivegeomaps.com/docs/pro-custom-click-actions/\" "
+"target=\"_blank\">More information</a> <span class=\"dashicons "
+"dashicons-external\"></span>"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:79 src/Plugin/Pro/ProMeta.php:95
+#: src/Plugin/Pro/ProMeta.php:1369 src/Plugin/Pro/ProMeta.php:1739
+#: src/Plugin/Pro/ProMeta.php:2126
+msgid "Trigger on Hover"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:80
+msgid ""
+"When enabled, when the user hovers a region, it will trigger a click "
+"automatically."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:96 src/Plugin/Pro/ProMeta.php:1370
+#: src/Plugin/Pro/ProMeta.php:1740
+msgid ""
+"When enabled, when the user hovers a marker, it will trigger a click "
+"automatically."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:138
+msgid ""
+"To display a page below, add the numeric ID of the page you want to display "
+"in the \"Action Content\" above."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:158 src/Plugin/Pro/ProMeta.php:721
+#: src/Plugin/Pro/ProMeta.php:1377 src/Plugin/Pro/ProMeta.php:1785
+#: src/Plugin/Pro/ProSettings.php:198 src/Plugin/Pro/ProSettings.php:221
+msgid "Other Data Sources"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:159
+msgid "Use other data sources to populate the regions."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:166 src/Plugin/Pro/ProMeta.php:300
+#: src/Plugin/Pro/ProMeta.php:344 src/Plugin/Pro/ProMeta.php:377
+#: src/Plugin/Pro/ProMeta.php:553 src/Plugin/Pro/ProMeta.php:729
+#: src/Plugin/Pro/ProMeta.php:873 src/Plugin/Pro/ProMeta.php:936
+#: src/Plugin/Pro/ProMeta.php:1040 src/Plugin/Pro/ProMeta.php:1060
+#: src/Plugin/Pro/ProMeta.php:1384 src/Plugin/Pro/ProMeta.php:1753
+#: src/Plugin/Pro/ProMeta.php:1792 src/Plugin/Pro/ProSettings.php:256
+#: src/Plugin/Pro/ProSettings.php:270 src/Plugin/Pro/ProSettings.php:284
+#: src/Plugin/Pro/ProSettings.php:298 src/Plugin/Pro/ProSettings.php:312
+#: src/Plugin/Pro/ProSettings.php:326
+msgid "Enabled"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:170 src/Plugin/Pro/ProMeta.php:733
+#: src/Plugin/Pro/ProMeta.php:1388 src/Plugin/Pro/ProMeta.php:1796
+msgid "Source of data"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:173
+msgid "Post Categories"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:174
+msgid "Post Tags"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:175
+msgid "Custom Taxonomy"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:177 src/Plugin/Pro/ProMeta.php:737
+#: src/Plugin/Pro/ProMeta.php:1800
+#. translators: Raw Data Content - user will need to write/include their own
+#. "non-prepared" data in a textfield
+msgid "Raw Data Content"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:178 src/Plugin/Pro/ProMeta.php:738
+#: src/Plugin/Pro/ProMeta.php:1391 src/Plugin/Pro/ProMeta.php:1801
+msgid "JSON data"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:179 src/Plugin/Pro/ProMeta.php:739
+#: src/Plugin/Pro/ProMeta.php:1802
+msgid "Google Spreadsheet"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:186 src/Plugin/Pro/ProMeta.php:795
+#: src/Plugin/Pro/ProMeta.php:1809
+#. translators: Raw Data - user will need to write/include their own
+#. "non-prepared" data in a textfield
+msgid "Raw Data"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:188
+msgid ""
+"Currently only accepts data with the following format:<br>\r\n"
+"\t\t\t\t\t\tRegion Code, Title, Tooltip Text, Action Value, HTML Color "
+"Value;"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:197 src/Plugin/Pro/ProMeta.php:745
+#: src/Plugin/Pro/ProMeta.php:1869 src/models/post-type.php:194
+msgid "Google API Key"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:199 src/Plugin/Pro/ProMeta.php:747
+#: src/Plugin/Pro/ProMeta.php:1871
+msgid "The API Key should have the Spreadsheet service enabled."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:199 src/Plugin/Pro/ProMeta.php:206
+#: src/Plugin/Pro/ProMeta.php:747 src/Plugin/Pro/ProMeta.php:754
+#: src/Plugin/Pro/ProMeta.php:1871 src/Plugin/Pro/ProMeta.php:1878
+#: src/models/post-type.php:861
+msgid "More Information"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:205 src/Plugin/Pro/ProMeta.php:753
+#: src/Plugin/Pro/ProMeta.php:1877
+msgid "Google Sheet ID"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:206 src/Plugin/Pro/ProMeta.php:754
+#: src/Plugin/Pro/ProMeta.php:1878
+msgid ""
+" You can find the spreadsheet ID in a Google Sheets "
+"URL:<br><pre>https://docs.google.com/spreadsheets/d/SPREADSHEET-ID/edit#"
+"gid=0</pre>"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:212 src/Plugin/Pro/ProMeta.php:760
+#: src/Plugin/Pro/ProMeta.php:1884
+msgid "Sheet Range"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:213
+msgid ""
+"Leave default <code>Sheet1</code> if in doubt. Title of the Sheet or "
+"specific cell range.<br> You should use <a "
+"href=\"https://developers.google.com/sheets/api/guides/concepts#a1_notation\""
+" target=\"_blank\">A1 notation</a> <span class=\"dashicons "
+"dashicons-external\"></span>"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:219 src/Plugin/Pro/ProMeta.php:767
+#: src/Plugin/Pro/ProMeta.php:1891
+msgid "ID Property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:220
+msgid ""
+"Column name for the region code. Avoid using spaces or special characters "
+"in your spreadsheet to avoid errors."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:226 src/Plugin/Pro/ProMeta.php:788
+#: src/Plugin/Pro/ProMeta.php:1912
+msgid "Action Content Property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:227 src/Plugin/Pro/ProMeta.php:789
+#: src/Plugin/Pro/ProMeta.php:1913
+msgid ""
+"Column name for the action content. Avoid using spaces or special "
+"characters in your spreadsheet to avoid errors."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:233 src/Plugin/Pro/ProMeta.php:807
+#: src/Plugin/Pro/ProMeta.php:1399 src/Plugin/Pro/ProMeta.php:1822
+#. translators: Raw Data - JSON code
+msgid "Raw JSON Data"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:235 src/Plugin/Pro/ProMeta.php:809
+#: src/Plugin/Pro/ProMeta.php:1401 src/Plugin/Pro/ProMeta.php:1824
+msgid "The data should be an array of objects. Example:"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:235 src/Plugin/Pro/ProMeta.php:809
+#: src/Plugin/Pro/ProMeta.php:1401 src/Plugin/Pro/ProMeta.php:1824
+msgid ""
+"You can also use a URL to a JSON file, instead of the JSON code. URL "
+"content will be cached for some time."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:241 src/Plugin/Pro/ProMeta.php:823
+#: src/Plugin/Pro/ProMeta.php:1415 src/Plugin/Pro/ProMeta.php:1838
+#. translators: Raw Data - JSON code
+msgid "JSON ID property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:243
+msgid ""
+"If your data entries do not contain an <code>id</code> property, specify "
+"which property to use instead. You can use dot notation."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:249 src/Plugin/Pro/ProMeta.php:815
+#: src/Plugin/Pro/ProMeta.php:1407 src/Plugin/Pro/ProMeta.php:1830
+#. translators: Raw Data - JSON code
+msgid "JSON data source property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:251 src/Plugin/Pro/ProMeta.php:817
+#: src/Plugin/Pro/ProMeta.php:1409 src/Plugin/Pro/ProMeta.php:1832
+msgid ""
+"Leave empty if your data is at the first level of the returned json object. "
+"If your region data is inside a property, specify it here. You can use dot "
+"notation. <br> For example, if your data is formatted like "
+"this:<br>%s<br>then use <code>countries</code> as your data source property."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:256 src/Plugin/Pro/ProMeta.php:846
+#: src/Plugin/Pro/ProMeta.php:1445 src/Plugin/Pro/ProMeta.php:1861
+msgid "JSON Action Content property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:258
+msgid ""
+"If your data entries do not contain a <code>content</code> property, "
+"specify which property to use instead. This is the property that will "
+"contain the content that is triggered when the region is clicked."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:264
+#. translators: Raw Data - JSON code
+msgid "Custom Taxonomy Identifier"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:266
+msgid ""
+"Write the identifier of the taxonomy you want to use. <br> This will only "
+"work well with the action to open URL, which will open the URL for this "
+"taxonomy archive page. You can also use a JSON object with args from <a "
+"target=\"_blank\" "
+"href=\"https://developer.wordpress.org/reference/classes/wp_term_query/__"
+"construct/\">WP Term Query</a> to build a custom taxonomy query."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:271 src/Plugin/Pro/ProMeta.php:277
+msgid "Include empty"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:283 src/Plugin/Pro/ProMeta.php:853
+#: src/Plugin/Pro/ProMeta.php:1918
+msgid "Action Content Template"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:285 src/Plugin/Pro/ProMeta.php:855
+#: src/Plugin/Pro/ProMeta.php:1920
+msgid ""
+"You can setup a custom template for the action content with "
+"<strong>placeholders</strong> (using brackets) for parameters that exist in "
+"your content object.<br>Leave blank or the default <code>{content}</code> "
+"if you prefer to use the default or defined above value."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:295
+#. translators: legend refers to a caption or visual element explaining colours
+#. on map
+msgid "Combine entries"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:296
+msgid "If there are entries with the same region ID, the content will be combined."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:339
+#. translators: legend refers to a caption or visual element explaining colours
+#. on map
+msgid "Active State"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:340
+msgid "Display regions in different colour when clicked."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:349
+msgid "Colour"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:352
+msgid "Same as hover"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:353 src/Plugin/Pro/ProSettings.php:370
+#. translators: for Custom Size in Pixels
+msgid "Custom"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:360
+msgid "Custom Color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:372 src/Plugin/Pro/ProMeta.php:1096
+#: src/Plugin/Pro/ProMeta.php:1102 src/Plugin/Pro/ProMeta.php:1455
+#: src/Plugin/Pro/ProMeta.php:1460 src/Plugin/Pro/ProMeta.php:1929
+#: src/Plugin/Pro/ProMeta.php:1935 src/Plugin/Pro/ProMeta.php:2184
+#: src/Plugin/Pro/ProMeta.php:2190 src/Plugin/Pro/ProMeta.php:2434
+#: src/Plugin/Pro/ProMeta.php:2440
+#. translators: legend refers to a caption or visual element explaining colours
+#. on map
+msgid "Show in Legend"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:373 src/Plugin/Pro/ProMeta.php:1097
+#: src/Plugin/Pro/ProMeta.php:1103 src/Plugin/Pro/ProMeta.php:1456
+#: src/Plugin/Pro/ProMeta.php:1461 src/Plugin/Pro/ProMeta.php:1930
+#: src/Plugin/Pro/ProMeta.php:1936 src/Plugin/Pro/ProMeta.php:2185
+#: src/Plugin/Pro/ProMeta.php:2191 src/Plugin/Pro/ProMeta.php:2435
+#: src/Plugin/Pro/ProMeta.php:2441
+msgid "Will display in legend if enabled."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:380
+msgid "No"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:381
+msgid "Yes"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:382
+msgid "Yes - Only Grouped Regions"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:383
+msgid "Yes - Ignore Grouped Regions"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:389 src/Plugin/Pro/ProMeta.php:1108
+#: src/Plugin/Pro/ProMeta.php:1466 src/Plugin/Pro/ProMeta.php:1941
+#: src/Plugin/Pro/ProMeta.php:2196 src/Plugin/Pro/ProMeta.php:2446
+#. translators: legend refers to a caption or visual element explaining colours
+#. on map
+msgid "Title in Legend"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:401 src/Plugin/Pro/ProMeta.php:407
+#: src/Plugin/Pro/ProSettings.php:203 src/Plugin/Pro/ProSettings.php:226
+#. translators: labels are text elements that will go on top of the regions on
+#. the map
+msgid "Automatic Labels"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:402
+msgid ""
+"When enabled you can move the labels to a custom position in the map "
+"preview."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:403
+msgid ""
+"Automaticaly add labels to the regions. <br> This will calculate the visual "
+"center of each region and add a label to it, based on the available data. "
+"It might fail or have a wrong position on some cases. You can drag & drop "
+"them into a new position."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:420
+msgid "Label Source Property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:421
+msgid ""
+"Object property from where to read the label information. You can use dot "
+"notation."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:427
+#. translators: Only active - as in - apply only on regions with data
+msgid "Only Active"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:428
+msgid "Display automatic label only on regions with custom data."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:442 src/Plugin/Pro/ProMeta.php:2165
+#: src/Plugin/Pro/ProMeta.php:2900 src/models/post-type.php:553
+msgid "Font Family"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:448 src/Plugin/Pro/ProMeta.php:2170
+#: src/Plugin/Pro/ProMeta.php:2912
+msgid "Font Weight"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:460 src/Plugin/Pro/ProMeta.php:914
+#: src/Plugin/Pro/ProMeta.php:1116 src/Plugin/Pro/ProMeta.php:1473
+#: src/Plugin/Pro/ProMeta.php:1948 src/Plugin/Pro/ProMeta.php:2204
+msgid "Mobile Size"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:468 src/Plugin/Pro/ProMeta.php:886
+#: src/Plugin/Pro/ProMeta.php:1766 src/Plugin/Pro/ProMeta.php:2096
+#: src/Plugin/Pro/ProMeta.php:2546 src/Plugin/Pro/ProMeta.php:2654
+#: src/Plugin/Pro/ProMeta.php:3010
+#. translators: Font size
+msgid "Color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:483 src/Plugin/Pro/ProMeta.php:2047
+#: src/Plugin/Pro/ProMeta.php:2138
+#. translators: option to set where a label will align to
+msgid "Horizontal center"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:496 src/Plugin/Pro/ProMeta.php:2059
+#: src/Plugin/Pro/ProMeta.php:2149
+#. translators: option to set where a label will align to
+msgid "Vertical center"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:510
+#. translators: set if element will resize when we zoom the map, for example
+msgid "Non Scaling"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:517
+msgid "Reset labels position"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:536
+#. translators: Group - verb - to group
+msgid "Group"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:538
+msgid "Set hover state to all regions when hovering one of them."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:547
+#. translators: Heat Map or Heatmap
+msgid "Heat Map (Choropleth)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:548
+msgid "Calculate region colours automatically"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:561 src/Plugin/Pro/ProMeta.php:943
+msgid "Gradient"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:562 src/Plugin/Pro/ProMeta.php:944
+msgid "Custom Ranges"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:569 src/Plugin/Pro/ProMeta.php:951
+msgid "Range sets"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:573 src/Plugin/Pro/ProMeta.php:955
+msgid "Rule (>=)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:574
+msgid ""
+"Use numbers. Numbers bigger than this will have the color below.<br>Until "
+"the next rule kicks in and defines a new color.<br>So number >= X will have "
+"the color below."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:589 src/Plugin/Pro/ProMeta.php:990
+#. translators: Minimum color for heatmap
+msgid "Minimum Color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:595
+msgid ""
+"Avoid using transparency in your colours, since the gradient will not "
+"consider it and the colors might seem off."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:597 src/Plugin/Pro/ProMeta.php:997
+#. translators: Maximum color for heatmap
+msgid "Maximum Color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:605 src/Plugin/Pro/ProMeta.php:1005
+#: src/Plugin/Pro/ProMeta.php:2460
+#. translators: Legend: caption or element explaining colors on the map
+msgid "Legend"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:611 src/Plugin/Pro/ProMeta.php:1010
+#. translators: as in "Label for minimum color for heatmap"
+msgid "Label for Minimum"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:618 src/Plugin/Pro/ProMeta.php:1016
+#. translators: as in "Label for maximum color for heatmap"
+msgid "Label for Maximum"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:625
+#. translators: as in "Label for maximum color for heatmap"
+msgid "Label Legend"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:632
+msgid "Disable Hover"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:633
+msgid "Disable Hover Color Change"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:639 src/Plugin/Pro/ProMeta.php:1022
+#. translators: Identify which field the heatmap should read values from
+msgid "Source field ID"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:641
+msgid ""
+"Field from where you want the heatmap to read values from. You can specify "
+"a custom one if you're using a custom data source."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:651 src/Plugin/Pro/ProMeta.php:1085
+#: src/Plugin/Pro/ProMeta.php:1124 src/Plugin/Pro/ProMeta.php:1480
+#: src/Plugin/Pro/ProMeta.php:1955 src/Plugin/Pro/ProMeta.php:2211
+msgid "Tooltip Template"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:653 src/Plugin/Pro/ProMeta.php:1126
+#: src/Plugin/Pro/ProMeta.php:1482 src/Plugin/Pro/ProMeta.php:1957
+#: src/Plugin/Pro/ProMeta.php:2213
+msgid ""
+"Override default tooltip template for this series of data.<br>Leave blank "
+"to use default. <a "
+"href=\"https://interactivegeomaps.com/docs/pro-tooltip-content-and-design/\""
+">More Information</a>  <span class=\"dashicons "
+"dashicons-external\"></span>. "
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:660 src/Plugin/Pro/ProMeta.php:1190
+#: src/Plugin/Pro/ProMeta.php:1512 src/Plugin/Pro/ProMeta.php:1982
+msgid "Use unique titles, if possible without special characters."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:705 src/Plugin/Pro/ProMeta.php:1292
+#: src/Plugin/Pro/ProMeta.php:1638 src/Plugin/Pro/ProMeta.php:2079
+msgid ""
+"To display a page below, add the numeric ID of the page you want to display "
+"in the \"Action Content\" field above."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:722 src/Plugin/Pro/ProMeta.php:1378
+#: src/Plugin/Pro/ProMeta.php:1786
+msgid "Use other data sources to populate the markers."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:761 src/Plugin/Pro/ProMeta.php:1885
+msgid ""
+"Leave default <code>Sheet1</code> if in doubt. Title of the Sheet or "
+"specific cell range.<br> You should use <a "
+"href=\"https://developers.google.com/sheets/api/guides/concepts#a1_notation\""
+" target=\"_blank\">A1 notation</a> <span class=\"dashicons "
+"dashicons-external\"></span>."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:768 src/Plugin/Pro/ProMeta.php:1892
+msgid ""
+"Column name for the marker unique identifier. Avoid using spaces or special "
+"characters in your spreadsheet to avoid errors. If this field is empty in "
+"your spreadhseet, the entry will be skipped."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:774 src/Plugin/Pro/ProMeta.php:1898
+msgid "Latitude Property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:775 src/Plugin/Pro/ProMeta.php:1899
+msgid ""
+"Column name for the latitude. Avoid using spaces or special characters in "
+"your spreadsheet to avoid errors."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:781 src/Plugin/Pro/ProMeta.php:1905
+msgid "Longitude Property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:782 src/Plugin/Pro/ProMeta.php:1906
+msgid ""
+"Column name for the longitude. Avoid using spaces or special characters in "
+"your spreadsheet to avoid errors."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:797
+msgid ""
+"Currently only accepts data with the following format:<br>\r\n"
+"\t\t\t\t\t\tLatitude Longitude, Title, Tooltip Text, Action Value, HTML "
+"Color Value;"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:825 src/Plugin/Pro/ProMeta.php:1417
+#: src/Plugin/Pro/ProMeta.php:1840
+msgid ""
+"If your data entries do not contain an <code>id</code> property, specify "
+"which property to use instead."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:831 src/Plugin/Pro/ProMeta.php:1423
+#: src/Plugin/Pro/ProMeta.php:1846
+#. translators: Raw Data - JSON code
+msgid "JSON Latitude property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:833 src/Plugin/Pro/ProMeta.php:1425
+#: src/Plugin/Pro/ProMeta.php:1848
+msgid ""
+"If your data entries do not contain a <code>latitude</code> property, "
+"specify which property to use instead."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:839 src/Plugin/Pro/ProMeta.php:1431
+#: src/Plugin/Pro/ProMeta.php:1854
+#. translators: Raw Data - JSON code
+msgid "JSON Longitude property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:841 src/Plugin/Pro/ProMeta.php:1433
+#: src/Plugin/Pro/ProMeta.php:1856
+msgid ""
+"If your data entries do not contain a <code>longitude</code> property, "
+"specify which property to use instead."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:848 src/Plugin/Pro/ProMeta.php:1447
+#: src/Plugin/Pro/ProMeta.php:1863
+msgid ""
+"If your data entries do not contain a <code>content</code> property, "
+"specify which property to use instead. This is the property that will "
+"contain the content that is triggered when the marker is clicked."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:868 src/Plugin/Pro/ProMeta.php:1748
+#. translators: labels are text elements that will go on top of the regions on
+#. the map
+msgid "Automatic Labels (Beta)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:869 src/Plugin/Pro/ProMeta.php:1749
+msgid "Automatically add the title below the marker."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:895 src/Plugin/Pro/ProMeta.php:1775
+msgid "Source Property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:896 src/Plugin/Pro/ProMeta.php:1776
+msgid ""
+"Leave the default <code>{name}</code> or blank to use the marker title or "
+"specify which property to use as the label text source, using the template "
+"format, like <code>{tooltipContent}</code>."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:908 src/Plugin/Pro/ProMeta.php:2490
+#: src/Plugin/Pro/ProMeta.php:2597 src/Plugin/Pro/ProMeta.php:2737
+msgid "Position"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:909
+msgid "Where the labels should be placed"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:917 src/Plugin/Pro/ProMeta.php:1119
+#: src/Plugin/Pro/ProMeta.php:1476 src/Plugin/Pro/ProMeta.php:1951
+msgid ""
+"On smaller screens markers will decrease proportionally to their size on "
+"desktop"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:930 src/Plugin/Pro/ProSettings.php:208
+#: src/Plugin/Pro/ProSettings.php:237
+#. translators: Heat Map or Heatmap
+msgid "Heat Map"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:931
+msgid "Calculate markers radius automatically"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:956
+msgid ""
+"Use numbers preferably. Numbers bigger than this will have the color "
+"below.<br>Until the next rule kicks in and defines a new color.<br>So "
+"number >= X will have the color and radius set below."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:976
+#. translators: Circle radius
+msgid "Minimum Radius"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:983
+#. translators: Circle radius
+msgid "Maximum Radius"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1034
+msgid "Connect with Regions"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1035 src/Plugin/Pro/ProSettings.php:243
+msgid "(Experimental Feature)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1041
+msgid ""
+"When enabled, you can add region codes to the marker value field and they "
+"will trigger the hover event together with the marker."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1054 src/models/post-type.php:819
+#. translators: Cluster Markers: grouping markers that are close together
+msgid "Cluster Markers"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1055
+msgid "Group markers that are close together."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1061
+msgid ""
+"Zoom controls should be enabled for this to work correctly. <br>Might not "
+"work well in combination with other advanced features."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1065
+msgid "Maximum Zoom"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1066
+msgid "Display all entries at this zoom level."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1073
+#. translators:  threshold - intensity that must be exceeded for a certain
+#. reaction
+msgid "Threshold"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1087
+msgid ""
+"Override default tooltip template for the cluster markers.<br>Leave blank "
+"to use default. <a "
+"href=\"https://interactivegeomaps.com/docs/pro-tooltip-content-and-design/\""
+">More Information</a>  <span class=\"dashicons "
+"dashicons-external\"></span>. "
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1150
+msgid "Orthographic Projection Settings"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1154
+msgid "Grid color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1160 src/models/post-type.php:501
+msgid "Background Color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1166
+msgid ""
+"You can find the options for the background color of the map container in "
+"the \"Visual Settings\" section. The background options above will only "
+"apply to the \"globe\" of this projection."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1175
+msgid "Image Markers"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1180
+msgid ""
+"Add images to the map.<br>Click \"Add New Marker\" below to start adding "
+"them."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1184 src/Plugin/Pro/ProMeta.php:1505
+#: src/models/post-type.php:687
+msgid "Add New Marker"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1189 src/Plugin/Pro/ProMeta.php:1511
+#: src/Plugin/Pro/ProMeta.php:1981 src/Plugin/Pro/ProMeta.php:2275
+#: src/Plugin/Pro/ProMeta.php:2317 src/models/post-type.php:691
+msgid "Title"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1197 src/Plugin/Pro/ProMeta.php:1519
+#: src/Plugin/Pro/ProMeta.php:1989 src/models/post-type.php:698
+msgid "Coordinates"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1201 src/Plugin/Pro/ProMeta.php:1523
+#: src/Plugin/Pro/ProMeta.php:1993 src/Plugin/Pro/ProMeta.php:3410
+#: src/models/post-type.php:702
+msgid "Location"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1209 src/Plugin/Pro/ProMeta.php:1531
+#: src/Plugin/Pro/ProMeta.php:2001 src/Plugin/Pro/ProMeta.php:2325
+#: src/Plugin/Pro/ProMeta.php:3418 src/Plugin/Pro/ProMeta.php:3435
+#: src/models/post-type.php:710
+msgid "Latitude"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1214 src/Plugin/Pro/ProMeta.php:1536
+#: src/Plugin/Pro/ProMeta.php:2006 src/Plugin/Pro/ProMeta.php:2330
+#: src/Plugin/Pro/ProMeta.php:3422 src/Plugin/Pro/ProMeta.php:3443
+#: src/models/post-type.php:716
+msgid "Longitude"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1226
+msgid "URL or content to trigger when image marker is clicked."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1231
+msgid "Use default image and actions."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1253 src/Plugin/Pro/ProMeta.php:1324
+msgid "Keep size on zoom"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1306 src/Plugin/Pro/ProMeta.php:1652
+#: src/Plugin/Pro/ProMeta.php:2087 src/models/post-type.php:609
+#: src/models/post-type.php:737
+msgid "Default values"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1364 src/Plugin/Pro/ProMeta.php:1734
+#: src/Plugin/Pro/ProMeta.php:2121
+msgid ""
+"To display a page below, add the numeric ID of the page you want to display "
+"in the \"Action Content\" field of each entry."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1438
+msgid "JSON Image URL property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1440
+msgid ""
+"If your data entries do not contain a <code>href</code> property, specify "
+"which property to use instead to grab the image URL. If empty, the default "
+"image will be used."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1493
+msgid "Vector Icon Markers"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1499
+msgid ""
+"Add icon markers to the map. There is a predefined list of available "
+"icons.<br>Click \"Add New Marker\" below to start adding icon markers to "
+"the map."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1549
+msgid "URL or content to trigger when icon marker is clicked."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1611 src/Plugin/Pro/ProMeta.php:1704
+msgid "Rotation"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1705
+msgid "Degrees to rotate in clockwise direction"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1728
+msgid ""
+"When a marker is clicked a function will be called where the object with "
+"the data from the clicked region will be passed. You can write the contents "
+"of the function here. <a "
+"href=\"https://interactivegeomaps.com/docs/pro-custom-click-actions/\" "
+"target=\"_blank\">More information</a>"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1811
+msgid ""
+"Currently only accepts data with the following format:<br>\r\n"
+"\t\t\t\t\t\t\t\tLatitude Longitude, Title, Tooltip Text, Action Value, HTML "
+"Color Value;"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1967
+msgid "Labels"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1972
+msgid "Add text labels to the map.<br>Click \"Add New Label\" below to start ."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:1976
+msgid "Add New Label"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2019
+msgid "URL or content to trigger when label is clicked."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2127
+msgid ""
+"When enabled, when the user hovers a label, it will trigger a click "
+"automatically."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2133
+msgid "Default Positioning"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2134
+msgid "Where is the central point (coordinates value) located?"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2161
+msgid "Font Styles"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2207
+msgid ""
+"On smaller screens labels will decrease proportionally to their size on "
+"desktop"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2261
+msgid "Lines"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2266
+msgid ""
+"Add lines connecting points in the map.<br>Click \"Add New Line\" below to "
+"start."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2270
+msgid "Add New Line"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2281
+msgid "Add Point"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2282
+msgid "Points to Connect"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2303
+msgid "Coordinates type"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2304
+msgid ""
+"Select existing marker or add custom coordinates. Save your map to update "
+"existing marker options. If you change the title of a marker, you will need "
+"to select it again here."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2306
+msgid "Custom coordinates"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2312
+msgid "Point Coordinates"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2345 src/Plugin/Pro/ProMeta.php:2393
+msgid "Stroke Color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2357 src/Plugin/Pro/ProMeta.php:2405
+msgid "Stroke Dash"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2363 src/Plugin/Pro/ProMeta.php:2410
+msgid "Stroke Width"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2375 src/Plugin/Pro/ProMeta.php:2421
+msgid "Curvature"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2380 src/Plugin/Pro/ProMeta.php:2426
+msgid "Arrow (Beta)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2381 src/Plugin/Pro/ProMeta.php:2427
+msgid "Will add an arrow to the end of the line. Experimental Feature."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2389 src/Plugin/Pro/ProSettings.php:139
+msgid "Defaults"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2468
+msgid "Auto Legend"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2474
+msgid "Legend based on map data series"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2478
+msgid "Clickable"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2479
+msgid "This will not apply to the custom added labels."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2482
+msgid "Disabled"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2483
+msgid "Toggle Visibility"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2484
+msgid "Highlight"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2503 src/Plugin/Pro/ProMeta.php:2610
+#: src/Plugin/Pro/ProMeta.php:3115
+msgid "Horizontal alignment"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2507 src/Plugin/Pro/ProMeta.php:2614
+msgid "Center"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2517 src/Plugin/Pro/ProMeta.php:2625
+#: src/Plugin/Pro/ProMeta.php:3125
+msgid "Vertical alignment"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2531 src/Plugin/Pro/ProMeta.php:2640
+msgid "Style"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2534 src/Plugin/Pro/ProMeta.php:2643
+#: src/Plugin/Utils/MapListOutput.php:70
+msgid "Default"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2535 src/Plugin/Pro/ProMeta.php:2644
+msgid "Small"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2536 src/Plugin/Pro/ProMeta.php:2645
+msgid "X-Small"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2537 src/Plugin/Pro/ProMeta.php:2646
+msgid "Regular"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2538 src/Plugin/Pro/ProMeta.php:2647
+msgid "Large"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2539 src/Plugin/Pro/ProMeta.php:2648
+msgid "Larger"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2558
+msgid "Custom Legend"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2564
+msgid "Custom legend entries"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2568
+msgid "Custom entries"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2572
+msgid "Label"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2589
+msgid ""
+"Internal will have positioning options inside the map and will be included "
+"in the map if exported;<br>External will display outside the map container. "
+"The external will not display in the preview above.<br><a "
+"href=\"https://interactivegeomaps.com/docs/pro-custom-legend-types/\" "
+"target=\"_blank\">More Information</a> <span class=\"dashicons "
+"dashicons-external\"></span>."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2591
+msgid "Internal"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2592
+msgid "External"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2669 src/Plugin/Pro/ProMeta.php:2673
+msgid "Overlay Maps"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2674
+msgid ""
+"Select maps that you also want to include in this map.<br>You can sort the "
+"options using drag&drop to change their order."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2695
+msgid "Allow empty regions"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2697
+msgid ""
+"If you need the empty regions of the overlay map to display, enable "
+"this.<br>If you only need markers or labels in the overlay map and don't "
+"want to include the empty regions - which might overlay the regions of the "
+"parent map - disable this option."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2701
+msgid "Drill down on click"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2703
+msgid ""
+"If you have overlaid maps, you can enable this option to \"drill down\" "
+"into that map. <br> When enabled, the overlaid maps will be hidden by "
+"default and will only display when that region is clicked."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2708
+msgid "Keep Base Map (Beta)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2711
+msgid ""
+"(Experimental Feature) If you want the base map to always be visible when "
+"using the drilldown or show/hide map functions."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2716
+msgid "External Live Filter"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2717
+msgid "Display a list of the maps included that will work as a filter"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2730
+msgid "Menu"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2731
+msgid "Dropdown"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2732
+msgid "Menu ( w/ Dropdown on Mobile)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2741 src/Plugin/Pro/ProMeta.php:2837
+msgid "Above"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2742 src/Plugin/Pro/ProMeta.php:2836
+msgid "Below"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2747
+msgid "\"All\" Label"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2752
+msgid "Display by default"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2753
+msgid ""
+"Display this map by default and hide all the others. Select the current map "
+"if you want all to display by default."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2765
+msgid "Include Count"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2766
+msgid "The number of regions and markers in each map will display on each item."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2772
+msgid "Keep Base Map"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2773
+msgid "Set base map data to always be visible."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2779
+msgid ""
+"The menu order will be the same as the overlay order above. You can "
+"rearrange the order if needed using drag&drop."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2791
+msgid "Tooltip Options"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2799
+msgid "Tooltip Settings"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2803
+msgid "Tooltip"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2804
+msgid "Enable tooltips"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2809
+msgid "Fixed"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2811
+msgid "If you need the tooltips to be clickable, enable this option."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2818
+msgid "Show Tooltip On (Beta)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2821
+msgid "Hover (tap on mobile) - Recommended"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2822
+msgid "Hit (tap or click)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2823
+msgid "Always"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2825
+msgid ""
+"When the tooltip should display. This is still an experimental feature. It "
+"does not work consistenly. Make sure to test properly."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2831
+msgid "Position of the Tooltip"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2834
+msgid "Horizontal"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2835
+msgid "Vertical (Default)"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2838
+msgid "On the Right"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2839
+msgid "On the Left"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2841
+msgid ""
+"IMPORTANT: in some situations, like having multiple tooltips stacked for "
+"multiple series, the \"up\" and \"down\" values might be ignored in order "
+"to make tooltip overlap algorithm work."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2848
+msgid "Content template"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2850
+msgid ""
+"You can use placeholders that exist in your data source.<br>Default value "
+"is {tooltipContent}."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2855 src/Plugin/Pro/ProMeta.php:2860
+#: src/models/post-type.php:242
+#. translators: field type = input type (textarea, rich text editor...)
+msgid "Render as HTML"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2858
+msgid "As in Global Settings"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2859
+msgid "Render as editor"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2862 src/models/post-type.php:243
+msgid ""
+"Enable this to remove automatic paragraphs, rendering content as it was "
+"written. Default is false."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2867
+msgid "Only active"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2868
+msgid ""
+"Only display the tooltip on entries that where added by us.<br>This is "
+"particularly useful if you use the tooltip content template option to "
+"display data that exists on empty regions also."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2874
+msgid "Disable on mobile"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2875
+msgid "(Beta) Disable tooltips on mobile only."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2881
+msgid "Hold Click Actions on Mobile"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2882
+msgid ""
+"(Beta) On touch devices, some actions like opening a URL on the same window "
+"or displaying a lightbox, won't allow for the tooltip to be visible, since "
+"the action will be triggered imediately. Enabling this action will prevent "
+"this from happening and require a second tap on the region or marker to "
+"trigger the action."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2888
+msgid "Background color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2894
+msgid "Font color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2906
+msgid "Font Size"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2924
+msgid "Corner radius"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2932
+msgid "Pointer Length"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2940
+msgid "Border color"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2946
+msgid "Border width"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2955
+msgid "Maximum Width"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2959
+msgid "Leave it blank if you want the tooltip to calculate the size automatically."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2966
+msgid "Customize Shadow"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2967
+msgid "Enable this option to customize the dropshadow effect on the tooltip"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2978
+msgid "Tooltip Shadow"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2982
+msgid "Horizontal Position"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2988
+msgid "Vertical Position"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2994
+msgid "Blur Level"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2999
+msgid "Opacity"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3023
+msgid "Map Controls"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3032 src/models/post-type.php:308
+msgid "Zoom"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3036
+msgid "Zoom Enabled"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:2975
+msgid "Allow users to control zoom functions."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3042
+msgid "Draggable"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3043
+msgid ""
+"Allow pan with drag. Will also enable zoom on mobile devices with touch "
+"actions."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3049
+msgid "Allow Touch Resize"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3050
+msgid "Only allow users on mobile devices to zoom/drag with touch actions"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3056
+msgid "Double click zoom"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3064
+msgid "Mouse wheel"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3071
+msgid "Zoom on click"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3077
+msgid "Display controls"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3083
+msgid "Display Home Button"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3092
+msgid "Maximum Zoom Level"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3111
+msgid "Controls Position"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3138
+msgid "External Controls on Mobile"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3139
+msgid ""
+"When enabled, on smaller screens, bigger controls will display below the "
+"map."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3153
+msgid "Touch Interface"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3157
+msgid "Tap to activate"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3158
+msgid ""
+"Zoom, pan and scroll gestures will only work after user taps the map on "
+"touch devices"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3163
+msgid "Tap Timeout"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3165
+msgid "Exit active mode after this amount of time (in milliseconds) of inactivity."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3170
+msgid "Drag Grip"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3171
+msgid "Enable a special area on the map that can be used to scroll the page."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3176
+msgid "Drag Grip Auto Hide Delay"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3178
+msgid "How long the drag grip will stay on screen (in milliseconds)."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3188
+msgid "Fullscreen Button"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3193
+msgid ""
+"Display a button that allows users to set the map to take the fullscreen. "
+"<br>Some features might not be available when the map is on "
+"fullscreen.<br><b>Consider that some browsers and operating system versions "
+"do not support fullscreen mode</b>."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3198 src/Plugin/Pro/ProMeta.php:3241
+msgid "Mobile only"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3204 src/Plugin/Pro/ProMeta.php:3307
+msgid "Horizontal position"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3215 src/Plugin/Pro/ProMeta.php:3318
+msgid "Vertical position"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3231
+msgid "External Dropdown"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3247
+msgid "Label Property"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3248
+msgid ""
+"Select object properties to populate the labels and searchable fields for "
+"each entry. Useful if you're using external data sources. Separate multiple "
+"fields with a comma. Otherwise leave empty by default."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3254
+msgid "Placeholder text"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3255
+msgid "Select"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3260
+msgid "No Matches text"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3261
+msgid "No Matches"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3266
+msgid "Select text"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3267
+msgid "Tap to Select"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3272
+msgid "Exclude Regions"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3274
+msgid "Do not include region entries in the dropdown options."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3279
+msgid "Group Overlay Entries"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3281
+msgid ""
+"In case the map contains overlay maps with active dropdowns, the entries "
+"will be grouped by map."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3286
+msgid "Only Include Parent Map Entries"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3288
+msgid "In case the map contains overlay maps, only include the parent map entries."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3298
+msgid "Export Menu"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3341
+msgid "Custom CSS & JS"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3345
+msgid "Custom CSS"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3346
+msgid ""
+"Custom CSS to load with the layouts. These will not be applied in the map "
+"preview."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3350
+msgid "Custom Javascript"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3351
+msgid ""
+"Custom Javascript to load with the layouts. This code will not load here in "
+"the administration. Therefore the preview will not consider this."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3379
+msgid "Background Image"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3381
+msgid ""
+"Make sure you set the background to transparent for the image to be "
+"visible.<br>This image will also be zoomable. It should have the same "
+"aspect ratio as the map to fit perfectly."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3391
+msgid "Viewport Settings"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3395
+msgid "Initial zoom"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3405
+msgid "Center coordinates"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3406
+msgid "Custom initial center for map. Leave blank for default."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3430
+msgid "Projection Offset"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3431
+msgid ""
+"Add delta coordinates offset for current projection.<br><strong>Making "
+"changes to these values might affect the \"Zoom on click\" feature</strong>."
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:3464
+msgid "Custom Map Source"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:86
+#. translators: field type = input type (textarea, rich text editor...)
+msgid "Action Content field type"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:87
+msgid ""
+"Type of field to use to edit the Action content. <br> When using the Rich "
+"Text Editor, if you have a lot of entries, you might come across the \"<a "
+"href='https://interactivegeomaps.com/docs/max-input-vars-issue/' "
+"target='_blank'>Too much data\" issue</a>."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:90 src/Plugin/Pro/ProSettings.php:104
+#: src/Plugin/Pro/ProSettings.php:118 src/models/post-type.php:233
+msgid "Textarea"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:92 src/Plugin/Pro/ProSettings.php:106
+#: src/Plugin/Pro/ProSettings.php:120 src/models/post-type.php:235
+#. translators: equivalent to classic editor in a way
+msgid "WP Rich Text Editor"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:93 src/Plugin/Pro/ProSettings.php:107
+#: src/Plugin/Pro/ProSettings.php:121 src/models/post-type.php:236
+msgid "Text Input"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:100
+#. translators: field type = input type (textarea, rich text editor...)
+msgid "Description field type"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:101
+msgid ""
+"Type of field to use to edit the description field of the map. <br> When "
+"using the Rich Text Editor, if you have a lot of entries, you might come "
+"across the \"<a "
+"href='https://interactivegeomaps.com/docs/max-input-vars-issue/' "
+"target='_blank'>Too much data\" issue</a>."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:114
+#. translators: field type = input type (textarea, rich text editor...)
+msgid "Tooltip & Action Content Template field type"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:115
+msgid ""
+"Type of field to use to edit the tooltip template fields and Action Content "
+"template (other data sources). <br> When using the Rich Text Editor, if you "
+"have a lot of entries, you might come across the \"<a "
+"href='https://interactivegeomaps.com/docs/max-input-vars-issue/' "
+"target='_blank'>Too much data\" issue</a>."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:128
+#. translators: field type = input type (textarea, text field...)
+msgid "Colours field type"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:129
+msgid "Type of field to use to select colours."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:132
+msgid "Color Picker (recommended)"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:133
+msgid "Text"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:145
+msgid "Default Active Colour"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:146
+msgid ""
+"Set the default colour for the active colour field, when you create new "
+"maps."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:152
+msgid "Default Hover Colour"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:153
+msgid "Set the default colour for the hover colour field, when you create new maps."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:158
+msgid "Map single pages"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:159
+msgid "When enabled the maps will automatically have a single page with that map."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:169
+msgid "slug"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:170
+msgid ""
+"URL slug to use on single map pages. You might need to resave your "
+"permalink settings in you get \"Page not found\" errors."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:176
+msgid ""
+"When viewing the single page for the map, you can add the parameter "
+"<em>?image</em> to the URL to get the map as an image."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:183
+msgid "Map Tabs & Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:188
+msgid ""
+"You can disable some features from your edit screen, to make the interface "
+"cleaner and help with potential <a "
+"href=\"https://interactivegeomaps.com/docs/max-input-vars-issue/\" "
+"target=\"_blank\">max_input_vars</a> errors from your server. Disable the "
+"features you will not be using."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:193
+msgid "Regions Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:194
+msgid "Disable features from the Regions tab"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:216
+msgid "Marker Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:217
+msgid "Disable features from the Round Markers tab"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:232
+msgid "Clusters"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:242
+msgid "Highlight Regions"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:251
+msgid "Image Marker Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:252
+msgid "Disable features from the Image Markers tab."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:257
+msgid "Disable if you prefer to remove the Image Markers tab altogether."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:265
+msgid "Icon Marker Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:266
+msgid "Disable features from the Icon Markers tab."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:271
+msgid "Disable if you prefer to remove the Icon Markers tab altogether."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:279
+msgid "Label Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:280
+msgid "Disable features from the Labels tab."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:285
+msgid "Disable if you prefer to remove the Labels tab altogether."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:293
+msgid "Line Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:294
+msgid "Disable features from the Lines tab."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:299
+msgid "Disable if you prefer to remove the Lines tab altogether."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:307
+msgid "Legend Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:308
+msgid "Disable features from the Legend tab."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:313
+msgid "Disable if you prefer to remove the Legend tab altogether."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:321
+msgid "Overlay Features"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:322
+msgid "Disable features from the Overlay tab."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:327
+msgid "Disable if you prefer to remove the Overlay tab altogether."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:338
+msgid "Use OpenStreeMap"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:339
+msgid ""
+"If you want to select the coordinates using a visual map with search "
+"features, you can enable this option. <br>It might slow down the editor "
+"screen a bit, but it could be very helpful. <br> It uses the free Nominatim "
+"Geolocation service, which might block you if you do too many requests with "
+"the search form. <a "
+"href=\"https://operations.osmfoundation.org/policies/nominatim/\" "
+"target=\"_blank\">Usage Policy</a>"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:348
+msgid "Lightbox"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:353
+msgid "Lightbox Width"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:354
+msgid "Width in pixels of the lightbox used in the click actions."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:364 src/Plugin/Pro/ProSettings.php:377
+msgid "Lightbox Height"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:365
+msgid "Specify height or have it automatically calculated."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:368
+#. translators: for the css rule "auto" from "Automatic"
+msgid "Auto"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:378
+msgid "Heigth in pixels of the lightbox height in the click actions."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:390
+msgid "External Data Sources"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:395
+msgid ""
+"Options to control how the plugin will handle external data sources. <br> "
+"For example external JSON data files."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:399
+msgid "minutes"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:400
+msgid "Cache Time"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:401
+msgid ""
+"Time in minutes to cache data fetched from an external URL. <br>Use 0 if "
+"you prefer not to use cache"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:408
+msgid "Visuals"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:413
+msgid ""
+"Most of these options will control how some of the map elements display in "
+"your pages, when published."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:417
+msgid "Content Containers"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:421
+msgid "Content on the right"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:426
+msgid "Backgound"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:427
+msgid ""
+"Set the color of the content container when using the action to display "
+"content on the right."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:432
+msgid "Padding"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:436
+msgid "Gutter Width"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:440
+msgid ""
+"Space between the map and the content container. <br>By default the content "
+"on the right container will take 33% of the available space. <br>The gutter "
+"space will be taken out these 33%."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:450
+msgid "Action Content Filters"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:454
+msgid "Automatically add paragraphs"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:455
+msgid ""
+"When enabled, the <a target=\"_blank\" "
+"href=\"https://developer.wordpress.org/reference/functions/wpautop/\""
+">wpautop()</a> function will run in the content and automatically replace "
+"line breaks with paragraphs."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:463
+msgid "Map Dropdown"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:468
+msgid "Use <i>Choices</i> Dropdown"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:469
+msgid ""
+"<i>Choices</i> is a library that turns a normal select dropdown field into "
+"an enhanced dropdown with a search feature."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:473
+msgid "More options will be available in future versions."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:479
+msgid "Capabilities"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:484
+msgid ""
+"Edit who can create and edit maps. If you're not sure what capabilities "
+"are, leave this empty. <br> Usually you won't need to edit this."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:489
+msgid "Capability Type"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:490
+msgid ""
+"Refer to the <code>capability_type</code> argument from the "
+"<code>register_post_type</code>. <a target=\"_blank\" "
+"href=\"https://developer.wordpress.org/reference/functions/register_post_"
+"type/#capability_type\">More information</a>."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:497
+msgid "Amcharts"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:502
+msgid ""
+"The plugin uses the <a href=\"https://www.amcharts.com/\" "
+"target=\"_blank\">amcharts</a> library to generate the interactive "
+"maps.<br>Below you can customize some settings related to the library."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:506
+msgid "Version"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:507
+msgid ""
+"Specify a version of amcharts library to load. Leave blank to use "
+"recommended one.<br> <a "
+"href=\"https://github.com/amcharts/amcharts4/blob/master/dist/es2015/"
+"CHANGELOG.md\" target=\"_blank\">Amcharts Changelog</a>."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:513
+msgid "Locale"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:514
+msgid ""
+"Specify a <a target=\"_blank\" "
+"href=\"https://www.amcharts.com/docs/v4/concepts/locales/\">locale of "
+"amcharts</a> to load. Example <code>en_US</code><br> This is usually only "
+"needed to format dates and numbers.<br> Leave blank to use the default. "
+"<br> <a href=\"https://github.com/amcharts/amcharts4/tree/master/src/lang\" "
+"target=\"_blank\">List of available codes</a>."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:530
+msgid "Amcharts Library URL"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:531
+msgid ""
+"If you want to <a target=\"_blank\" "
+"href=\"https://interactivegeomaps.com/docs/self-host-library\">self host "
+"amcharts library</a> you will need to specify the URL here. Leave blank to "
+"use CDN. <br>If you self host the library, you will not be able to specify "
+"the version in the option above."
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:538 src/Plugin/Pro/ProSettings.php:548
+msgid "Backup"
+msgstr ""
+
+#: src/Plugin/Pro/ProSettings.php:543
+msgid ""
+"Backup your <strong>settings</strong> by copying the field below.<br>If you "
+"want to backup your maps also, go to Tools > Export > Maps."
+msgstr ""
+
+#: src/Plugin/Utils/MapListCurrent.php:41
+#. translators: %s is the name of the current map displaying
+msgid "%s Map Preview"
+msgstr ""
+
+#: src/Plugin/Utils/MapListCurrent.php:43
+msgid "World Map Preview"
+msgstr ""
+
+#: src/Plugin/Utils/MapListDropdown.php:58
+msgid "Select a map to preview"
+msgstr ""
+
+#: src/Plugin/Utils/MapListOutput.php:75
+#. translators: type of quality
+msgid "Low"
+msgstr ""
+
+#: src/Plugin/Utils/MapListOutput.php:79
+#. translators: type of quality
+msgid "High"
+msgstr ""
+
+#: src/Plugin/Utils/MapListOutput.php:83
+#. translators: type of quality
+msgid "Ultra"
+msgstr ""
+
+#: src/models/post-type.php:46
+msgid "Download Map Export File"
+msgstr ""
+
+#: src/models/post-type.php:51 src/models/post-type.php:482
+msgid "Description"
+msgstr ""
+
+#: src/models/post-type.php:66
+msgid "Image Preview"
+msgstr ""
+
+#: src/models/post-type.php:81 src/models/post-type.php:348
+msgid "Shortcode"
+msgstr ""
+
+#: src/models/post-type.php:90
+msgid "Clone Map"
+msgstr ""
+
+#: src/models/post-type.php:91
+msgid "Create a copy of this map"
+msgstr ""
+
+#: src/models/post-type.php:97 src/models/post-type.php:101
+#: src/models/post-type.php:103
+msgid "Maps"
+msgstr ""
+
+#: src/models/post-type.php:105 src/models/post-type.php:106
+msgid "Add New Map"
+msgstr ""
+
+#: src/models/post-type.php:107
+msgid "Edit Map"
+msgstr ""
+
+#: src/models/post-type.php:108
+msgid "New Map"
+msgstr ""
+
+#: src/models/post-type.php:109
+msgid "View Map"
+msgstr ""
+
+#: src/models/post-type.php:110
+msgid "View Maps"
+msgstr ""
+
+#: src/models/post-type.php:111
+msgid "Search Maps"
+msgstr ""
+
+#: src/models/post-type.php:112
+msgid "No maps found"
+msgstr ""
+
+#: src/models/post-type.php:113
+msgid "No maps found in trash"
+msgstr ""
+
+#: src/models/post-type.php:114
+msgid "Parent Maps:"
+msgstr ""
+
+#: src/models/post-type.php:115
+msgid "All Maps"
+msgstr ""
+
+#: src/models/post-type.php:116
+msgid "Map Archives"
+msgstr ""
+
+#: src/models/post-type.php:117
+msgid "Map Attributes"
+msgstr ""
+
+#: src/models/post-type.php:118
+msgid "Insert into Map"
+msgstr ""
+
+#: src/models/post-type.php:119
+msgid "Upload to this map"
+msgstr ""
+
+#: src/models/post-type.php:120
+msgid "Featured Image"
+msgstr ""
+
+#: src/models/post-type.php:121
+msgid "Set featured image"
+msgstr ""
+
+#: src/models/post-type.php:122
+msgid "Remove featured image"
+msgstr ""
+
+#: src/models/post-type.php:123
+msgid "Use featured image"
+msgstr ""
+
+#: src/models/post-type.php:124
+msgid "Filter maps list"
+msgstr ""
+
+#: src/models/post-type.php:125
+msgid "Maps list navigation"
+msgstr ""
+
+#: src/models/post-type.php:126
+msgid "Maps list"
+msgstr ""
+
+#: src/models/post-type.php:130 src/models/post-type.php:131
+msgid "Map information updated."
+msgstr ""
+
+#: src/models/post-type.php:132
+msgid "Custom field updated"
+msgstr ""
+
+#: src/models/post-type.php:133
+msgid "Custom field deleted"
+msgstr ""
+
+#: src/models/post-type.php:134
+msgid "Map Published"
+msgstr ""
+
+#: src/models/post-type.php:135
+msgid "Map information saved."
+msgstr ""
+
+#: src/models/post-type.php:136
+msgid "Map submitted. <a href=\"{preview_url}\" target=\"_blank\">Preview</a>"
+msgstr ""
+
+#: src/models/post-type.php:137
+msgid ""
+"Map publishing scheduled for {date}. <a href=\"{preview_url}\" "
+"target=\"_blank\">Preview</a>"
+msgstr ""
+
+#: src/models/post-type.php:138
+msgid "Map draft updated. <a href=\"{preview_url}\" target=\"_blank\">Preview</a>"
+msgstr ""
+
+#: src/models/post-type.php:141
+msgid "Map updated."
+msgstr ""
+
+#: src/models/post-type.php:142
+msgid "%s Maps updated."
+msgstr ""
+
+#: src/models/post-type.php:143
+msgid "Map not updated, somebody is editing it."
+msgstr ""
+
+#: src/models/post-type.php:144
+msgid "%s Map not updated, somebody is editing them."
+msgstr ""
+
+#: src/models/post-type.php:145
+msgid "Map permanetly deleted."
+msgstr ""
+
+#: src/models/post-type.php:146
+msgid "%s Map permanently deleted."
+msgstr ""
+
+#: src/models/post-type.php:147
+msgid "Map moved to the trash."
+msgstr ""
+
+#: src/models/post-type.php:148
+msgid "%s Maps moved to the trash."
+msgstr ""
+
+#: src/models/post-type.php:149
+msgid "Map recovered from trash."
+msgstr ""
+
+#: src/models/post-type.php:150
+msgid "%s Maps recovered from trash"
+msgstr ""
+
+#: src/models/post-type.php:153
+msgid "Enter map title here"
+msgstr ""
+
+#: src/models/post-type.php:174
+msgid "Global Settings"
+msgstr ""
+
+#: src/models/post-type.php:175
+msgid "Settings"
+msgstr ""
+
+#: src/models/post-type.php:181
+msgid "Editing"
+msgstr ""
+
+#: src/models/post-type.php:186
+msgid "Options to control the Map edit screen."
+msgstr ""
+
+#: src/models/post-type.php:190
+msgid "Coordinates Fields Options"
+msgstr ""
+
+#: src/models/post-type.php:195
+msgid ""
+"The API Key is not mandatory, the maps will still work without it. The API "
+"Key is only necessary it you want to automatically get the coordinates for "
+"an address/location when adding a marker. You can still enter the "
+"coordinates manually."
+msgstr ""
+
+#: src/models/post-type.php:200
+msgid "Autocomplete"
+msgstr ""
+
+#: src/models/post-type.php:201
+msgid ""
+"When writing a location name or address for a marker, there will be "
+"autocomplete suggestions.<br>In order for this to work, you will also need "
+"to have the \"Places API\" connected with your project/API Key added above."
+msgstr ""
+
+#: src/models/post-type.php:208
+msgid "Preview"
+msgstr ""
+
+#: src/models/post-type.php:212
+msgid "Enable Live Preview"
+msgstr ""
+
+#: src/models/post-type.php:213
+msgid ""
+"The live preview might slow down the edit screen if you're building a map "
+"with a big amount of data.<br>When disabled, only non blocking preview "
+"changes will be processed."
+msgstr ""
+
+#: src/models/post-type.php:218
+msgid "Save Image Preview"
+msgstr ""
+
+#: src/models/post-type.php:219
+msgid ""
+"On rare ocasions the image preview saving process might cause errors on "
+"your server.<br>In that case you could disable the option to save the image "
+"preview of the map."
+msgstr ""
+
+#: src/models/post-type.php:224
+msgid "Other Fields"
+msgstr ""
+
+#: src/models/post-type.php:229
+#. translators: field type = input type (textarea, rich text editor...)
+msgid "Tooltip field type"
+msgstr ""
+
+#: src/models/post-type.php:230
+msgid ""
+"Type of field to use to edit the tooltip content. <br> When using the Rich "
+"Text Editor, if you have a lot of entries, you might come across the \"<a "
+"href='https://interactivegeomaps.com/docs/max-input-vars-issue/' "
+"target='_blank'>Too much data\" issue</a>."
+msgstr ""
+
+#: src/models/post-type.php:250
+msgid "Performance"
+msgstr ""
+
+#: src/models/post-type.php:255
+msgid ""
+"Options to improve performance of the overall maps loading and "
+"rendering.<br>Not all features will work the same for all users, some might "
+"be incompatible with other settings or plugins you might have installed, so "
+"review the options carefully."
+msgstr ""
+
+#: src/models/post-type.php:259
+msgid "Frontend Improvements"
+msgstr ""
+
+#: src/models/post-type.php:263
+msgid "Animations"
+msgstr ""
+
+#: src/models/post-type.php:264
+msgid ""
+"Animations will increase CPU usage. That is OK for basic maps, but for ones "
+"that have a lot of data, it might be a good idea to disable animations."
+msgstr ""
+
+#: src/models/post-type.php:269
+msgid "Lazy Loading"
+msgstr ""
+
+#: src/models/post-type.php:270
+msgid ""
+"By default all maps will render on page load, even if they are way outside "
+"the current viewport. If you enable this option you can ensure that the map "
+"will only start initializing when its container scrolls into view."
+msgstr ""
+
+#: src/models/post-type.php:276
+msgid "Async Loading"
+msgstr ""
+
+#: src/models/post-type.php:277
+msgid ""
+"BETA FEATURE. When enabled the map scripts and source files will load "
+"asynchronously. <br>Don't use this option if you want the maps to work on "
+"older Internet Explorer versions. <br> When using a cache/minify plugin, "
+"double check if this works when the scripts are cached/minified."
+msgstr ""
+
+#: src/models/post-type.php:283
+msgid "Hold Map rendering"
+msgstr ""
+
+#: src/models/post-type.php:284
+msgid ""
+"BETA FEATURE. Do not render maps. Preview will also not render the map. You "
+"can programatically load them with the code <pre>iMaps.init(false);</pre>"
+msgstr ""
+
+#: src/models/post-type.php:290
+msgid "Backend Improvements"
+msgstr ""
+
+#: src/models/post-type.php:295
+msgid "Region Name Conversion"
+msgstr ""
+
+#: src/models/post-type.php:296
+msgid ""
+"If you're using the correct region codes in all your maps, you can disable "
+"this.<br>It will prevent the plugin from trying to convert any region name "
+"that needs to be converted into a proper region code.<br>This might help "
+"prevent memory issues on maps with a big number of regions."
+msgstr ""
+
+#: src/models/post-type.php:303
+msgid "Map Features"
+msgstr ""
+
+#: src/models/post-type.php:309
+msgid "Enable simple zoom controls for all maps by default."
+msgstr ""
+
+#: src/models/post-type.php:319
+msgid "Unlock Pro Features"
+msgstr ""
+
+#: src/models/post-type.php:326
+msgid "Available features in the Pro version."
+msgstr ""
+
+#: src/models/post-type.php:331
+msgid "Region Codes"
+msgstr ""
+
+#: src/models/post-type.php:338
+msgid ""
+"Select a map to display and save the changes to see the list of available "
+"regions."
+msgstr ""
+
+#: src/models/post-type.php:355
+msgid "Place this shortcode where you want the map to display."
+msgstr ""
+
+#: src/models/post-type.php:364
+msgid "Map Preview"
+msgstr ""
+
+#: src/models/post-type.php:403
+msgid "Map Information"
+msgstr ""
+
+#: src/models/post-type.php:404
+msgid "Clicked Region/Marker"
+msgstr ""
+
+#: src/models/post-type.php:405
+msgid "Clicked Coordinates"
+msgstr ""
+
+#: src/models/post-type.php:406
+msgid "Click actions will not be fully executed in the preview."
+msgstr ""
+
+#: src/models/post-type.php:407
+msgid "Save your map to restart the live preview."
+msgstr ""
+
+#: src/models/post-type.php:408
+msgid "Map not displaying?"
+msgstr ""
+
+#: src/models/post-type.php:415
+msgid "Map Image"
+msgstr ""
+
+#: src/models/post-type.php:422
+msgid "No image generated yet."
+msgstr ""
+
+#: src/models/post-type.php:432
+msgid "Map Settings"
+msgstr ""
+
+#: src/models/post-type.php:436
+msgid "General Details"
+msgstr ""
+
+#: src/models/post-type.php:443
+msgid "Select one of the available maps."
+msgstr ""
+
+#: src/models/post-type.php:444
+msgid ""
+"\"Low\" maps will have less details and therefore load faster.<br> \"High\" "
+"maps have more detail, but they are bigger files."
+msgstr ""
+
+#: src/models/post-type.php:446 src/models/post-type.php:468
+msgid "Please select..."
+msgstr ""
+
+#: src/models/post-type.php:452
+msgid "Custom URL Source"
+msgstr ""
+
+#: src/models/post-type.php:453
+msgid "Link to geojson file."
+msgstr ""
+
+#: src/models/post-type.php:460
+msgid "We suggest you to select AlbersUSA projection below."
+msgstr ""
+
+#: src/models/post-type.php:464
+msgid "Projection"
+msgstr ""
+
+#: src/models/post-type.php:465
+msgid ""
+"A map projection is a way to flatten a globe's surface into a plane in "
+"order to make a map. There are different techniques which render the map "
+"differently."
+msgstr ""
+
+#: src/models/post-type.php:466
+msgid "Select map projection."
+msgstr ""
+
+#: src/models/post-type.php:478
+msgid "The AlbersUSA projection will only work well with USA High/Low maps"
+msgstr ""
+
+#: src/models/post-type.php:483
+msgid "Map description."
+msgstr ""
+
+#: src/models/post-type.php:489
+msgid "Visual Settings"
+msgstr ""
+
+#: src/models/post-type.php:497
+msgid "Default Visual Settings"
+msgstr ""
+
+#: src/models/post-type.php:506
+msgid "Borders Color"
+msgstr ""
+
+#: src/models/post-type.php:511
+msgid "Borders Width"
+msgstr ""
+
+#: src/models/post-type.php:512
+msgid "Region borders width."
+msgstr ""
+
+#: src/models/post-type.php:523
+msgid "Map Height"
+msgstr ""
+
+#: src/models/post-type.php:529
+msgid ""
+"The default 56% corresponds to a 16:9 aspect ratio. Use percentual values "
+"to make sure the map is responsive and calculates the height based on it's "
+"width."
+msgstr ""
+
+#: src/models/post-type.php:533
+msgid "Map Height on Mobile"
+msgstr ""
+
+#: src/models/post-type.php:539
+msgid ""
+"Leave blank to use the same value above. On mobile there might be the need "
+"for the map to take more vertical space. You can increase the map height "
+"here, to change its aspect ratio."
+msgstr ""
+
+#: src/models/post-type.php:543
+msgid "Map Max-Width"
+msgstr ""
+
+#: src/models/post-type.php:544
+msgid ""
+"Leave empty if you always want your map to take 100% of the available "
+"space. Otherwise set a maximum pixel width for the map."
+msgstr ""
+
+#: src/models/post-type.php:555
+msgid ""
+"Leave blank or write \"inherit\" to inherit the font-family from the page "
+"or container."
+msgstr ""
+
+#: src/models/post-type.php:561
+msgid ""
+"Do you want to change the initial zoom and map center position? <a "
+"href=\"https://interactivegeomaps.com/feature/change-initial-zoom-and-"
+"center/\" target=\"_blank\">Go Pro</a>"
+msgstr ""
+
+#: src/models/post-type.php:567
+msgid "Regions"
+msgstr ""
+
+#: src/models/post-type.php:573
+msgid ""
+"Give interactivity to the regions of the selected map.<br>Click \"Add New "
+"Region\" below or the plus sign on the region list in the sidebar, to start "
+"adding data and interactivity to the regions."
+msgstr ""
+
+#: src/models/post-type.php:577
+msgid "Add New Region"
+msgstr ""
+
+#: src/models/post-type.php:581
+msgid "Name"
+msgstr ""
+
+#: src/models/post-type.php:588
+msgid "Region Code *"
+msgstr ""
+
+#: src/models/post-type.php:589
+msgid ""
+"Check the table on the right to see the available region codes or start "
+"typing a region name."
+msgstr ""
+
+#: src/models/post-type.php:602
+msgid "URL or content to trigger when region is clicked."
+msgstr ""
+
+#: src/models/post-type.php:602 src/models/post-type.php:730
+msgid "Don't forget to select a click action below."
+msgstr ""
+
+#: src/models/post-type.php:610
+msgid ""
+"Do you want to colour each region individually? <a "
+"href=\"https://interactivegeomaps.com/pricing\" target=\"_blank\">Go Pro</a>"
+msgstr ""
+
+#: src/models/post-type.php:627
+#. translators: color to use in regions that have no data
+msgid "Empty Color"
+msgstr ""
+
+#: src/models/post-type.php:629
+msgid "For dataless and inactive regions"
+msgstr ""
+
+#: src/models/post-type.php:642
+msgid ""
+"When a region is clicked a function will be called where the object with "
+"the data from the clicked region will be passed. You can write the contents "
+"of the function here."
+msgstr ""
+
+#: src/models/post-type.php:650
+msgid "Only include active regions"
+msgstr ""
+
+#: src/models/post-type.php:651
+msgid "Only regions with data will display in the map."
+msgstr ""
+
+#: src/models/post-type.php:657
+msgid "Include Regions"
+msgstr ""
+
+#: src/models/post-type.php:658
+msgid "Only include regions specified here. Separate each region code with a comma."
+msgstr ""
+
+#: src/models/post-type.php:664
+msgid "Exclude regions"
+msgstr ""
+
+#: src/models/post-type.php:665
+msgid ""
+"Exclude regions specified here. Separate each region code with a "
+"comma.<br>For example <code>AQ</code> will exclude Antarctica."
+msgstr ""
+
+#: src/models/post-type.php:672
+msgid "Round Markers"
+msgstr ""
+
+#: src/models/post-type.php:678
+msgid ""
+"Add round coloured markers to the map.<br>Click \"Add New Marker\" below to "
+"start adding markers."
+msgstr ""
+
+#: src/models/post-type.php:681
+#. translators: %s will be a link to an external website
+msgid ""
+"You can get the latitude and longitude for a specific location clicking it "
+"on the map or from sites like %s."
+msgstr ""
+
+#: src/models/post-type.php:683
+msgid ""
+"Correct format: Latitude: 41.1579, Longitude: -8.6291<br> Wrong format: "
+"Latitude: <strike>41.1579° N</strike> Longitude: <strike>8.6291° W</strike>"
+msgstr ""
+
+#: src/models/post-type.php:730
+msgid "URL or content to trigger when marker is clicked."
+msgstr ""
+
+#: src/models/post-type.php:738
+msgid ""
+"Do you want to colour or change the size of each marker individually? <a "
+"href=\"https://interactivegeomaps.com/pricing\">Go Pro</a>"
+msgstr ""
+
+#: src/models/post-type.php:767
+msgid "Premium Features"
+msgstr ""
+
+#: src/models/post-type.php:774
+#. translators: %1s is just an icon
+msgid ""
+"Start a <a href=\"https://interactivegeomaps.com/pricing\" "
+"target=\"_blank\">Free 7 Days Trial</a> %1s today and get access to the "
+"following features:"
+msgstr ""
+
+#: src/models/post-type.php:782
+msgid "Labels, vector icon markers and lines"
+msgstr ""
+
+#: src/models/post-type.php:787
+msgid "Custom marker images"
+msgstr ""
+
+#: src/models/post-type.php:792
+msgid "Colour each region/country differently"
+msgstr ""
+
+#: src/models/post-type.php:797
+msgid "Live filter menu, to show/hide different markers, from different maps"
+msgstr ""
+
+#: src/models/post-type.php:802
+msgid "Overlay different maps"
+msgstr ""
+
+#: src/models/post-type.php:807
+msgid "Create heatmaps, using external data"
+msgstr ""
+
+#: src/models/post-type.php:812
+msgid "Change center point and initial zoom of a map"
+msgstr ""
+
+#: src/models/post-type.php:827
+msgid "Globe map projection"
+msgstr ""
+
+#: src/models/post-type.php:832
+msgid "External search dropdown"
+msgstr ""
+
+#: src/models/post-type.php:841
+msgid "Live Examples"
+msgstr ""
+
+#: src/models/post-type.php:845
+msgid "Color each marker and region individually"
+msgstr ""
+
+#: src/models/post-type.php:846
+msgid "Control the size, colour and action of each marker"
+msgstr ""
+
+#: src/models/post-type.php:847
+msgid "Populate map automatically from tags or categories"
+msgstr ""
+
+#: src/models/post-type.php:848
+msgid "Customize tooltip appearance"
+msgstr ""
+
+#: src/models/post-type.php:849
+msgid "Enable advanced zoom options"
+msgstr ""
+
+#: src/models/post-type.php:850
+msgid "Drilldown Maps"
+msgstr ""
+
+#: src/models/post-type.php:851
+msgid "Advanced click actions:"
+msgstr ""
+
+#: src/models/post-type.php:853
+msgid "Open content in a lightbox"
+msgstr ""
+
+#: src/models/post-type.php:854
+msgid "Display content next to or below the map"
+msgstr ""
+
+#: src/models/post-type.php:855
+msgid "Trigger custom javascript code"
+msgstr ""
+
+#: src/models/post-type.php:859
+msgid "From $2.49/month<br> Lifetime License Available<br>Multi-license deals"
+msgstr ""
+
+#: src/models/post-type.php:870
+msgid "Min Requirements"
+msgstr ""
+
+#: src/models/post-type.php:876
+msgid "What is this?"
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Interactive Geo Maps"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "https://interactivegeomaps.com/"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Create interactive geographic vector maps of the world, continents or any "
+"country in the world. Color full regions or create markers on specific "
+"locations that will have information on hover and can also have actions on "
+"click. This plugin uses the online amcharts library to generate the maps."
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "https://interactivegeomaps.com"
+msgstr ""
+
+#: src/Plugin/Pro/Extras/ProGeolocateContent.php:440
+#: src/Plugin/Pro/ProMeta.php:45
+msgctxt "Click Action Option"
+msgid "Default"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:49 src/Plugin/Pro/ProMeta.php:53
+#: src/Plugin/Pro/ProMeta.php:57 src/Plugin/Pro/ProMeta.php:61
+#: src/Plugin/Pro/ProMeta.php:65
+msgctxt "Click Action Option"
+msgid "Custom"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:41
+#. translators: word to identify a vector icon
+msgctxt "Icon Description"
+msgid "Star"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:46
+#. translators: word to identify a vector icon
+msgctxt "Icon Description"
+msgid "Home"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:51
+#. translators: word to identify a vector icon which is an anchor
+msgctxt "Icon Description"
+msgid "Anchor"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:56
+#. translators: word to identify a vector icon
+msgctxt "Icon Description"
+msgid "Circle Arrow Down"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:61
+#. translators: word to identify a vector icon
+msgctxt "Icon Description"
+msgid "Location Marker"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:67
+#. translators: word to identify a vector icon with a circle around a dot
+msgctxt "Icon Description"
+msgid "Circle dot"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:73
+#. translators: word to identify a heart shaped vector
+msgctxt "Icon Description"
+msgid "Heart"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:79
+#. translators: word to identify a car shaped vector
+msgctxt "Icon Description"
+msgid "Car"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:85
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Bus"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:91
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Train"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:97
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Times (Cross)"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:103
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Check Circle"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:109
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Female Figure"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:115
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Flag"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:121
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Info Circle"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:127
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Male Figure"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:133
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Plane"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:139
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Arrow pointing down inside circle"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:144
+#. translators: word to identify a vector icon with this shape
+msgctxt "Icon Description"
+msgid "Plus Sign"
+msgstr ""
+
+#: src/Plugin/Pro/ProIcons.php:148
+msgctxt "Icon Description"
+msgid "Whisky distillery icon"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:410
+msgctxt "Automatic Labels option"
+msgid "Disabled"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:411
+msgctxt "Automatic Labels option"
+msgid "from Name"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:412
+msgctxt "Automatic Labels option"
+msgid "from Region Code"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:413
+msgctxt "Automatic Labels option"
+msgid "Converted Region Code"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:414
+msgctxt "Automatic Labels option"
+msgid "Custom Source"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:436 src/Plugin/Pro/ProMeta.php:880
+#: src/Plugin/Pro/ProMeta.php:1760
+#. translators: Font size
+msgctxt "Font Size"
+msgid "Size"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:487
+msgctxt "Horizontal Alignment Option"
+msgid "Left"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:488
+msgctxt "Horizontal Alignment Option"
+msgid "Right"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:489
+msgctxt "Horizontal Alignment Option"
+msgid "Middle"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:501
+msgctxt "Vertical Alignment Option"
+msgid "Top"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:502
+msgctxt "Vertical Alignment Option"
+msgid "Bottom"
+msgstr ""
+
+#: src/Plugin/Pro/ProMeta.php:503
+msgctxt "Vertical Alignment Option"
+msgid "Middle"
+msgstr ""
