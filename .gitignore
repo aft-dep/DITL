@@ -27,6 +27,7 @@ wp-content/aiowps_backups/
 .htaccess
 .user.ini
 aios-bootstrap.php
+wp-content/mu-plugins/aios-firewall-loader.php
 
 # --- Systeme / OS ---
 .DS_Store
