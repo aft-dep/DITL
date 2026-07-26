@@ -141,3 +141,114 @@ function ditl_get_meta_json( $post_id, $meta_key ) {
 
 	return is_array( $decoded ) ? $decoded : array();
 }
+
+/**
+ * Affiche une ligne de section repetable (markup partage entre gabarits).
+ *
+ * Utilisee pour les lignes existantes et pour le modele JS (avec l'index
+ * litteral "%index%", remplace cote JS a l'ajout d'une section).
+ *
+ * @param array        $args    Options du champ (voir ditl_metabox_render_sections).
+ * @param string|int   $index   Index de la ligne (ou "%index%" pour le modele).
+ * @param array        $section Donnees {title, content} de la ligne.
+ */
+function ditl_metabox_render_section_row( $args, $index, $section = array() ) {
+	$title   = isset( $section['title'] ) ? (string) $section['title'] : '';
+	$content = isset( $section['content'] ) ? (string) $section['content'] : '';
+	?>
+	<div class="ditl-section">
+		<div class="ditl-section-toolbar">
+			<span class="ditl-section-numero"><?php esc_html_e( 'Section', 'ditl' ); ?></span>
+			<button type="button" class="button ditl-section-up" title="<?php esc_attr_e( 'Monter la section', 'ditl' ); ?>">&uarr;</button>
+			<button type="button" class="button ditl-section-down" title="<?php esc_attr_e( 'Descendre la section', 'ditl' ); ?>">&darr;</button>
+			<button type="button" class="button ditl-section-remove"><?php esc_html_e( 'Supprimer', 'ditl' ); ?></button>
+		</div>
+		<label>
+			<span class="ditl-field-label"><?php echo esc_html( $args['title_label'] ); ?></span>
+			<input type="text" class="widefat" name="<?php echo esc_attr( $args['prefix'] ); ?>_title[]" value="<?php echo esc_attr( $title ); ?>" />
+		</label>
+		<span class="ditl-field-label"><?php echo esc_html( $args['content_label'] ); ?></span>
+		<textarea class="ditl-section-editor" id="<?php echo esc_attr( $args['prefix'] . '-content-' . $index ); ?>" name="<?php echo esc_attr( $args['prefix'] ); ?>_content[]" rows="8"><?php echo esc_textarea( $content ); ?></textarea>
+	</div>
+	<?php
+}
+
+/**
+ * Affiche le champ "sections repetables" partage entre gabarits.
+ *
+ * Chaque gabarit fournit son propre prefixe de champs : les metaboxes de
+ * tous les gabarits etant rendues (masquees) sur le meme ecran, des noms
+ * distincts evitent tout melange de donnees a l'enregistrement.
+ *
+ * @param int   $post_id ID de la page en cours d'edition.
+ * @param array $args {
+ *     Options du champ.
+ *
+ *     @type string $meta_key      Meta JSON [{title, content}] a editer.
+ *     @type string $prefix        Prefixe des noms de champs postes.
+ *     @type string $title_label   Libelle du champ titre.
+ *     @type string $content_label Libelle du champ contenu.
+ * }
+ */
+function ditl_metabox_render_sections( $post_id, $args = array() ) {
+	$args = wp_parse_args(
+		$args,
+		array(
+			'meta_key'      => '_ditl_sections',
+			'prefix'        => 'ditl_sections',
+			'title_label'   => __( 'Titre de la section', 'ditl' ),
+			'content_label' => __( 'Contenu de la section', 'ditl' ),
+		)
+	);
+
+	$sections = ditl_get_meta_json( $post_id, $args['meta_key'] );
+	?>
+	<div class="ditl-sections-field">
+		<div class="ditl-sections">
+			<?php foreach ( $sections as $index => $section ) : ?>
+				<?php ditl_metabox_render_section_row( $args, $index, $section ); ?>
+			<?php endforeach; ?>
+		</div>
+		<button type="button" class="button button-secondary ditl-section-add"><?php esc_html_e( 'Ajouter une section', 'ditl' ); ?></button>
+		<script type="text/html" class="ditl-section-template">
+			<?php ditl_metabox_render_section_row( $args, '%index%' ); ?>
+		</script>
+	</div>
+	<?php
+}
+
+/**
+ * Lit les sections repetables postees par une metabox de gabarit.
+ *
+ * Le nonce est verifie en amont par la metabox appelante
+ * (ditl_metabox_peut_enregistrer).
+ *
+ * @param string $prefix Prefixe des noms de champs postes.
+ * @return array Sections {title, content} nettoyees (lignes vides ignorees).
+ */
+function ditl_metabox_lire_sections_post( $prefix ) {
+	// Deux tableaux paralleles, l'ordre du DOM fait foi.
+	$titles   = isset( $_POST[ $prefix . '_title' ] ) ? array_values( (array) wp_unslash( $_POST[ $prefix . '_title' ] ) ) : array();
+	$contents = isset( $_POST[ $prefix . '_content' ] ) ? array_values( (array) wp_unslash( $_POST[ $prefix . '_content' ] ) ) : array();
+
+	// Garde-fou contre un POST anormalement gonfle.
+	$total = min( max( count( $titles ), count( $contents ) ), 100 );
+	$sections = array();
+
+	for ( $i = 0; $i < $total; $i++ ) {
+		$title   = isset( $titles[ $i ] ) && is_string( $titles[ $i ] ) ? sanitize_text_field( $titles[ $i ] ) : '';
+		$content = isset( $contents[ $i ] ) && is_string( $contents[ $i ] ) ? wp_kses_post( $contents[ $i ] ) : '';
+
+		// Les lignes entierement vides sont ignorees.
+		if ( '' === $title && '' === trim( wp_strip_all_tags( $content ) ) ) {
+			continue;
+		}
+
+		$sections[] = array(
+			'title'   => $title,
+			'content' => $content,
+		);
+	}
+
+	return $sections;
+}

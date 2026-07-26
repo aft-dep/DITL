@@ -60,6 +60,12 @@
 	width: 100%;
 }
 
+/* Editeurs riches autonomes (hors sections) */
+
+.ditl-richtext-editor {
+	width: 100%;
+}
+
 /* Galerie (carrousel) */
 
 .ditl-gallery-preview {

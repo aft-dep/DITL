@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.3.0' );
+define( 'DITL_THEME_VERSION', '0.4.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -19,6 +19,7 @@ define( 'DITL_THEME_VERSION', '0.3.0' );
 require_once get_stylesheet_directory() . '/inc/metaboxes/helpers.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/banniere.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/projet-ditl.php';
+require_once get_stylesheet_directory() . '/inc/metaboxes/resultats.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
@@ -93,6 +94,15 @@ function ditl_enqueue_assets_gabarits() {
 			true
 		);
 	}
+
+	if ( is_page_template( DITL_TPL_RESULTATS ) ) {
+		wp_enqueue_style(
+			'ditl-gabarit-resultats',
+			get_stylesheet_directory_uri() . '/assets/css/gabarit-resultats.css',
+			array( 'ditl-gabarits-communs' ),
+			DITL_THEME_VERSION
+		);
+	}
 }
 add_action( 'wp_enqueue_scripts', 'ditl_enqueue_assets_gabarits' );
 
@@ -124,6 +134,7 @@ function ditl_retire_scripts_elementor_gabarit() {
 	wp_dequeue_style( 'upk-site' );
 	wp_dequeue_style( 'upk-font' );
 	wp_dequeue_style( 'upk-alex-carousel' );
+	wp_dequeue_style( 'upk-banner' );
 	wp_dequeue_style( 'swiper' );
 	wp_dequeue_style( 'e-swiper' );
 }

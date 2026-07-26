@@ -5,6 +5,9 @@
  * Contrat de metas (FIGE - le template page-templates/projet-ditl.php s'appuie dessus) :
  * - _ditl_intro_title   (string) : titre H2 d'introduction.
  * - _ditl_sections      (string) : JSON [{title, content}] - titre H3 texte simple, contenu HTML riche.
+ *                                  Meta PARTAGEE avec le gabarit Resultats (resultats.php), qui
+ *                                  l'exploite avec un titre de niveau H2 (une seule des deux
+ *                                  metaboxes ecrit, selon le modele de page selectionne).
  * - _ditl_carousel_ids  (string) : JSON [int] - IDs d'attachements de la galerie (peut etre vide).
  *
  * Les metas de banniere (_ditl_hero_image_id, _ditl_hero_title) sont gerees
@@ -110,26 +113,18 @@ function ditl_projet_ditl_render_metabox( $post ) {
 
 		<div class="ditl-field">
 			<span class="ditl-field-label"><?php esc_html_e( 'Sections de contenu', 'ditl' ); ?></span>
-			<div class="ditl-sections" id="ditl-sections">
-				<?php foreach ( $sections as $index => $section ) : ?>
-					<div class="ditl-section">
-						<div class="ditl-section-toolbar">
-							<?php /* translators: %d : numero d'ordre de la section. */ ?>
-						<span class="ditl-section-numero"><?php echo esc_html( sprintf( __( 'Section %d', 'ditl' ), $index + 1 ) ); ?></span>
-							<button type="button" class="button ditl-section-up" title="<?php esc_attr_e( 'Monter la section', 'ditl' ); ?>">&uarr;</button>
-							<button type="button" class="button ditl-section-down" title="<?php esc_attr_e( 'Descendre la section', 'ditl' ); ?>">&darr;</button>
-							<button type="button" class="button ditl-section-remove"><?php esc_html_e( 'Supprimer', 'ditl' ); ?></button>
-						</div>
-						<label>
-							<span class="ditl-field-label"><?php esc_html_e( 'Titre de la section (H3)', 'ditl' ); ?></span>
-							<input type="text" class="widefat" name="ditl_sections_title[]" value="<?php echo esc_attr( isset( $section['title'] ) ? $section['title'] : '' ); ?>" />
-						</label>
-						<span class="ditl-field-label"><?php esc_html_e( 'Contenu de la section', 'ditl' ); ?></span>
-						<textarea class="ditl-section-editor" id="ditl-section-content-<?php echo esc_attr( $index ); ?>" name="ditl_sections_content[]" rows="8"><?php echo esc_textarea( isset( $section['content'] ) ? $section['content'] : '' ); ?></textarea>
-					</div>
-				<?php endforeach; ?>
-			</div>
-			<button type="button" class="button button-secondary" id="ditl-section-add"><?php esc_html_e( 'Ajouter une section', 'ditl' ); ?></button>
+			<?php
+			// Champ partage entre gabarits (markup et JS communs, helpers.php).
+			ditl_metabox_render_sections(
+				$post->ID,
+				array(
+					'meta_key'      => '_ditl_sections',
+					'prefix'        => 'ditl_sections',
+					'title_label'   => __( 'Titre de la section (H3)', 'ditl' ),
+					'content_label' => __( 'Contenu de la section', 'ditl' ),
+				)
+			);
+			?>
 		</div>
 
 		<div class="ditl-field">
@@ -149,23 +144,6 @@ function ditl_projet_ditl_render_metabox( $post ) {
 			<p class="description"><?php esc_html_e( 'Galerie optionnelle affichee en bas de page. Laisser vide pour ne pas afficher de carrousel.', 'ditl' ); ?></p>
 		</div>
 	</div>
-
-	<script type="text/html" id="tmpl-ditl-section">
-		<div class="ditl-section">
-			<div class="ditl-section-toolbar">
-				<span class="ditl-section-numero"><?php esc_html_e( 'Section', 'ditl' ); ?></span>
-				<button type="button" class="button ditl-section-up" title="<?php esc_attr_e( 'Monter la section', 'ditl' ); ?>">&uarr;</button>
-				<button type="button" class="button ditl-section-down" title="<?php esc_attr_e( 'Descendre la section', 'ditl' ); ?>">&darr;</button>
-				<button type="button" class="button ditl-section-remove"><?php esc_html_e( 'Supprimer', 'ditl' ); ?></button>
-			</div>
-			<label>
-				<span class="ditl-field-label"><?php esc_html_e( 'Titre de la section (H3)', 'ditl' ); ?></span>
-				<input type="text" class="widefat" name="ditl_sections_title[]" value="" />
-			</label>
-			<span class="ditl-field-label"><?php esc_html_e( 'Contenu de la section', 'ditl' ); ?></span>
-			<textarea class="ditl-section-editor" id="ditl-section-content-%index%" name="ditl_sections_content[]" rows="8"></textarea>
-		</div>
-	</script>
 	<?php
 }
 
@@ -190,27 +168,8 @@ function ditl_projet_ditl_save_metabox( $post_id ) {
 	$intro_title = isset( $_POST['ditl_intro_title'] ) ? sanitize_text_field( wp_unslash( $_POST['ditl_intro_title'] ) ) : '';
 	update_post_meta( $post_id, '_ditl_intro_title', wp_slash( $intro_title ) );
 
-	// Sections : deux tableaux paralleles, l'ordre du DOM fait foi.
-	$titles   = isset( $_POST['ditl_sections_title'] ) ? array_values( (array) wp_unslash( $_POST['ditl_sections_title'] ) ) : array();
-	$contents = isset( $_POST['ditl_sections_content'] ) ? array_values( (array) wp_unslash( $_POST['ditl_sections_content'] ) ) : array();
-	$total    = max( count( $titles ), count( $contents ) );
-	$sections = array();
-
-	for ( $i = 0; $i < $total; $i++ ) {
-		$title   = isset( $titles[ $i ] ) && is_string( $titles[ $i ] ) ? sanitize_text_field( $titles[ $i ] ) : '';
-		$content = isset( $contents[ $i ] ) && is_string( $contents[ $i ] ) ? wp_kses_post( $contents[ $i ] ) : '';
-
-		// Les lignes entierement vides sont ignorees.
-		if ( '' === $title && '' === trim( wp_strip_all_tags( $content ) ) ) {
-			continue;
-		}
-
-		$sections[] = array(
-			'title'   => $title,
-			'content' => $content,
-		);
-	}
-
+	// Sections repetables (lecture partagee, helpers.php).
+	$sections      = ditl_metabox_lire_sections_post( 'ditl_sections' );
 	$sections_json = (string) wp_json_encode( $sections, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 	update_post_meta( $post_id, '_ditl_sections', wp_slash( $sections_json ) );
 

@@ -6,7 +6,9 @@
  *   declencheurs est fourni par PHP via ditlMetabox.metaboxes.
  * - Selecteur de media simple (image de banniere).
  * - Galerie multiple (carrousel).
- * - Sections repetables avec editeur riche (wp.editor.initialize).
+ * - Sections repetables avec editeur riche (wp.editor.initialize), plusieurs
+ *   instances possibles (wrapper .ditl-sections-field, une par gabarit).
+ * - Editeurs riches autonomes (textarea.ditl-richtext-editor).
  *
  * @package DiTL
  */
@@ -277,49 +279,60 @@
 	}
 
 	/**
-	 * Renumerote les libelles "Section N".
+	 * Renumerote les libelles "Section N" d'un champ de sections.
 	 */
-	function ditlRenumberSections( $metabox ) {
-		$metabox.find( '.ditl-section' ).each( function( index ) {
+	function ditlRenumberSections( $field ) {
+		$field.find( '.ditl-section' ).each( function( index ) {
 			$( this ).find( '.ditl-section-numero' ).text( ditlMetabox.i18n.sectionLabel.replace( '%d', index + 1 ) );
 		} );
 	}
 
 	function ditlInitSections( $metabox ) {
-		var $container = $metabox.find( '#ditl-sections' );
+		var $fields = $metabox.find( '.ditl-sections-field' );
 
-		// Editeurs des lignes deja presentes.
-		$container.find( '.ditl-section-editor' ).each( function() {
-			ditlInitEditor( $( this ).attr( 'id' ) );
-			ditlSectionIndex++;
+		if ( ! $fields.length ) {
+			return;
+		}
+
+		// Editeurs des lignes deja presentes, champ par champ.
+		$fields.each( function() {
+			var $field = $( this );
+
+			$field.find( '.ditl-section-editor' ).each( function() {
+				ditlInitEditor( $( this ).attr( 'id' ) );
+				ditlSectionIndex++;
+			} );
+
+			ditlRenumberSections( $field );
 		} );
 
-		ditlRenumberSections( $metabox );
-
-		// Ajout d'une section.
-		$metabox.on( 'click', '#ditl-section-add', function( e ) {
+		// Ajout d'une section (le modele HTML vit dans le champ clique :
+		// chaque gabarit a ses propres noms de champs).
+		$metabox.on( 'click', '.ditl-section-add', function( e ) {
 			e.preventDefault();
 
-			var html = $( '#tmpl-ditl-section' ).html().replace( /%index%/g, 'new-' + ditlSectionIndex );
+			var $field = $( this ).closest( '.ditl-sections-field' );
+			var html   = $field.find( '.ditl-section-template' ).html().replace( /%index%/g, 'new-' + ditlSectionIndex );
 
 			ditlSectionIndex++;
 
 			var $row = $( html );
 
-			$container.append( $row );
+			$field.find( '.ditl-sections' ).append( $row );
 			ditlInitEditor( $row.find( '.ditl-section-editor' ).attr( 'id' ) );
-			ditlRenumberSections( $metabox );
+			ditlRenumberSections( $field );
 		} );
 
 		// Suppression d'une section.
 		$metabox.on( 'click', '.ditl-section-remove', function( e ) {
 			e.preventDefault();
 
-			var $row = $( this ).closest( '.ditl-section' );
+			var $row   = $( this ).closest( '.ditl-section' );
+			var $field = $row.closest( '.ditl-sections-field' );
 
 			ditlRemoveRowEditor( $row );
 			$row.remove();
-			ditlRenumberSections( $metabox );
+			ditlRenumberSections( $field );
 		} );
 
 		// Deplacement d'une section (l'editeur est retire avant le
@@ -328,6 +341,7 @@
 			e.preventDefault();
 
 			var $row     = $( this ).closest( '.ditl-section' );
+			var $field   = $row.closest( '.ditl-sections-field' );
 			var up       = $( this ).hasClass( 'ditl-section-up' );
 			var $target  = up ? $row.prev( '.ditl-section' ) : $row.next( '.ditl-section' );
 			var editorId = $row.find( '.ditl-section-editor' ).attr( 'id' );
@@ -345,7 +359,17 @@
 			}
 
 			ditlInitEditor( editorId );
-			ditlRenumberSections( $metabox );
+			ditlRenumberSections( $field );
+		} );
+	}
+
+	/* -------------------------------------------------------------------------
+	 * Editeurs riches autonomes (champs simples hors sections).
+	 * ---------------------------------------------------------------------- */
+
+	function ditlInitRichTextareas( $metabox ) {
+		$metabox.find( '.ditl-richtext-editor' ).each( function() {
+			ditlInitEditor( $( this ).attr( 'id' ) );
 		} );
 	}
 
@@ -370,6 +394,7 @@
 			ditlInitMediaField( $metabox );
 			ditlInitGalleryField( $metabox );
 			ditlInitSections( $metabox );
+			ditlInitRichTextareas( $metabox );
 		} );
 
 		if ( initialisee ) {
