@@ -1,16 +1,17 @@
 <?php
 /**
- * Migration du gabarit "Projet DiTL" : donnees Elementor -> metas sur mesure.
+ * Migration du gabarit "Actualites" : donnees Elementor -> metas sur mesure.
  *
  * Lit le JSON _elementor_data des pages passees en argument et remplit les
- * metas du gabarit (contrat decrit dans inc/metaboxes/projet-ditl.php) :
- * - 1er widget image          -> _ditl_hero_image_id (ID d'attachement, jamais l'URL)
- * - heading h1                -> _ditl_hero_title
- * - heading h2 (defaut)       -> _ditl_intro_title
- * - chaque heading h3         -> nouvelle section {title, content}
- * - text-editor qui suivent   -> concatenes dans le contenu de la section courante
- * - widget image-carousel     -> _ditl_carousel_ids (tableau vide si absent)
- * Pose aussi _wp_page_template = page-templates/projet-ditl.php.
+ * metas de banniere (contrat decrit dans inc/metaboxes/banniere.php) :
+ * - 1er widget image -> _ditl_hero_image_id (ID d'attachement, jamais l'URL)
+ * - heading h1       -> _ditl_hero_title
+ * Pose aussi _wp_page_template = page-templates/actualites.php.
+ *
+ * Le widget upk-alex-carousel (carrousel d'articles) n'a aucune donnee a
+ * migrer : reglages par defaut, contenu 100% dynamique (requete cote
+ * template). L'arbre Elementor est parcouru recursivement : selon la langue,
+ * l'image et le h1 vivent dans des conteneurs imbriques differemment.
  *
  * Les metas Elementor (_elementor_data, _elementor_edit_mode, ...) ne sont
  * PAS modifiees : elles restent en place comme sauvegarde dormante.
@@ -18,8 +19,8 @@
  * Script idempotent, rejouable sans degat (local, preprod, prod).
  *
  * Usage :
- *   wp eval-file wp-content/themes/ditl/cli/migrate-projet-ditl.php 1924 3167 dry-run
- *   wp eval-file wp-content/themes/ditl/cli/migrate-projet-ditl.php 1924 3167
+ *   wp eval-file wp-content/themes/ditl/cli/migrate-actualites.php 1927 2589 dry-run
+ *   wp eval-file wp-content/themes/ditl/cli/migrate-actualites.php 1927 2589
  *
  * Le mode simulation accepte "dry-run" ou "--dry-run" en argument.
  *
@@ -35,18 +36,18 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit( 1 );
 }
 
-if ( ! function_exists( 'ditl_migration_projet_ditl_extraire' ) ) {
+if ( ! function_exists( 'ditl_migration_actualites_extraire' ) ) {
 	/**
 	 * Parcourt recursivement l'arbre Elementor et collecte les donnees du gabarit.
 	 *
 	 * @param array $elements Elements Elementor (containers et widgets).
 	 * @param array $data     Donnees collectees (passees par reference).
 	 */
-	function ditl_migration_projet_ditl_extraire( $elements, &$data ) {
+	function ditl_migration_actualites_extraire( $elements, &$data ) {
 		foreach ( $elements as $element ) {
 			if ( isset( $element['elType'] ) && 'widget' === $element['elType'] ) {
-				$type       = isset( $element['widgetType'] ) ? $element['widgetType'] : '';
-				$reglages   = isset( $element['settings'] ) && is_array( $element['settings'] ) ? $element['settings'] : array();
+				$type     = isset( $element['widgetType'] ) ? $element['widgetType'] : '';
+				$reglages = isset( $element['settings'] ) && is_array( $element['settings'] ) ? $element['settings'] : array();
 
 				switch ( $type ) {
 					case 'image':
@@ -58,52 +59,18 @@ if ( ! function_exists( 'ditl_migration_projet_ditl_extraire' ) ) {
 						break;
 
 					case 'heading':
-						$titre = isset( $reglages['title'] ) ? sanitize_text_field( wp_strip_all_tags( (string) $reglages['title'] ) ) : '';
 						// h2 est la valeur par defaut d'Elementor quand header_size est absent.
 						$niveau = isset( $reglages['header_size'] ) && '' !== $reglages['header_size'] ? $reglages['header_size'] : 'h2';
 
 						if ( 'h1' === $niveau && '' === $data['hero_title'] ) {
-							$data['hero_title'] = $titre;
-						} elseif ( 'h2' === $niveau && '' === $data['intro_title'] ) {
-							$data['intro_title'] = $titre;
-						} elseif ( 'h3' === $niveau ) {
-							$data['sections'][] = array(
-								'title'   => $titre,
-								'content' => '',
-							);
-						}
-						break;
-
-					case 'text-editor':
-						// Le HTML est conserve tel quel ; wp_kses_post est applique
-						// a l'enregistrement par le sanitize_callback de la meta.
-						$html = isset( $reglages['editor'] ) ? trim( (string) $reglages['editor'] ) : '';
-
-						if ( '' !== $html && ! empty( $data['sections'] ) ) {
-							$derniere = count( $data['sections'] ) - 1;
-
-							if ( '' !== $data['sections'][ $derniere ]['content'] ) {
-								$data['sections'][ $derniere ]['content'] .= "\n";
-							}
-
-							$data['sections'][ $derniere ]['content'] .= $html;
-						}
-						break;
-
-					case 'image-carousel':
-						if ( empty( $data['carousel_ids'] ) && isset( $reglages['carousel'] ) && is_array( $reglages['carousel'] ) ) {
-							foreach ( $reglages['carousel'] as $diapo ) {
-								if ( isset( $diapo['id'] ) && absint( $diapo['id'] ) > 0 ) {
-									$data['carousel_ids'][] = absint( $diapo['id'] );
-								}
-							}
+							$data['hero_title'] = isset( $reglages['title'] ) ? sanitize_text_field( wp_strip_all_tags( (string) $reglages['title'] ) ) : '';
 						}
 						break;
 				}
 			}
 
 			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
-				ditl_migration_projet_ditl_extraire( $element['elements'], $data );
+				ditl_migration_actualites_extraire( $element['elements'], $data );
 			}
 		}
 	}
@@ -171,33 +138,14 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 	$ditl_data = array(
 		'hero_image_id' => 0,
 		'hero_title'    => '',
-		'intro_title'   => '',
-		'sections'      => array(),
-		'carousel_ids'  => array(),
 	);
 
-	ditl_migration_projet_ditl_extraire( $ditl_elements, $ditl_data );
-
-	$ditl_sections_json = (string) wp_json_encode( $ditl_data['sections'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-	$ditl_carousel_json = (string) wp_json_encode( $ditl_data['carousel_ids'] );
+	ditl_migration_actualites_extraire( $ditl_elements, $ditl_data );
 
 	// Recapitulatif lisible des valeurs extraites.
 	WP_CLI::log( sprintf( '  _ditl_hero_image_id : %d', $ditl_data['hero_image_id'] ) );
 	WP_CLI::log( sprintf( '  _ditl_hero_title    : %s', $ditl_data['hero_title'] ) );
-	WP_CLI::log( sprintf( '  _ditl_intro_title   : %s', $ditl_data['intro_title'] ) );
-	WP_CLI::log( sprintf( '  _ditl_sections      : %d section(s)', count( $ditl_data['sections'] ) ) );
-
-	foreach ( $ditl_data['sections'] as $ditl_i => $ditl_section ) {
-		WP_CLI::log( sprintf(
-			'    %d. "%s" (%d caracteres de contenu)',
-			$ditl_i + 1,
-			$ditl_section['title'],
-			strlen( $ditl_section['content'] )
-		) );
-	}
-
-	WP_CLI::log( sprintf( '  _ditl_carousel_ids  : %s', $ditl_carousel_json ) );
-	WP_CLI::log( sprintf( '  _wp_page_template   : %s', 'page-templates/projet-ditl.php' ) );
+	WP_CLI::log( sprintf( '  _wp_page_template   : %s', 'page-templates/actualites.php' ) );
 
 	if ( $ditl_dry_run ) {
 		WP_CLI::log( '  [dry-run] Rien n\'a ete ecrit pour cette page.' );
@@ -205,14 +153,11 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 	}
 
 	// Ecriture des metas. update_post_meta est idempotent ; wp_slash compense
-	// le wp_unslash applique en interne (le JSON contient des antislashs).
-	// Les sanitize_callback declares via register_post_meta s'appliquent ici aussi.
+	// le wp_unslash applique en interne. Les sanitize_callback declares via
+	// register_post_meta s'appliquent ici aussi.
 	update_post_meta( $ditl_page_id, '_ditl_hero_image_id', $ditl_data['hero_image_id'] );
 	update_post_meta( $ditl_page_id, '_ditl_hero_title', wp_slash( $ditl_data['hero_title'] ) );
-	update_post_meta( $ditl_page_id, '_ditl_intro_title', wp_slash( $ditl_data['intro_title'] ) );
-	update_post_meta( $ditl_page_id, '_ditl_sections', wp_slash( $ditl_sections_json ) );
-	update_post_meta( $ditl_page_id, '_ditl_carousel_ids', wp_slash( $ditl_carousel_json ) );
-	update_post_meta( $ditl_page_id, '_wp_page_template', 'page-templates/projet-ditl.php' );
+	update_post_meta( $ditl_page_id, '_wp_page_template', 'page-templates/actualites.php' );
 
 	WP_CLI::success( sprintf( 'Page %d migree.', $ditl_page_id ) );
 }

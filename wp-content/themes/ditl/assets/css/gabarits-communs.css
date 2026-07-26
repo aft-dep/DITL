@@ -1,0 +1,153 @@
+/**
+ * Styles communs aux gabarits DiTL sur mesure.
+ *
+ * Charge pour tous les modeles du registre ditl_gabarits_templates() :
+ * banniere commune (template-parts/gabarit-hero.php) et conteneurs en boite.
+ * Reproduit a l'identique le rendu Elementor d'origine (iso-design).
+ * Breakpoints d'origine : tablette <= 1024px, mobile <= 767px.
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Banniere pleine largeur
+ * ------------------------------------------------------------------------ */
+
+.ditl-hero {
+	display: flex;
+	align-items: flex-start;
+	min-height: 60vh;
+}
+
+.ditl-hero__col {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	width: 100%;
+	padding: 10px;
+}
+
+/*
+ * Le bloc media (espaceur + image) est neutre par defaut : ses enfants
+ * participent directement a la colonne, comme avant sa factorisation.
+ * Les gabarits qui detachent le titre de l'image (ex. page News anglaise)
+ * le transforment en bloc flex avec sa propre hauteur minimale.
+ */
+.ditl-hero__media {
+	display: contents;
+}
+
+.ditl-hero__spacer {
+	height: 25vh;
+}
+
+.ditl-hero__image {
+	width: 100%;
+	max-width: 100%;
+	height: auto;
+}
+
+h1.ditl-hero__title {
+	margin: 0;
+	color: #1E448F;
+	font-size: 80px;
+	line-height: 1em;
+	letter-spacing: 10px;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------------
+ * Conteneurs en boite (largeur de contenu Elementor : 1140px)
+ * ------------------------------------------------------------------------ */
+
+.ditl-boxed {
+	padding: 10px;
+}
+
+.ditl-boxed__inner {
+	max-width: 1140px;
+	margin: 0 auto;
+}
+
+/* ---------------------------------------------------------------------------
+ * Variante de la page anglaise du gabarit Projet (structure Elementor
+ * d'origine differente : banniere sans hauteur minimale, espaceur reduit).
+ * A generaliser si d'autres langues reprennent cette variante.
+ * ------------------------------------------------------------------------ */
+
+.page-id-3167 .ditl-hero {
+	min-height: 0;
+}
+
+.page-id-3167 .ditl-hero__col {
+	gap: 20px;
+}
+
+.page-id-3167 .ditl-hero__spacer {
+	height: 19vh;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tablette (<= 1024px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1024px) {
+
+	.ditl-hero {
+		min-height: 600px;
+	}
+
+	.ditl-hero__spacer {
+		height: 150px;
+	}
+
+	h1.ditl-hero__title {
+		font-size: 60px;
+		letter-spacing: 7px;
+	}
+
+	.page-id-3167 .ditl-hero {
+		min-height: 0;
+	}
+
+	.page-id-3167 .ditl-hero__spacer {
+		height: 150px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile (<= 767px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+
+	.ditl-hero {
+		min-height: 500px;
+	}
+
+	.ditl-hero__col {
+		padding: 0;
+	}
+
+	.ditl-hero__spacer {
+		height: 120px;
+	}
+
+	h1.ditl-hero__title {
+		font-size: 50px;
+		letter-spacing: 5px;
+	}
+
+	.page-id-3167 .ditl-hero {
+		min-height: 0;
+	}
+
+	.page-id-3167 .ditl-hero__spacer {
+		height: 120px;
+	}
+
+	.page-id-3167 .ditl-hero__col {
+		padding: 10px;
+	}
+}

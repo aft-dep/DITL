@@ -34,8 +34,6 @@ get_header(); ?>
 				the_post();
 
 				$ditl_post_id      = get_the_ID();
-				$ditl_hero_id      = absint( get_post_meta( $ditl_post_id, '_ditl_hero_image_id', true ) );
-				$ditl_hero_title   = (string) get_post_meta( $ditl_post_id, '_ditl_hero_title', true );
 				$ditl_intro_title  = (string) get_post_meta( $ditl_post_id, '_ditl_intro_title', true );
 				$ditl_sections     = ditl_get_meta_json( $ditl_post_id, '_ditl_sections' );
 				$ditl_carousel_ids = ditl_get_meta_json( $ditl_post_id, '_ditl_carousel_ids' );
@@ -60,27 +58,7 @@ get_header(); ?>
 
 					<div class="entry-content clear" itemprop="text">
 
-						<section class="ditl-hero">
-							<div class="ditl-hero__col">
-								<div class="ditl-hero__spacer" aria-hidden="true"></div>
-								<?php
-								if ( $ditl_hero_id ) {
-									echo wp_get_attachment_image(
-										$ditl_hero_id,
-										'full',
-										false,
-										array( 'class' => 'ditl-hero__image' )
-									);
-								}
-
-								if ( '' !== $ditl_hero_title ) {
-									?>
-									<h1 class="ditl-hero__title"><?php echo esc_html( $ditl_hero_title ); ?></h1>
-									<?php
-								}
-								?>
-							</div>
-						</section>
+						<?php get_template_part( 'template-parts/gabarit-hero' ); ?>
 
 						<?php if ( '' !== $ditl_intro_title ) { ?>
 						<div class="ditl-boxed ditl-intro">

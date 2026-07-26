@@ -3,11 +3,12 @@
  * Metabox du gabarit "Projet DiTL" (pilote de la refonte sans Elementor).
  *
  * Contrat de metas (FIGE - le template page-templates/projet-ditl.php s'appuie dessus) :
- * - _ditl_hero_image_id (int)    : image de banniere (ID d'attachement).
- * - _ditl_hero_title    (string) : titre H1 de la banniere.
  * - _ditl_intro_title   (string) : titre H2 d'introduction.
  * - _ditl_sections      (string) : JSON [{title, content}] - titre H3 texte simple, contenu HTML riche.
  * - _ditl_carousel_ids  (string) : JSON [int] - IDs d'attachements de la galerie (peut etre vide).
+ *
+ * Les metas de banniere (_ditl_hero_image_id, _ditl_hero_title) sont gerees
+ * par la metabox commune inc/metaboxes/banniere.php.
  *
  * La metabox n'est visible que lorsque le modele de page "Projet DiTL"
  * est selectionne (bascule geree en JS, editeur classique et Gutenberg).
@@ -28,32 +29,6 @@ define( 'DITL_TPL_PROJET_DITL', 'page-templates/projet-ditl.php' );
  * Declare les metas du gabarit (protegees, avec controle d'acces).
  */
 function ditl_projet_ditl_register_meta() {
-	register_post_meta(
-		'page',
-		'_ditl_hero_image_id',
-		array(
-			'type'              => 'integer',
-			'single'            => true,
-			'default'           => 0,
-			'sanitize_callback' => 'absint',
-			'auth_callback'     => 'ditl_meta_auth_callback',
-			'show_in_rest'      => false,
-		)
-	);
-
-	register_post_meta(
-		'page',
-		'_ditl_hero_title',
-		array(
-			'type'              => 'string',
-			'single'            => true,
-			'default'           => '',
-			'sanitize_callback' => 'sanitize_text_field',
-			'auth_callback'     => 'ditl_meta_auth_callback',
-			'show_in_rest'      => false,
-		)
-	);
-
 	register_post_meta(
 		'page',
 		'_ditl_intro_title',
@@ -119,37 +94,14 @@ add_action( 'add_meta_boxes_page', 'ditl_projet_ditl_add_metabox' );
 function ditl_projet_ditl_render_metabox( $post ) {
 	wp_nonce_field( 'ditl_projet_ditl_save_' . $post->ID, 'ditl_projet_ditl_nonce' );
 
-	$hero_image_id = absint( get_post_meta( $post->ID, '_ditl_hero_image_id', true ) );
-	$hero_title    = (string) get_post_meta( $post->ID, '_ditl_hero_title', true );
-	$intro_title   = (string) get_post_meta( $post->ID, '_ditl_intro_title', true );
-	$sections      = ditl_get_meta_json( $post->ID, '_ditl_sections' );
-	$carousel_ids  = ditl_get_meta_json( $post->ID, '_ditl_carousel_ids' );
+	$intro_title  = (string) get_post_meta( $post->ID, '_ditl_intro_title', true );
+	$sections     = ditl_get_meta_json( $post->ID, '_ditl_sections' );
+	$carousel_ids = ditl_get_meta_json( $post->ID, '_ditl_carousel_ids' );
 	?>
 	<div class="ditl-metabox">
 		<p class="description">
-			<?php esc_html_e( 'Ces champs alimentent le gabarit "Projet DiTL". Ils ne sont utilises que lorsque ce modele de page est selectionne.', 'ditl' ); ?>
+			<?php esc_html_e( 'Ces champs alimentent le gabarit "Projet DiTL". Ils ne sont utilises que lorsque ce modele de page est selectionne. La banniere se regle dans la metabox "Banniere du gabarit".', 'ditl' ); ?>
 		</p>
-
-		<div class="ditl-field">
-			<span class="ditl-field-label"><?php esc_html_e( 'Image de banniere', 'ditl' ); ?></span>
-			<div class="ditl-media-field">
-				<input type="hidden" name="ditl_hero_image_id" class="ditl-media-value" value="<?php echo esc_attr( $hero_image_id ? $hero_image_id : '' ); ?>" />
-				<div class="ditl-media-preview">
-					<?php
-					if ( $hero_image_id ) {
-						echo wp_get_attachment_image( $hero_image_id, 'medium' );
-					}
-					?>
-				</div>
-				<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
-				<button type="button" class="button ditl-media-remove"<?php echo $hero_image_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
-			</div>
-		</div>
-
-		<div class="ditl-field">
-			<label class="ditl-field-label" for="ditl-hero-title"><?php esc_html_e( 'Titre de la banniere (H1)', 'ditl' ); ?></label>
-			<input type="text" class="widefat" id="ditl-hero-title" name="ditl_hero_title" value="<?php echo esc_attr( $hero_title ); ?>" />
-		</div>
 
 		<div class="ditl-field">
 			<label class="ditl-field-label" for="ditl-intro-title"><?php esc_html_e( 'Titre d\'introduction (H2)', 'ditl' ); ?></label>
@@ -234,14 +186,7 @@ function ditl_projet_ditl_save_metabox( $post_id ) {
 		return;
 	}
 
-	// Image de banniere.
-	$hero_image_id = isset( $_POST['ditl_hero_image_id'] ) ? absint( wp_unslash( $_POST['ditl_hero_image_id'] ) ) : 0;
-	update_post_meta( $post_id, '_ditl_hero_image_id', $hero_image_id );
-
-	// Titres (texte simple).
-	$hero_title = isset( $_POST['ditl_hero_title'] ) ? sanitize_text_field( wp_unslash( $_POST['ditl_hero_title'] ) ) : '';
-	update_post_meta( $post_id, '_ditl_hero_title', wp_slash( $hero_title ) );
-
+	// Titre d'introduction (texte simple).
 	$intro_title = isset( $_POST['ditl_intro_title'] ) ? sanitize_text_field( wp_unslash( $_POST['ditl_intro_title'] ) ) : '';
 	update_post_meta( $post_id, '_ditl_intro_title', wp_slash( $intro_title ) );
 
@@ -274,56 +219,3 @@ function ditl_projet_ditl_save_metabox( $post_id ) {
 	update_post_meta( $post_id, '_ditl_carousel_ids', wp_slash( ditl_sanitize_ids_json( $carousel_raw ) ) );
 }
 add_action( 'save_post_page', 'ditl_projet_ditl_save_metabox' );
-
-/**
- * Charge les assets admin de la metabox (ecran d'edition de page uniquement).
- *
- * @param string $hook_suffix Ecran admin courant.
- */
-function ditl_projet_ditl_admin_assets( $hook_suffix ) {
-	if ( 'post.php' !== $hook_suffix && 'post-new.php' !== $hook_suffix ) {
-		return;
-	}
-
-	$screen = get_current_screen();
-
-	if ( ! $screen || 'page' !== $screen->post_type ) {
-		return;
-	}
-
-	// Selecteur de medias + editeur riche dynamique (wp.editor.initialize).
-	wp_enqueue_media();
-	wp_enqueue_editor();
-
-	wp_enqueue_style(
-		'ditl-admin-metabox',
-		get_stylesheet_directory_uri() . '/assets/admin/metabox-gabarits.css',
-		array(),
-		DITL_THEME_VERSION
-	);
-
-	wp_enqueue_script(
-		'ditl-admin-metabox',
-		get_stylesheet_directory_uri() . '/assets/admin/metabox-gabarits.js',
-		array( 'jquery' ),
-		DITL_THEME_VERSION,
-		true
-	);
-
-	wp_localize_script(
-		'ditl-admin-metabox',
-		'ditlMetabox',
-		array(
-			'templateProjetDitl' => DITL_TPL_PROJET_DITL,
-			'metaboxId'          => 'ditl-projet-ditl',
-			'i18n'               => array(
-				'chooseImage'  => __( 'Choisir une image', 'ditl' ),
-				'chooseImages' => __( 'Choisir des images', 'ditl' ),
-				'useSelection' => __( 'Utiliser cette selection', 'ditl' ),
-				/* translators: %d : numero d'ordre de la section. */
-				'sectionLabel' => __( 'Section %d', 'ditl' ),
-			),
-		)
-	);
-}
-add_action( 'admin_enqueue_scripts', 'ditl_projet_ditl_admin_assets' );

@@ -1,8 +1,9 @@
 /**
  * Metaboxes des gabarits DiTL - ecran d'edition de page.
  *
- * - Affichage conditionnel de la metabox selon le modele de page choisi
- *   (editeur classique et Gutenberg).
+ * - Affichage conditionnel des metaboxes selon le modele de page choisi
+ *   (editeur classique et Gutenberg). Le registre id de metabox => modeles
+ *   declencheurs est fourni par PHP via ditlMetabox.metaboxes.
  * - Selecteur de media simple (image de banniere).
  * - Galerie multiple (carrousel).
  * - Sections repetables avec editeur riche (wp.editor.initialize).
@@ -13,8 +14,9 @@
 ( function( $ ) {
 	'use strict';
 
-	var settings = window.ditlMetabox || {};
-	var i18n     = settings.i18n || {};
+	var settings  = window.ditlMetabox || {};
+	var i18n      = settings.i18n || {};
+	var metaboxes = settings.metaboxes || {};
 
 	/* -------------------------------------------------------------------------
 	 * Affichage conditionnel selon le modele de page.
@@ -40,12 +42,16 @@
 	}
 
 	/**
-	 * Montre ou masque la metabox selon le modele selectionne.
+	 * Montre ou masque chaque metabox du registre selon le modele selectionne.
 	 */
-	function ditlToggleMetabox() {
-		var visible = ditlCurrentTemplate() === settings.templateProjetDitl;
+	function ditlToggleMetaboxes() {
+		var template = ditlCurrentTemplate();
 
-		$( '#' + settings.metaboxId ).toggle( visible );
+		$.each( metaboxes, function( metaboxId, templates ) {
+			var visible = $.inArray( template, templates || [] ) !== -1;
+
+			$( '#' + metaboxId ).toggle( visible );
+		} );
 	}
 
 	/**
@@ -55,7 +61,7 @@
 		var $select = $( '#page_template' );
 
 		if ( $select.length ) {
-			$select.on( 'change', ditlToggleMetabox );
+			$select.on( 'change', ditlToggleMetaboxes );
 		} else if ( window.wp && wp.data && wp.data.subscribe ) {
 			var previous = null;
 
@@ -70,12 +76,12 @@
 
 				if ( template !== previous ) {
 					previous = template;
-					ditlToggleMetabox();
+					ditlToggleMetaboxes();
 				}
 			} );
 		}
 
-		ditlToggleMetabox();
+		ditlToggleMetaboxes();
 	}
 
 	/* -------------------------------------------------------------------------
@@ -348,16 +354,27 @@
 	 * ---------------------------------------------------------------------- */
 
 	$( function() {
-		var $metabox = $( '#' + settings.metaboxId );
+		var initialisee = false;
 
-		if ( ! $metabox.length ) {
-			return;
+		// Chaque metabox du registre initialise les champs qu'elle contient
+		// (les bindings delegues restent inertes si le champ est absent).
+		$.each( metaboxes, function( metaboxId ) {
+			var $metabox = $( '#' + metaboxId );
+
+			if ( ! $metabox.length ) {
+				return;
+			}
+
+			initialisee = true;
+
+			ditlInitMediaField( $metabox );
+			ditlInitGalleryField( $metabox );
+			ditlInitSections( $metabox );
+		} );
+
+		if ( initialisee ) {
+			ditlWatchTemplate();
 		}
-
-		ditlWatchTemplate();
-		ditlInitMediaField( $metabox );
-		ditlInitGalleryField( $metabox );
-		ditlInitSections( $metabox );
 	} );
 
 } )( jQuery );

@@ -1,0 +1,402 @@
+/**
+ * Gabarit "Actualites" - styles du rendu public.
+ *
+ * Reproduit a l'identique le rendu Elementor d'origine (iso-design) :
+ * cartes du widget "Alex Carousel" d'Ultimate Post Kit et carrousel Swiper,
+ * remplaces par un rendu maison (assets/js/ditl-carousel.js).
+ * Breakpoints d'origine : cartes 3/2/1 selon fenetre >= 1023 / >= 767 / en deca.
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Variante de la page anglaise "News" (structure Elementor d'origine
+ * differente : bloc image de 82vh, titre place apres ce bloc, banniere
+ * masquee en tablette). A generaliser si d'autres langues la reprennent.
+ * ------------------------------------------------------------------------ */
+
+.page-id-2589 .ditl-hero {
+	min-height: 0;
+}
+
+.page-id-2589 .ditl-hero__media {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-height: calc(82vh - 10px);
+}
+
+.page-id-2589 .ditl-hero__spacer {
+	height: 21vh;
+}
+
+.page-id-2589 h1.ditl-hero__title {
+	margin: 15px 0 10px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Carrousel : structure
+ * ------------------------------------------------------------------------ */
+
+.ditl-carousel {
+	position: relative;
+}
+
+.ditl-carousel__viewport {
+	/*
+	 * Repli sans JavaScript : defilement natif pour atteindre toutes les
+	 * cartes. Le script repasse en overflow cache a l'initialisation.
+	 */
+	overflow-x: auto;
+}
+
+.ditl-carousel__track {
+	display: flex;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	transition-property: transform;
+	transition-timing-function: ease;
+	transition-duration: 0ms;
+}
+
+.ditl-carousel__slide {
+	flex: 0 0 100%;
+	min-width: 0;
+	margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Cartes article (visuel du widget UPK d'origine)
+ * ------------------------------------------------------------------------ */
+
+.ditl-carousel .ditl-actu-card {
+	position: relative;
+	display: flex;
+	overflow: hidden;
+	height: 300px;
+}
+
+.ditl-carousel .ditl-actu-card__image {
+	width: 100%;
+}
+
+.ditl-carousel .ditl-actu-card__img {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* Auteur et date, en surimpression en haut de carte. */
+.ditl-carousel .ditl-actu-card__meta {
+	position: absolute;
+	top: 15px;
+	left: 15px;
+	display: flex;
+	align-items: center;
+}
+
+.ditl-carousel .ditl-actu-card__avatar img {
+	border-radius: 80px;
+	margin-right: 10px;
+}
+
+.ditl-carousel .ditl-actu-card__author a {
+	color: #dcdcdc;
+	font-size: 16px;
+	font-weight: 500;
+	text-transform: capitalize;
+}
+
+.ditl-carousel .ditl-actu-card__date {
+	color: #dcdcdc;
+	font-size: 12px;
+	font-weight: 500;
+}
+
+/* Bandeau sombre en bas de carte (lisibilite du texte sur l'image). */
+.ditl-carousel .ditl-actu-card__overlay {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	height: auto;
+	background: rgba(43, 45, 66, 0.3);
+	-webkit-backdrop-filter: blur(10px);
+	backdrop-filter: blur(10px);
+}
+
+.ditl-carousel .ditl-actu-card__content {
+	padding: 20px;
+}
+
+.ditl-carousel .ditl-actu-card__category {
+	margin-bottom: 5px;
+}
+
+.ditl-carousel .ditl-actu-card__category a {
+	font-size: 15px;
+	font-weight: 500;
+	color: rgba(255, 255, 255, 0.5);
+}
+
+.ditl-carousel .ditl-actu-card__title {
+	display: inline;
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.ditl-carousel .ditl-actu-card__title a {
+	color: #fff;
+}
+
+/* Bouton "lire la suite" : trait qui devient fleche au survol de la carte. */
+.ditl-carousel .ditl-actu-card__more-wrap {
+	margin-bottom: -50px;
+	transition: margin-bottom 0.5s cubic-bezier(0.25, 0.85, 0.35, 0.98);
+}
+
+.ditl-carousel .ditl-actu-card__more {
+	position: relative;
+	display: flex;
+	padding: 25px 20px;
+	transition: all 0.3s ease;
+}
+
+.ditl-carousel .ditl-actu-card__more-icon {
+	position: relative;
+}
+
+.ditl-carousel .ditl-actu-card__more-icon::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	width: 25px;
+	height: 2px;
+	background: rgba(255, 255, 255, 0.5);
+	transition: all 0.5s ease;
+}
+
+.ditl-carousel .ditl-actu-card__more-icon span::before,
+.ditl-carousel .ditl-actu-card__more-icon span::after {
+	content: "";
+	position: absolute;
+	left: 40px;
+	width: 10px;
+	height: 2px;
+	background: transparent;
+	border-radius: 10px;
+	transition: all 0.5s ease;
+	opacity: 0;
+}
+
+.ditl-carousel .ditl-actu-card__more-icon span::before {
+	top: -4px;
+	transform: rotate(45deg);
+}
+
+.ditl-carousel .ditl-actu-card__more-icon span::after {
+	bottom: -6px;
+	transform: rotate(-45deg);
+}
+
+/* Survol de la carte (et focus clavier : meme reveal, exigence RGAA). */
+.ditl-carousel .ditl-actu-card:hover .ditl-actu-card__more-wrap,
+.ditl-carousel .ditl-actu-card:focus-within .ditl-actu-card__more-wrap {
+	margin-bottom: 0;
+}
+
+.ditl-carousel .ditl-actu-card:hover .ditl-actu-card__more,
+.ditl-carousel .ditl-actu-card:focus-within .ditl-actu-card__more {
+	background: white;
+}
+
+.ditl-carousel .ditl-actu-card:hover .ditl-actu-card__more-icon::before,
+.ditl-carousel .ditl-actu-card:focus-within .ditl-actu-card__more-icon::before {
+	width: 50px;
+	background: #2B2D42;
+}
+
+.ditl-carousel .ditl-actu-card:hover .ditl-actu-card__more-icon span::before,
+.ditl-carousel .ditl-actu-card:hover .ditl-actu-card__more-icon span::after,
+.ditl-carousel .ditl-actu-card:focus-within .ditl-actu-card__more-icon span::before,
+.ditl-carousel .ditl-actu-card:focus-within .ditl-actu-card__more-icon span::after {
+	width: 10px;
+	background: #2B2D42;
+	opacity: 1;
+	transition-delay: 0.3s;
+}
+
+/* ---------------------------------------------------------------------------
+ * Fleches de navigation (fines, de part et d'autre du carrousel)
+ * ------------------------------------------------------------------------ */
+
+.ditl-carousel__nav {
+	position: absolute;
+	top: 50%;
+	/* Cale le glyphe sur la position de l'icone d'origine. */
+	transform: translateY(calc(-50% - 2px));
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.ditl-carousel__nav svg {
+	display: block;
+	width: 24px;
+	height: 24px;
+}
+
+.ditl-carousel__nav--prev {
+	left: -60px;
+}
+
+.ditl-carousel__nav--next {
+	right: -60px;
+}
+
+/*
+ * L'original laissait les fleches deborder hors de l'ecran sous 1280px
+ * environ ; on les masque reellement pour ne pas pieger le clavier.
+ */
+@media (max-width: 1279px) {
+
+	.ditl-carousel__nav {
+		display: none;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Mode statique (script) : autant de cartes visibles que d'articles, plus
+ * rien a faire defiler ; commandes et clones de boucle sont masques.
+ * ------------------------------------------------------------------------ */
+
+.ditl-carousel--static .ditl-carousel__nav,
+.ditl-carousel--static .ditl-carousel__pause,
+.ditl-carousel--static .ditl-carousel__slide--clone {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Bouton pause / lecture de l'autoplay (RGAA 13.8, ajout discret assume)
+ * ------------------------------------------------------------------------ */
+
+.ditl-carousel__pause {
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.75);
+	color: #2B2D42;
+	cursor: pointer;
+}
+
+.ditl-carousel__pause:hover,
+.ditl-carousel__pause:focus {
+	background: rgba(255, 255, 255, 0.95);
+}
+
+.ditl-carousel__pause[hidden] {
+	display: none;
+}
+
+.ditl-carousel__pause svg {
+	display: block;
+	width: 12px;
+	height: 12px;
+}
+
+.ditl-carousel__icon-play {
+	display: none;
+}
+
+.ditl-carousel.is-paused .ditl-carousel__icon-play {
+	display: block;
+}
+
+.ditl-carousel.is-paused .ditl-carousel__icon-pause {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Points de rupture du carrousel (fenetre >= 767px : 2 cartes sans espace,
+ * fenetre >= 1023px : 3 cartes espacees de 20px, comme le Swiper d'origine)
+ * ------------------------------------------------------------------------ */
+
+@media (min-width: 767px) {
+
+	.ditl-carousel__slide {
+		flex-basis: 50%;
+	}
+}
+
+@media (min-width: 1023px) {
+
+	.ditl-carousel__slide {
+		flex-basis: calc((100% - 40px) / 3);
+		margin-right: 20px;
+	}
+}
+
+/* Bandeau sombre limite a 60% de la carte sur grand ecran, comme l'original. */
+@media (min-width: 1024px) {
+
+	.ditl-carousel .ditl-actu-card__overlay {
+		width: 60%;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Variante anglaise : tablette et mobile
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1024px) and (min-width: 768px) {
+
+	/* La banniere d'origine etait masquee en tablette sur la page anglaise. */
+	.page-id-2589 .ditl-hero {
+		min-height: 0;
+	}
+
+	.page-id-2589 .ditl-hero__media {
+		display: none;
+	}
+
+	.page-id-2589 h1.ditl-hero__title {
+		margin: 10px 0;
+	}
+}
+
+@media (max-width: 767px) {
+
+	.page-id-2589 .ditl-hero {
+		min-height: 0;
+	}
+
+	.page-id-2589 .ditl-hero__media {
+		min-height: 500px;
+	}
+
+	.page-id-2589 .ditl-hero__spacer {
+		height: 120px;
+	}
+
+	.page-id-2589 h1.ditl-hero__title {
+		margin: 5px 0 10px;
+	}
+}
