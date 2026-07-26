@@ -91,12 +91,16 @@
 	 * ---------------------------------------------------------------------- */
 
 	function ditlInitMediaField( $metabox ) {
-		var frame = null;
+		var frame         = null;
+		var $currentField = null;
 
+		// Le selecteur est partage par tous les champs media de la metabox
+		// (y compris les lignes repetables ajoutees dynamiquement) : le champ
+		// clique est memorise a chaque ouverture.
 		$metabox.on( 'click', '.ditl-media-choose', function( e ) {
 			e.preventDefault();
 
-			var $field = $( this ).closest( '.ditl-media-field' );
+			$currentField = $( this ).closest( '.ditl-media-field' );
 
 			if ( ! frame ) {
 				frame = wp.media( {
@@ -109,18 +113,18 @@
 				frame.on( 'select', function() {
 					var attachment = frame.state().get( 'selection' ).first();
 
-					if ( ! attachment ) {
+					if ( ! attachment || ! $currentField ) {
 						return;
 					}
 
 					var data = attachment.toJSON();
 					var url  = data.sizes && data.sizes.medium ? data.sizes.medium.url : data.url;
 
-					$field.find( '.ditl-media-value' ).val( data.id );
-					$field.find( '.ditl-media-preview' ).html(
+					$currentField.find( '.ditl-media-value' ).val( data.id );
+					$currentField.find( '.ditl-media-preview' ).html(
 						$( '<img/>', { src: url, alt: '' } )
 					);
-					$field.find( '.ditl-media-remove' ).show();
+					$currentField.find( '.ditl-media-remove' ).show();
 				} );
 			}
 
@@ -160,12 +164,15 @@
 	}
 
 	function ditlInitGalleryField( $metabox ) {
-		var frame = null;
+		var frame         = null;
+		var $currentField = null;
 
 		$metabox.on( 'click', '.ditl-gallery-choose', function( e ) {
 			e.preventDefault();
 
-			var $field = $( this ).closest( '.ditl-gallery-field' );
+			// Champ memorise a chaque ouverture : la frame est partagee et les
+			// handlers doivent viser le champ du clic courant, pas du premier.
+			$currentField = $( this ).closest( '.ditl-gallery-field' );
 
 			if ( ! frame ) {
 				frame = wp.media( {
@@ -181,7 +188,7 @@
 					var ids       = [];
 
 					try {
-						ids = JSON.parse( $field.find( '.ditl-gallery-value' ).val() || '[]' );
+						ids = JSON.parse( $currentField.find( '.ditl-gallery-value' ).val() || '[]' );
 					} catch ( err ) {
 						ids = [];
 					}
@@ -196,7 +203,7 @@
 				} );
 
 				frame.on( 'select', function() {
-					var $preview = $field.find( '.ditl-gallery-preview' );
+					var $preview = $currentField.find( '.ditl-gallery-preview' );
 
 					$preview.empty();
 
@@ -215,7 +222,7 @@
 						);
 					} );
 
-					ditlSyncGalleryValue( $field );
+					ditlSyncGalleryValue( $currentField );
 				} );
 			}
 
@@ -280,10 +287,15 @@
 
 	/**
 	 * Renumerote les libelles "Section N" d'un champ de sections.
+	 *
+	 * Un champ peut fournir son propre libelle via l'attribut data-row-label
+	 * (ex. "Vignette %d" pour les vignettes du gabarit Accueil).
 	 */
 	function ditlRenumberSections( $field ) {
+		var label = $field.attr( 'data-row-label' ) || i18n.sectionLabel || 'Section %d';
+
 		$field.find( '.ditl-section' ).each( function( index ) {
-			$( this ).find( '.ditl-section-numero' ).text( ditlMetabox.i18n.sectionLabel.replace( '%d', index + 1 ) );
+			$( this ).find( '.ditl-section-numero' ).text( label.replace( '%d', index + 1 ) );
 		} );
 	}
 

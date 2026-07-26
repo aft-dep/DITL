@@ -36,6 +36,7 @@ function ditl_gabarits_templates() {
 		DITL_TPL_PROJET_DITL,
 		DITL_TPL_ACTUALITES,
 		DITL_TPL_RESULTATS,
+		DITL_TPL_ACCUEIL,
 	);
 }
 
@@ -202,6 +203,7 @@ function ditl_gabarits_admin_assets( $hook_suffix ) {
 				'ditl-banniere'    => ditl_gabarits_templates(),
 				'ditl-projet-ditl' => array( DITL_TPL_PROJET_DITL ),
 				'ditl-resultats'   => array( DITL_TPL_RESULTATS ),
+				'ditl-accueil'     => array( DITL_TPL_ACCUEIL ),
 			),
 			'i18n'      => array(
 				'chooseImage'  => __( 'Choisir une image', 'ditl' ),

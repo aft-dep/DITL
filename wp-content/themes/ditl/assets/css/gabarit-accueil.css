@@ -1,0 +1,834 @@
+/**
+ * Gabarit "Accueil" - styles du rendu public.
+ *
+ * Reproduit a l'identique le rendu Elementor d'origine (iso-design) :
+ * banniere etendue (sous-titre + bouton), presentation en deux colonnes,
+ * livrables (vignettes), liste des dernieres actualites (visuel du widget
+ * UPK buzz-list d'origine) et bloc partenaires (grille ou carrousel).
+ * Breakpoints d'origine : tablette <= 1024px, mobile <= 767px.
+ *
+ * Les deux pages n'avaient pas exactement la meme structure Elementor :
+ * variantes scopees par page (pattern .page-id-XXXX etabli).
+ * - 3075 : page francaise (grille de logos, vignettes a 80%).
+ * - 3035 : page anglaise (carrousel de logos, conteneur intermediaire
+ *   autour de la presentation, fond degrade sur le bloc partenaires).
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Banniere (complements du gabarit Accueil)
+ * ------------------------------------------------------------------------ */
+
+/* Fond bleu de la banniere (couleur globale "primaire" du site d'origine). */
+.ditl-hero {
+	background-color: #6EC1E4;
+}
+
+/* Pas d'espaceur au-dessus de l'image sur l'accueil : image collee au header. */
+.ditl-hero__spacer {
+	display: none;
+}
+
+h2.ditl-hero__sous-titre {
+	margin: 0;
+	font-size: 40px;
+	font-weight: 300;
+	letter-spacing: 6.3px;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.ditl-hero__action {
+	margin-top: 25px;
+	text-align: center;
+}
+
+/* ---------------------------------------------------------------------------
+ * Boutons (widget bouton Elementor + styles boutons globaux d'Astra,
+ * tels qu'appliques sur le site d'origine : survol orange global)
+ * ------------------------------------------------------------------------ */
+
+.ditl-bouton {
+	display: inline-block;
+	padding: 10px 20px;
+	border: 0;
+	border-radius: 0;
+	background-color: #b881ef;
+	color: #FFFFFF;
+	/* Comme Astra : taille en rem, reduite avec la base html sous 545px. */
+	font-size: 16px;
+	font-size: 1.0666666666667rem;
+	font-weight: 400;
+	letter-spacing: 3px;
+	line-height: 1em;
+	text-align: center;
+	text-decoration: none;
+	transition: all 0.3s;
+}
+
+.ditl-bouton:visited {
+	color: #FFFFFF;
+}
+
+.ditl-bouton:hover,
+.ditl-bouton:focus {
+	background-color: #eca500;
+	color: #FFFFFF;
+}
+
+.ditl-hero__bouton {
+	background-color: #F7A300;
+	font-weight: normal;
+	text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------------------
+ * Bloc Presentation (deux colonnes : texte + image)
+ * ------------------------------------------------------------------------ */
+
+.ditl-accueil-pres {
+	margin: 80px 0 100px;
+}
+
+/* La page anglaise avait un conteneur intermediaire (10px de boite en plus). */
+.page-id-3035 .ditl-accueil-pres {
+	margin: 90px 0 110px;
+}
+
+.ditl-accueil-pres__inner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	max-width: 1140px;
+	margin: 0 auto;
+}
+
+.ditl-accueil-pres__texte-col {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 20px;
+	width: 100%;
+	padding: 20px 80px 20px 20px;
+}
+
+.ditl-accueil-pres__image-col {
+	width: 100%;
+	padding: 20px;
+	text-align: center;
+}
+
+h2.ditl-accueil-pres__titre {
+	margin: 0;
+	color: #A079B3;
+	font-size: 36px;
+	text-align: left;
+	text-transform: uppercase;
+}
+
+.ditl-accueil-pres__action {
+	display: flex;
+}
+
+.ditl-accueil-pres__bouton {
+	background-color: #9D76B1;
+}
+
+@media (min-width: 768px) {
+
+	.ditl-accueil-pres__texte-col {
+		width: 50%;
+	}
+
+	.ditl-accueil-pres__image-col {
+		width: 50%;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Bloc Livrables (fond bleu, intro puis grille de vignettes)
+ * ------------------------------------------------------------------------ */
+
+.ditl-accueil-livr {
+	background-color: #6EC1E4;
+	padding: 100px 0 200px;
+}
+
+.ditl-accueil-livr__inner {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	padding: 10px;
+}
+
+h2.ditl-accueil-livr__titre {
+	align-self: center;
+	margin: 0;
+	color: #000000;
+}
+
+/*
+ * L'intro conserve le markup Elementor residuel stocke en meta. Dans le
+ * rendu d'origine, ce residu heritait des variables CSS des conteneurs
+ * Elementor parents (--display:flex) et sa boite interne etait centree a
+ * la largeur de contenu (1140px). Hors contexte Elementor ces variables
+ * n'existent plus : la meme mise en boite est posee explicitement ici.
+ */
+.ditl-accueil-livr__intro .e-con {
+	display: flex;
+}
+
+.ditl-accueil-livr__intro .e-con-inner {
+	width: 100%;
+	max-width: 1140px;
+	margin: 0 auto;
+}
+
+.ditl-accueil-livr__grille {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-rows: repeat(2, 1fr);
+	gap: 20px;
+	justify-items: center;
+	align-items: center;
+	align-self: center;
+	width: 100%;
+	padding: 10px;
+}
+
+.ditl-accueil-livr__cell {
+	width: 100%;
+	padding: 10px;
+}
+
+/*
+ * Comme dans le rendu d'origine, le centrage horizontal de la grille
+ * parente (justify-items center) etait herite par la grille interne de
+ * chaque vignette : les textes courts y sont centres dans leur colonne.
+ */
+.ditl-accueil-livr__vignette {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 20px;
+	justify-items: center;
+	padding: 10px;
+}
+
+.ditl-accueil-livr__icone {
+	text-align: center;
+}
+
+@media (min-width: 768px) {
+
+	.ditl-accueil-livr__grille {
+		width: 73%;
+	}
+
+	/* Vignettes a 80% de leur cellule sur la page francaise uniquement. */
+	.page-id-3075 .ditl-accueil-livr__cell {
+		width: 80%;
+	}
+}
+
+
+/* ---------------------------------------------------------------------------
+ * Bloc Actualites : titre puis liste des 6 derniers articles
+ * (visuel du widget UPK buzz-list d'origine, reglages par defaut)
+ * ------------------------------------------------------------------------ */
+
+h2.ditl-accueil-actus__titre {
+	margin: 45px;
+	color: #A079B3;
+	text-align: center;
+}
+
+/*
+ * Le conteneur Elementor d'origine declarait deux rangees egales (1fr)
+ * pour un seul element : une rangee vide de la hauteur de la liste
+ * subsistait sous les articles (plus l'ecart de grille par defaut de
+ * 20px). Reproduit pour garder les memes espaces.
+ */
+.ditl-accueil-actus .ditl-boxed__inner {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: repeat(2, 1fr);
+	gap: 20px;
+}
+
+.ditl-actus-liste {
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	counter-reset: ditl-actu;
+}
+
+.ditl-actu-item {
+	position: relative;
+	overflow: hidden;
+	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
+}
+
+/* Image a la une en fond de carte, revelee au survol (voile blanc au repos). */
+.ditl-actu-item__img-wrap {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+.ditl-actu-item__img-wrap::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: #fff;
+	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
+}
+
+.ditl-actu-item__img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.ditl-actu-item__contenu {
+	position: relative;
+	display: flex;
+	align-items: center;
+	padding: 15px;
+}
+
+/* Numero d'ordre de la carte (compteur CSS, comme l'original). */
+.ditl-actu-item__num {
+	position: relative;
+	counter-increment: ditl-actu;
+	padding-right: 15px;
+}
+
+.ditl-actu-item__num::before {
+	content: counter(ditl-actu);
+	top: 0;
+	left: 0;
+	color: #2B2D42;
+	font-size: 30px;
+	font-weight: 600;
+	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
+}
+
+.ditl-actu-item__inner {
+	padding-left: 15px;
+	border-left: 2px solid #8D99AE;
+	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
+}
+
+.ditl-actu-item__categorie {
+	display: flex;
+	margin-bottom: 5px;
+}
+
+.ditl-actu-item__categorie a {
+	display: inline-flex;
+	color: #EF233C;
+	font-size: 10px;
+	font-weight: 500;
+	text-transform: uppercase;
+	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
+}
+
+h3.ditl-actu-item__titre {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	text-transform: capitalize;
+}
+
+.ditl-actu-item__titre a {
+	color: #2B2D42;
+	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
+}
+
+/* Soulignement anime du titre (equivalent .title-animation-underline UPK). */
+.ditl-souligne-anime {
+	display: inline;
+	background-image: linear-gradient(currentColor, currentColor);
+	background-repeat: no-repeat;
+	background-size: 0% 2px;
+	background-position: 0% 100%;
+	transition: background-size 0.3s;
+}
+
+.ditl-souligne-anime:hover,
+.ditl-souligne-anime:focus {
+	background-size: 100% 2px;
+}
+
+/*
+ * Auteur puis date sur deux lignes : c'est le rendu effectif du widget
+ * d'origine sur les deux pages (la date passait systematiquement a la
+ * ligne sous l'auteur).
+ */
+.ditl-actu-item__meta {
+	position: relative;
+	display: block;
+	padding-top: 10px;
+	color: #8D99AE;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1;
+	text-transform: uppercase;
+	transition: color 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
+}
+
+/*
+ * Bloc flex de niveau bloc (comme le widget d'origine) : il occupe sa
+ * propre ligne, ce qui pousse la date a la ligne suivante. La specificite
+ * doit depasser celle de la regle generique ".__meta > div" ci-dessous.
+ */
+.ditl-actu-item__meta .ditl-actu-item__auteur {
+	display: flex;
+}
+
+.ditl-actu-item__par {
+	padding-right: 6px;
+	font-weight: 700;
+}
+
+.ditl-actu-item__auteur a {
+	color: #8D99AE;
+	font-weight: 500;
+	transition: color 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
+}
+
+/* Separateur "//" entre auteur et date (attribut data-separator). */
+.ditl-actu-item__meta > div {
+	position: relative;
+	display: inline-flex;
+}
+
+.ditl-actu-item__meta > div::before {
+	content: attr(data-separator);
+	margin: 0 5px;
+}
+
+.ditl-actu-item__meta > div:nth-child(1)::before {
+	display: none;
+}
+
+/* Survol de la carte (et focus clavier : meme reveal, exigence RGAA). */
+.ditl-actu-item:hover .ditl-actu-item__img-wrap::before,
+.ditl-actu-item:focus-within .ditl-actu-item__img-wrap::before {
+	background: rgba(43, 45, 66, 0.5);
+}
+
+.ditl-actu-item:hover .ditl-actu-item__num::before,
+.ditl-actu-item:focus-within .ditl-actu-item__num::before {
+	color: #EDF2F4;
+}
+
+.ditl-actu-item:hover .ditl-actu-item__inner,
+.ditl-actu-item:focus-within .ditl-actu-item__inner {
+	border-left-color: #EDF2F4;
+}
+
+.ditl-actu-item:hover .ditl-actu-item__categorie a,
+.ditl-actu-item:focus-within .ditl-actu-item__categorie a {
+	color: #EDF2F4;
+}
+
+.ditl-actu-item:hover .ditl-actu-item__titre a,
+.ditl-actu-item:focus-within .ditl-actu-item__titre a {
+	color: #fff;
+}
+
+.ditl-actu-item:hover .ditl-actu-item__meta,
+.ditl-actu-item:focus-within .ditl-actu-item__meta {
+	color: #EDF2F4;
+}
+
+.ditl-actu-item:hover .ditl-actu-item__auteur a,
+.ditl-actu-item:focus-within .ditl-actu-item__auteur a {
+	color: #EDF2F4;
+}
+
+@media (min-width: 768px) {
+
+	.ditl-actu-item__contenu {
+		padding: 20px;
+	}
+
+	.ditl-actu-item__categorie a {
+		font-size: 12px;
+	}
+
+	h3.ditl-actu-item__titre {
+		font-size: 18px;
+	}
+
+	.ditl-actu-item__num::before {
+		font-size: 40px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Bloc Partenaires (fond image, contenu en boite de 575px)
+ * ------------------------------------------------------------------------ */
+
+.ditl-accueil-part {
+	position: relative;
+	background-image: url("../../../../uploads/2025/01/Banner-blue-1.jpg");
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	padding: 100px 0 200px;
+}
+
+/* Page anglaise : couleur de fond et voile degrade radial par-dessus. */
+.page-id-3035 .ditl-accueil-part {
+	background-color: #4171FC;
+}
+
+.page-id-3035 .ditl-accueil-part::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-image: radial-gradient(at bottom right, #FDF4F400 0%, #AFF6F9ED 100%);
+	mix-blend-mode: lighten;
+	opacity: 0.25;
+}
+
+/* La colonne interne d'origine gardait la boite par defaut de 10px. */
+.ditl-accueil-part__inner {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+}
+
+h2.ditl-accueil-part__titre {
+	margin: 0;
+	padding: 0;
+	color: #000000;
+	letter-spacing: 4.92px;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.ditl-accueil-part__texte {
+	text-align: center;
+}
+
+.page-id-3035 .ditl-accueil-part__texte {
+	color: #000000;
+	font-size: 20px;
+}
+
+.ditl-accueil-part__action {
+	margin: 25px;
+	padding: 10px;
+	text-align: center;
+}
+
+.ditl-accueil-part__bouton {
+	padding: 26px;
+	background-color: #F7A300;
+	font-weight: normal;
+	text-transform: uppercase;
+}
+
+/* Grille statique des logos (page francaise). */
+ul.ditl-accueil-part__grille {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	grid-template-rows: repeat(3, 1fr);
+	gap: 20px;
+	margin: 0;
+	padding: 10px;
+	list-style: none;
+}
+
+.ditl-accueil-part__logo-item {
+	margin: 0;
+	text-align: center;
+}
+
+.ditl-accueil-part__logo {
+	max-width: 100%;
+	height: auto;
+}
+
+@media (min-width: 768px) {
+
+	.ditl-accueil-part__inner {
+		max-width: 575px;
+		margin: 0 auto;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Carrousel des logos (page anglaise) : structure ditl-carousel
+ * ------------------------------------------------------------------------ */
+
+.ditl-accueil-part__carrousel {
+	padding: 10px;
+}
+
+/*
+ * L'original reservait une zone de pagination (points masques, taille 0)
+ * de 30px sous les diapositives : reproduite pour garder la meme hauteur.
+ */
+.ditl-carousel {
+	position: relative;
+	padding-bottom: 30px;
+}
+
+.ditl-carousel__viewport {
+	/*
+	 * Repli sans JavaScript : defilement natif pour atteindre tous les
+	 * logos. Le script repasse en overflow cache a l'initialisation.
+	 */
+	overflow-x: auto;
+}
+
+.ditl-carousel__track {
+	display: flex;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	transition-property: transform;
+	transition-timing-function: ease;
+	transition-duration: 0ms;
+}
+
+.ditl-carousel__slide {
+	flex: 0 0 100%;
+	min-width: 0;
+	margin: 0;
+	text-align: center;
+	/* Comme la figure d'origine : pas d'espace de ligne sous l'image. */
+	line-height: 0;
+}
+
+@media (min-width: 767px) {
+
+	.ditl-carousel__slide {
+		flex-basis: 50%;
+	}
+}
+
+@media (min-width: 1023px) {
+
+	.ditl-carousel__slide {
+		flex-basis: 33.3333%;
+	}
+}
+
+/* Fleches de navigation (chevrons clairs a l'interieur, comme l'original,
+   remontees de la demi-hauteur de la zone de pagination). */
+.ditl-carousel__nav {
+	position: absolute;
+	top: calc(50% - 30px / 2);
+	transform: translateY(-50%);
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: rgba(237, 237, 237, 0.9);
+	line-height: 1;
+	cursor: pointer;
+}
+
+.ditl-carousel__nav svg {
+	display: block;
+	width: 25px;
+	height: 25px;
+}
+
+.ditl-carousel__nav--prev {
+	left: 10px;
+}
+
+.ditl-carousel__nav--next {
+	right: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mode statique (script) : autant de logos visibles que d'entrees, plus
+ * rien a faire defiler ; commandes et clones de boucle sont masques.
+ * ------------------------------------------------------------------------ */
+
+.ditl-carousel--static .ditl-carousel__nav,
+.ditl-carousel--static .ditl-carousel__pause,
+.ditl-carousel--static .ditl-carousel__slide--clone {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Bouton pause / lecture de l'autoplay (RGAA 13.8, ajout discret assume)
+ * ------------------------------------------------------------------------ */
+
+.ditl-carousel__pause {
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.75);
+	color: #2B2D42;
+	cursor: pointer;
+}
+
+.ditl-carousel__pause:hover,
+.ditl-carousel__pause:focus {
+	background: rgba(255, 255, 255, 0.95);
+}
+
+.ditl-carousel__pause[hidden] {
+	display: none;
+}
+
+.ditl-carousel__pause svg {
+	display: block;
+	width: 12px;
+	height: 12px;
+}
+
+.ditl-carousel__icon-play {
+	display: none;
+}
+
+.ditl-carousel.is-paused .ditl-carousel__icon-play {
+	display: block;
+}
+
+.ditl-carousel.is-paused .ditl-carousel__icon-pause {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tablette (<= 1024px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1024px) {
+
+	h2.ditl-hero__sous-titre {
+		font-size: 35px;
+		letter-spacing: 4px;
+	}
+
+	.ditl-hero__bouton {
+		font-size: 16px;
+	}
+
+	.ditl-accueil-pres__texte-col {
+		padding: 0 20px;
+	}
+
+	h2.ditl-accueil-pres__titre {
+		font-size: 30px;
+	}
+
+	.ditl-accueil-livr {
+		padding: 80px 0 160px;
+	}
+
+	.ditl-actus-liste {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.ditl-accueil-part {
+		padding: 80px 0 160px;
+	}
+
+	h2.ditl-accueil-part__titre {
+		font-size: 35px;
+	}
+
+	.ditl-accueil-part__bouton {
+		font-size: 16px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile (<= 767px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+
+	h2.ditl-hero__sous-titre {
+		font-size: 25px;
+		letter-spacing: 2px;
+	}
+
+	.ditl-hero__bouton {
+		font-size: 14px;
+	}
+
+	.ditl-accueil-pres {
+		margin: 50px 0;
+		padding: 0 10px;
+	}
+
+	.page-id-3035 .ditl-accueil-pres {
+		margin: 60px 0;
+		padding: 0 20px;
+	}
+
+	.ditl-accueil-pres__texte-col {
+		padding: 20px 10px 10px;
+	}
+
+	.ditl-accueil-pres__image-col {
+		padding: 10px;
+	}
+
+	h2.ditl-accueil-pres__titre {
+		letter-spacing: 3px;
+	}
+
+	.ditl-accueil-livr {
+		padding: 50px 20px 120px;
+	}
+
+	.ditl-accueil-livr__grille {
+		grid-template-columns: repeat(1, 1fr);
+	}
+
+	.ditl-accueil-livr__vignette {
+		grid-template-columns: repeat(1, 1fr);
+	}
+
+	.ditl-actus-liste {
+		grid-template-columns: repeat(1, 1fr);
+	}
+
+	.ditl-accueil-part {
+		padding: 50px 20px 120px;
+	}
+
+	h2.ditl-accueil-part__titre {
+		letter-spacing: 3px;
+	}
+
+	.ditl-accueil-part__bouton {
+		font-size: 14px;
+	}
+
+	ul.ditl-accueil-part__grille {
+		grid-template-columns: repeat(1, 1fr);
+	}
+}

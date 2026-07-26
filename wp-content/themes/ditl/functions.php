@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.4.0' );
+define( 'DITL_THEME_VERSION', '0.5.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -20,6 +20,7 @@ require_once get_stylesheet_directory() . '/inc/metaboxes/helpers.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/banniere.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/projet-ditl.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/resultats.php';
+require_once get_stylesheet_directory() . '/inc/metaboxes/accueil.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
@@ -103,6 +104,29 @@ function ditl_enqueue_assets_gabarits() {
 			DITL_THEME_VERSION
 		);
 	}
+
+	if ( is_page_template( DITL_TPL_ACCUEIL ) ) {
+		wp_enqueue_style(
+			'ditl-gabarit-accueil',
+			get_stylesheet_directory_uri() . '/assets/css/gabarit-accueil.css',
+			array( 'ditl-gabarits-communs' ),
+			DITL_THEME_VERSION
+		);
+
+		// Carrousel maison uniquement si le bloc Partenaires est regle en
+		// carrousel (page anglaise) ; la grille statique n'en a pas besoin.
+		$ditl_accueil_partenaires = ditl_get_meta_json( get_queried_object_id(), '_ditl_accueil_partenaires' );
+
+		if ( ! empty( $ditl_accueil_partenaires['carrousel'] ) && ! empty( $ditl_accueil_partenaires['logo_ids'] ) ) {
+			wp_enqueue_script(
+				'ditl-carousel',
+				get_stylesheet_directory_uri() . '/assets/js/ditl-carousel.js',
+				array(),
+				DITL_THEME_VERSION,
+				true
+			);
+		}
+	}
 }
 add_action( 'wp_enqueue_scripts', 'ditl_enqueue_assets_gabarits' );
 
@@ -134,6 +158,7 @@ function ditl_retire_scripts_elementor_gabarit() {
 	wp_dequeue_style( 'upk-site' );
 	wp_dequeue_style( 'upk-font' );
 	wp_dequeue_style( 'upk-alex-carousel' );
+	wp_dequeue_style( 'upk-buzz-list' );
 	wp_dequeue_style( 'upk-banner' );
 	wp_dequeue_style( 'swiper' );
 	wp_dequeue_style( 'e-swiper' );

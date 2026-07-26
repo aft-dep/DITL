@@ -6,6 +6,13 @@
  * - _ditl_hero_image_id : image pleine largeur.
  * - _ditl_hero_title    : titre H1.
  *
+ * Arguments optionnels (get_template_part(..., null, $args), utilises par le
+ * gabarit Accueil ; les autres gabarits n'en passent pas, rien ne change) :
+ * - sous_titre   : sous-titre H2 affiche sous le H1.
+ * - bouton_texte : libelle du bouton d'appel a l'action.
+ * - bouton_url   : URL du bouton (relative en meta, prefixee par l'URL du
+ *                  site au rendu, meme regle que les autres gabarits).
+ *
  * Styles associes : assets/css/gabarits-communs.css (charge pour tous les
  * gabarits du registre ditl_gabarits_templates()).
  *
@@ -20,6 +27,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $ditl_hero_id    = absint( get_post_meta( get_the_ID(), '_ditl_hero_image_id', true ) );
 $ditl_hero_title = (string) get_post_meta( get_the_ID(), '_ditl_hero_title', true );
+
+// Complements optionnels passes en arguments (gabarit Accueil).
+$ditl_hero_args = wp_parse_args(
+	isset( $args ) && is_array( $args ) ? $args : array(),
+	array(
+		'sous_titre'   => '',
+		'bouton_texte' => '',
+		'bouton_url'   => '',
+	)
+);
+
+// URL relative en meta (portable entre environnements) :
+// prefixee par l'URL du site au rendu.
+$ditl_hero_href = (string) $ditl_hero_args['bouton_url'];
+if ( '' !== $ditl_hero_href && 0 === strpos( $ditl_hero_href, '/' ) ) {
+	$ditl_hero_href = home_url( $ditl_hero_href );
+}
 ?>
 <section class="ditl-hero">
 	<div class="ditl-hero__col">
@@ -38,6 +62,14 @@ $ditl_hero_title = (string) get_post_meta( get_the_ID(), '_ditl_hero_title', tru
 		</div>
 		<?php if ( '' !== $ditl_hero_title ) { ?>
 		<h1 class="ditl-hero__title"><?php echo esc_html( $ditl_hero_title ); ?></h1>
+		<?php } ?>
+		<?php if ( '' !== (string) $ditl_hero_args['sous_titre'] ) { ?>
+		<h2 class="ditl-hero__sous-titre"><?php echo esc_html( $ditl_hero_args['sous_titre'] ); ?></h2>
+		<?php } ?>
+		<?php if ( '' !== (string) $ditl_hero_args['bouton_texte'] && '' !== $ditl_hero_href ) { ?>
+		<div class="ditl-hero__action">
+			<a class="ditl-bouton ditl-hero__bouton" href="<?php echo esc_url( $ditl_hero_href ); ?>"><?php echo esc_html( $ditl_hero_args['bouton_texte'] ); ?></a>
+		</div>
 		<?php } ?>
 	</div>
 </section>

@@ -116,6 +116,9 @@ function ditl_sanitize_ids_json( $value ) {
 		return '[]';
 	}
 
+	// Meme garde-fou que les listes repetables.
+	$ids = array_slice( $ids, 0, 100 );
+
 	$propres = array();
 
 	foreach ( $ids as $id ) {
