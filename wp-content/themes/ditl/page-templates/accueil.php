@@ -54,11 +54,8 @@ get_header(); ?>
 				$ditl_pres_image_id   = isset( $ditl_presentation['image_id'] ) ? absint( $ditl_presentation['image_id'] ) : 0;
 
 				// URL relative en meta (portable entre environnements) :
-				// prefixee par l'URL du site au rendu.
-				$ditl_pres_href = $ditl_pres_bouton_url;
-				if ( '' !== $ditl_pres_href && 0 === strpos( $ditl_pres_href, '/' ) ) {
-					$ditl_pres_href = home_url( $ditl_pres_href );
-				}
+				// prefixee par l'URL du site au rendu (helper partage).
+				$ditl_pres_href = ditl_href_from_meta_url( $ditl_pres_bouton_url );
 
 				$ditl_pres_visible = ( '' !== $ditl_pres_titre || '' !== trim( wp_strip_all_tags( $ditl_pres_texte ) ) || 0 !== $ditl_pres_image_id );
 
@@ -90,10 +87,7 @@ get_header(); ?>
 					}
 				}
 
-				$ditl_part_href = $ditl_part_bouton_url;
-				if ( '' !== $ditl_part_href && 0 === strpos( $ditl_part_href, '/' ) ) {
-					$ditl_part_href = home_url( $ditl_part_href );
-				}
+				$ditl_part_href = ditl_href_from_meta_url( $ditl_part_bouton_url );
 
 				$ditl_part_visible = ( '' !== $ditl_part_titre || '' !== trim( wp_strip_all_tags( $ditl_part_texte ) ) || array() !== $ditl_part_logo_ids );
 

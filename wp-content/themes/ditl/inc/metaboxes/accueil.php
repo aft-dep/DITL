@@ -242,8 +242,8 @@ add_action( 'add_meta_boxes_page', 'ditl_accueil_add_metabox' );
  * Affiche une ligne de vignette Livrables (ligne existante ou modele JS).
  *
  * Reutilise le markup des sections repetables (.ditl-section) : ajout,
- * suppression, tri et editeurs riches sont geres par le JS commun
- * (assets/admin/metabox-gabarits.js), le selecteur de media par la
+ * suppression, tri, barre d'outils et editeurs riches sont geres par le JS
+ * commun (assets/admin/metabox-gabarits.js), le selecteur de media par la
  * mecanique .ditl-media-field partagee.
  *
  * @param string|int $index Index de la ligne (ou "%index%" pour le modele).
@@ -254,12 +254,6 @@ function ditl_accueil_render_livrable_row( $index, $item = array() ) {
 	$texte    = isset( $item['texte'] ) ? (string) $item['texte'] : '';
 	?>
 	<div class="ditl-section">
-		<div class="ditl-section-toolbar">
-			<span class="ditl-section-numero"><?php esc_html_e( 'Vignette', 'ditl' ); ?></span>
-			<button type="button" class="button ditl-section-up" title="<?php esc_attr_e( 'Monter la vignette', 'ditl' ); ?>">&uarr;</button>
-			<button type="button" class="button ditl-section-down" title="<?php esc_attr_e( 'Descendre la vignette', 'ditl' ); ?>">&darr;</button>
-			<button type="button" class="button ditl-section-remove"><?php esc_html_e( 'Supprimer', 'ditl' ); ?></button>
-		</div>
 		<span class="ditl-field-label"><?php esc_html_e( 'Icone de la vignette', 'ditl' ); ?></span>
 		<div class="ditl-media-field">
 			<input type="hidden" name="ditl_accueil_livrable_image_id[]" class="ditl-media-value" value="<?php echo esc_attr( $image_id ? $image_id : '' ); ?>" />

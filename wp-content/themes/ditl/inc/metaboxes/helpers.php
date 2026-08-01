@@ -151,6 +151,10 @@ function ditl_get_meta_json( $post_id, $meta_key ) {
  * Utilisee pour les lignes existantes et pour le modele JS (avec l'index
  * litteral "%index%", remplace cote JS a l'ajout d'une section).
  *
+ * La barre d'outils de la ligne (numero, monter/descendre, supprimer) n'est
+ * pas rendue ici : elle est injectee par le JS commun (metabox-gabarits.js),
+ * comme pour toutes les lignes repetables des gabarits.
+ *
  * @param array        $args    Options du champ (voir ditl_metabox_render_sections).
  * @param string|int   $index   Index de la ligne (ou "%index%" pour le modele).
  * @param array        $section Donnees {title, content} de la ligne.
@@ -160,12 +164,6 @@ function ditl_metabox_render_section_row( $args, $index, $section = array() ) {
 	$content = isset( $section['content'] ) ? (string) $section['content'] : '';
 	?>
 	<div class="ditl-section">
-		<div class="ditl-section-toolbar">
-			<span class="ditl-section-numero"><?php esc_html_e( 'Section', 'ditl' ); ?></span>
-			<button type="button" class="button ditl-section-up" title="<?php esc_attr_e( 'Monter la section', 'ditl' ); ?>">&uarr;</button>
-			<button type="button" class="button ditl-section-down" title="<?php esc_attr_e( 'Descendre la section', 'ditl' ); ?>">&darr;</button>
-			<button type="button" class="button ditl-section-remove"><?php esc_html_e( 'Supprimer', 'ditl' ); ?></button>
-		</div>
 		<label>
 			<span class="ditl-field-label"><?php echo esc_html( $args['title_label'] ); ?></span>
 			<input type="text" class="widefat" name="<?php echo esc_attr( $args['prefix'] ); ?>_title[]" value="<?php echo esc_attr( $title ); ?>" />

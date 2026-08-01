@@ -246,6 +246,47 @@
 	var ditlSectionIndex = 0;
 
 	/**
+	 * Construit la barre d'outils d'une ligne repetable (numero,
+	 * monter/descendre, supprimer). Markup unique pour toutes les lignes
+	 * de tous les gabarits (sections, vignettes, partenaires...).
+	 */
+	function ditlRowToolbar() {
+		return $( '<div/>', { 'class': 'ditl-section-toolbar' } )
+			.append( $( '<span/>', { 'class': 'ditl-section-numero' } ) )
+			.append( $( '<button/>', {
+				type: 'button',
+				'class': 'button ditl-section-up',
+				title: i18n.rowMoveUp || 'Monter la ligne',
+				html: '&uarr;'
+			} ) )
+			.append( $( '<button/>', {
+				type: 'button',
+				'class': 'button ditl-section-down',
+				title: i18n.rowMoveDown || 'Descendre la ligne',
+				html: '&darr;'
+			} ) )
+			.append( $( '<button/>', {
+				type: 'button',
+				'class': 'button ditl-section-remove',
+				text: i18n.rowRemove || 'Supprimer'
+			} ) );
+	}
+
+	/**
+	 * Injecte la barre d'outils en tete de ligne si elle est absente
+	 * (les lignes rendues par PHP n'embarquent pas la barre).
+	 */
+	function ditlEnsureRowToolbar( $row ) {
+		// Le HTML d'un modele de ligne peut contenir des noeuds texte
+		// autour de la ligne : seule la ligne elle-meme est visee.
+		$row = $row.filter( '.ditl-section' );
+
+		if ( $row.length && ! $row.children( '.ditl-section-toolbar' ).length ) {
+			$row.prepend( ditlRowToolbar() );
+		}
+	}
+
+	/**
 	 * Initialise l'editeur riche d'une zone de texte de section.
 	 */
 	function ditlInitEditor( editorId ) {
@@ -306,9 +347,13 @@
 			return;
 		}
 
-		// Editeurs des lignes deja presentes, champ par champ.
+		// Barres d'outils et editeurs des lignes deja presentes, champ par champ.
 		$fields.each( function() {
 			var $field = $( this );
+
+			$field.find( '.ditl-section' ).each( function() {
+				ditlEnsureRowToolbar( $( this ) );
+			} );
 
 			$field.find( '.ditl-section-editor' ).each( function() {
 				ditlInitEditor( $( this ).attr( 'id' ) );
@@ -330,6 +375,7 @@
 
 			var $row = $( html );
 
+			ditlEnsureRowToolbar( $row );
 			$field.find( '.ditl-sections' ).append( $row );
 			ditlInitEditor( $row.find( '.ditl-section-editor' ).attr( 'id' ) );
 			ditlRenumberSections( $field );

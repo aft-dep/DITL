@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.5.0' );
+define( 'DITL_THEME_VERSION', '0.6.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -21,6 +21,7 @@ require_once get_stylesheet_directory() . '/inc/metaboxes/banniere.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/projet-ditl.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/resultats.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/accueil.php';
+require_once get_stylesheet_directory() . '/inc/metaboxes/partenaires.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
@@ -36,6 +37,26 @@ function ditl_format_rich_text( $content ) {
 	$content = do_shortcode( $content );
 
 	return wptexturize( $content );
+}
+
+/**
+ * Convertit une URL stockee en meta en URL de lien prete pour le rendu.
+ *
+ * Les URLs internes sont stockees RELATIVES en meta (portables entre les
+ * environnements local, preprod et prod) : elles sont prefixees par l'URL
+ * du site au rendu. Les URLs externes (absolues) sont laissees intactes.
+ *
+ * @param mixed $url URL issue d'une meta de gabarit.
+ * @return string URL prete pour un attribut href (a echapper via esc_url).
+ */
+function ditl_href_from_meta_url( $url ) {
+	$url = is_string( $url ) ? $url : '';
+
+	if ( '' !== $url && 0 === strpos( $url, '/' ) ) {
+		return home_url( $url );
+	}
+
+	return $url;
 }
 
 /**
@@ -100,6 +121,15 @@ function ditl_enqueue_assets_gabarits() {
 		wp_enqueue_style(
 			'ditl-gabarit-resultats',
 			get_stylesheet_directory_uri() . '/assets/css/gabarit-resultats.css',
+			array( 'ditl-gabarits-communs' ),
+			DITL_THEME_VERSION
+		);
+	}
+
+	if ( is_page_template( DITL_TPL_PARTENAIRES ) ) {
+		wp_enqueue_style(
+			'ditl-gabarit-partenaires',
+			get_stylesheet_directory_uri() . '/assets/css/gabarit-partenaires.css',
 			array( 'ditl-gabarits-communs' ),
 			DITL_THEME_VERSION
 		);

@@ -1,0 +1,206 @@
+/**
+ * Gabarit "Partenaires" - styles du rendu public.
+ *
+ * Reproduit a l'identique le rendu Elementor d'origine (iso-design).
+ * La banniere et les conteneurs en boite sont dans gabarits-communs.css.
+ * Breakpoints d'origine : tablette <= 1024px, mobile <= 767px, plus le
+ * point de bascule Astra a 921px (tailles de titres par defaut du theme).
+ *
+ * Les deux pages n'avaient pas la meme structure Elementor : variantes
+ * scopees par page (pattern .page-id-XXXX etabli sur les autres gabarits,
+ * a generaliser lors de la migration des autres langues, phase 2).
+ * - 2420 : page francaise (H1 dans la banniere de 60vh - reglages par
+ *   defaut de la banniere commune -, titres des deux premiers pays a
+ *   taille fixe, espace final avant le footer).
+ * - 3169 : page anglaise (banniere de 82vh sans titre, H1 detache rendu
+ *   au-dessus de l'introduction, marge sous l'introduction).
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Sections en boite : les blocs d'origine etaient des widgets Elementor
+ * empiles dans des conteneurs en colonne, espaces de 20px.
+ * ------------------------------------------------------------------------ */
+
+.ditl-part-entete .ditl-boxed__inner,
+.ditl-part-pays .ditl-boxed__inner,
+.ditl-part-partenaire .ditl-boxed__inner {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Introduction (ex-widget titre Elementor en balise p)
+ * ------------------------------------------------------------------------ */
+
+.ditl-part-intro {
+	font-size: 40px;
+	line-height: 1;
+}
+
+.ditl-part-intro p {
+	margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Titres de pays (H2) : taille par defaut du theme (41px, puis 25px sous
+ * la bascule Astra a 921px), comme les widgets d'origine sans typographie.
+ * ------------------------------------------------------------------------ */
+
+h2.ditl-part-pays__titre {
+	margin: 32px 0 16px;
+	color: #1E448F;
+	font-weight: bold;
+	line-height: 1.3em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Partenaire : logo centre, titre H3 riche, texte, bouton
+ * ------------------------------------------------------------------------ */
+
+/* Logos (ex-widget image Elementor : contenu centre). */
+.ditl-part-logo,
+.ditl-part-image-extra {
+	text-align: center;
+}
+
+.ditl-part-logo img,
+.ditl-part-image-extra img {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+/*
+ * Titre du partenaire : 28px a toutes les largeurs (taille H3 par defaut
+ * du theme, identique au reglage fixe des pages d'origine).
+ */
+h3.ditl-part-nom {
+	margin: 0;
+	color: #1E448F;
+	font-weight: bold;
+	line-height: 1.3em;
+}
+
+/* Le titre de la page anglaise (DDAI) contient un paragraphe herite. */
+h3.ditl-part-nom p {
+	margin: 0;
+}
+
+/*
+ * Bouton "Site web" : ex-widget bouton Elementor, taille "sm", habille par
+ * les reglages globaux des boutons d'Astra (padding 10x20, coins droits,
+ * 16px, interlettrage 3px) ; seule la couleur de fond venait d'Elementor.
+ */
+.ditl-part-bouton {
+	display: inline-block;
+	padding: 10px 20px;
+	border: 0;
+	border-radius: 0;
+	background-color: #9D76B1;
+	color: #FFFFFF;
+	font-size: 16px;
+	font-size: 1.0666666666667rem; /* comme Astra : suit la taille racine (13.68px sous 544px) */
+	font-weight: 400;
+	letter-spacing: 3px;
+	line-height: 1em;
+	text-align: center;
+	text-decoration: none;
+	text-transform: none;
+	transition: all 0.3s;
+}
+
+.ditl-part-bouton:visited {
+	color: #FFFFFF;
+}
+
+.ditl-part-bouton:hover,
+.ditl-part-bouton:focus {
+	background-color: #00B1D0;
+	color: #FFFFFF;
+	text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Filet entre deux partenaires d'un meme pays (widget divider Elementor :
+ * trait plein noir de 1px, pleine largeur, 15px d'ecart de part et d'autre)
+ * ------------------------------------------------------------------------ */
+
+hr.ditl-part-separateur {
+	width: 100%;
+	height: 0;
+	margin: 15px 0;
+	border: 0;
+	border-top: 1px solid #000;
+}
+
+/* ---------------------------------------------------------------------------
+ * Espace final avant le footer (variante francaise : ex-widget espaceur)
+ * ------------------------------------------------------------------------ */
+
+.ditl-part-espaceur {
+	height: 50px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Variante de la page anglaise (3169) : banniere haute sans titre, H1
+ * detache au-dessus de l'introduction, marge sous l'introduction
+ * ------------------------------------------------------------------------ */
+
+.page-id-3169 .ditl-hero {
+	min-height: 82vh;
+}
+
+.page-id-3169 .ditl-hero__spacer {
+	height: 21vh;
+}
+
+/* Marge du widget d'introduction d'origine. */
+.page-id-3169 .ditl-part-intro {
+	margin-bottom: 16px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tablette (<= 1024px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1024px) {
+
+	.page-id-3169 .ditl-hero {
+		min-height: 600px;
+	}
+
+	.page-id-3169 .ditl-hero__spacer {
+		height: 150px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Bascule Astra (<= 921px) : variante de la page francaise (2420), les
+ * titres des deux premiers pays gardaient une taille fixe de 41px
+ * (typographie Elementor), les autres suivent le theme (25px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 921px) {
+
+	.page-id-2420 .ditl-part-pays--1 h2.ditl-part-pays__titre,
+	.page-id-2420 .ditl-part-pays--2 h2.ditl-part-pays__titre {
+		font-size: 41px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile (<= 767px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+
+	.page-id-3169 .ditl-hero {
+		min-height: 500px;
+	}
+
+	.page-id-3169 .ditl-hero__spacer {
+		height: 120px;
+	}
+}

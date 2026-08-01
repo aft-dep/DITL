@@ -37,6 +37,7 @@ function ditl_gabarits_templates() {
 		DITL_TPL_ACTUALITES,
 		DITL_TPL_RESULTATS,
 		DITL_TPL_ACCUEIL,
+		DITL_TPL_PARTENAIRES,
 	);
 }
 
@@ -204,6 +205,7 @@ function ditl_gabarits_admin_assets( $hook_suffix ) {
 				'ditl-projet-ditl' => array( DITL_TPL_PROJET_DITL ),
 				'ditl-resultats'   => array( DITL_TPL_RESULTATS ),
 				'ditl-accueil'     => array( DITL_TPL_ACCUEIL ),
+				'ditl-partenaires' => array( DITL_TPL_PARTENAIRES ),
 			),
 			'i18n'      => array(
 				'chooseImage'  => __( 'Choisir une image', 'ditl' ),
@@ -211,6 +213,10 @@ function ditl_gabarits_admin_assets( $hook_suffix ) {
 				'useSelection' => __( 'Utiliser cette selection', 'ditl' ),
 				/* translators: %d : numero d'ordre de la section. */
 				'sectionLabel' => __( 'Section %d', 'ditl' ),
+				// Barre d'outils des lignes repetables (injectee par le JS).
+				'rowMoveUp'    => __( 'Monter la ligne', 'ditl' ),
+				'rowMoveDown'  => __( 'Descendre la ligne', 'ditl' ),
+				'rowRemove'    => __( 'Supprimer', 'ditl' ),
 			),
 		)
 	);

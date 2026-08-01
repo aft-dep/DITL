@@ -49,11 +49,8 @@ get_header(); ?>
 				$ditl_bandeau_visible    = ( '' !== trim( wp_strip_all_tags( $ditl_bandeau_texte ) ) || 0 !== $ditl_bandeau_image_id );
 
 				// URL relative en meta (portable entre environnements) :
-				// prefixee par l'URL du site au rendu.
-				$ditl_bandeau_href = $ditl_bandeau_bouton_url;
-				if ( '' !== $ditl_bandeau_href && 0 === strpos( $ditl_bandeau_href, '/' ) ) {
-					$ditl_bandeau_href = home_url( $ditl_bandeau_href );
-				}
+				// prefixee par l'URL du site au rendu (helper partage).
+				$ditl_bandeau_href = ditl_href_from_meta_url( $ditl_bandeau_bouton_url );
 
 				astra_entry_before();
 				?>
