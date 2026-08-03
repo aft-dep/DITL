@@ -258,11 +258,7 @@ function ditl_accueil_render_livrable_row( $index, $item = array() ) {
 		<div class="ditl-media-field">
 			<input type="hidden" name="ditl_accueil_livrable_image_id[]" class="ditl-media-value" value="<?php echo esc_attr( $image_id ? $image_id : '' ); ?>" />
 			<div class="ditl-media-preview">
-				<?php
-				if ( $image_id ) {
-					echo wp_get_attachment_image( $image_id, 'medium' );
-				}
-				?>
+				<?php echo ditl_metabox_media_preview( $image_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
 			</div>
 			<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
 			<button type="button" class="button ditl-media-remove"<?php echo $image_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
@@ -352,11 +348,7 @@ function ditl_accueil_render_metabox( $post ) {
 			<div class="ditl-media-field">
 				<input type="hidden" name="ditl_accueil_pres_image_id" class="ditl-media-value" value="<?php echo esc_attr( $pres_image_id ? $pres_image_id : '' ); ?>" />
 				<div class="ditl-media-preview">
-					<?php
-					if ( $pres_image_id ) {
-						echo wp_get_attachment_image( $pres_image_id, 'medium' );
-					}
-					?>
+					<?php echo ditl_metabox_media_preview( $pres_image_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
 				</div>
 				<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
 				<button type="button" class="button ditl-media-remove"<?php echo $pres_image_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>

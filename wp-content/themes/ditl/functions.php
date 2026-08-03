@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.6.0' );
+define( 'DITL_THEME_VERSION', '0.7.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -22,6 +22,7 @@ require_once get_stylesheet_directory() . '/inc/metaboxes/projet-ditl.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/resultats.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/accueil.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/partenaires.php';
+require_once get_stylesheet_directory() . '/inc/metaboxes/contact.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
@@ -130,6 +131,15 @@ function ditl_enqueue_assets_gabarits() {
 		wp_enqueue_style(
 			'ditl-gabarit-partenaires',
 			get_stylesheet_directory_uri() . '/assets/css/gabarit-partenaires.css',
+			array( 'ditl-gabarits-communs' ),
+			DITL_THEME_VERSION
+		);
+	}
+
+	if ( is_page_template( DITL_TPL_CONTACT ) ) {
+		wp_enqueue_style(
+			'ditl-gabarit-contact',
+			get_stylesheet_directory_uri() . '/assets/css/gabarit-contact.css',
 			array( 'ditl-gabarits-communs' ),
 			DITL_THEME_VERSION
 		);

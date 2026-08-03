@@ -1,0 +1,330 @@
+/**
+ * Gabarit "Contact" - styles du rendu public.
+ *
+ * Reproduit a l'identique le rendu Elementor d'origine (iso-design).
+ * La banniere et les conteneurs en boite sont dans gabarits-communs.css.
+ * Breakpoints d'origine : tablette <= 1024px, mobile <= 767px.
+ *
+ * Les deux pages n'avaient pas la meme banniere Elementor : variantes
+ * scopees par page (pattern .page-id-XXXX etabli sur les autres gabarits,
+ * a generaliser lors de la migration des autres langues, phase 2).
+ * - 16   : page francaise (banniere de 570px, espaceur de 177px, titre de
+ *          70px en #24458E, espace de 20px sous le titre).
+ * - 2595 : page anglaise (banniere sans hauteur minimale, espaceur de 20vh,
+ *          titre aux valeurs par defaut de la banniere commune).
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Section a deux colonnes (ex-conteneur Elementor en boite : 1140px de
+ * contenu, 120px de respiration haut et bas, colonnes de 50%)
+ * ------------------------------------------------------------------------ */
+
+.ditl-contact-section {
+	padding: 120px 0;
+	background-color: #FFFFFF;
+}
+
+.ditl-contact-section__inner {
+	display: flex;
+	flex-direction: row;
+	gap: 0;
+	max-width: 1140px;
+	margin: 0 auto;
+}
+
+/*
+ * Colonnes : ex-conteneurs Elementor en colonne, widgets espaces de 20px
+ * (espacement par defaut des widgets du kit).
+ */
+.ditl-contact-col {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	width: 50%;
+	padding: 10px;
+}
+
+.ditl-contact-col--coordonnees {
+	padding-left: 70px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Titres des colonnes (H2) : taille fixe de 37px, le reste suit le theme
+ * (police Exo, interligne 1,3em, couleur des titres)
+ * ------------------------------------------------------------------------ */
+
+h2.ditl-contact-titre {
+	margin: 0;
+	font-size: 37px;
+	line-height: 1.3em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Formulaire (rendu par le shortcode WPForms) : encadrement du widget
+ * d'origine, l'habillage interne du formulaire reste celui du plugin
+ * ------------------------------------------------------------------------ */
+
+/*
+ * L'encadrement d'origine (boite du widget) recevait une hauteur de 100%
+ * qui se cumulait a sa marge haute de 15px : la boite depassait donc de
+ * 15px vers le bas, ce qui se voit sur la retombee de l'ombre portee. Le
+ * remplissage bas reproduit ce depassement (50px + 15px) et la marge
+ * negative en annule l'effet sur la hauteur de la colonne : rien ne bouge
+ * sous le formulaire.
+ */
+.ditl-contact-formulaire {
+	margin-top: 15px;
+	margin-bottom: -15px;
+	padding: 50px 50px 65px;
+	box-shadow: 0 4px 51px 0 rgba(0, 0, 0, 0.04);
+}
+
+/* ---------------------------------------------------------------------------
+ * Blocs de coordonnees (ex-widgets icon-box Elementor, icone a gauche)
+ * ------------------------------------------------------------------------ */
+
+.ditl-contact-bloc {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 22px;
+	margin-top: 30px;
+	text-align: left;
+}
+
+/* L'icone garde sa taille propre (42px) et n'ajoute pas d'interligne. */
+.ditl-contact-bloc__icone {
+	flex: 0 0 auto;
+	line-height: 0;
+}
+
+.ditl-contact-bloc__icone-image {
+	display: block;
+	width: 42px;
+	height: 42px;
+}
+
+.ditl-contact-bloc__contenu {
+	flex-grow: 1;
+	width: 100%;
+}
+
+h3.ditl-contact-bloc__titre {
+	margin: 0 0 4px;
+	color: #364151;
+	font-family: "Roboto", Sans-serif;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 1.3em;
+	text-transform: uppercase;
+}
+
+/*
+ * Le premier bloc (courriel) portait une couleur d'intitule differente des
+ * deux autres dans l'original, sur les deux langues : conserve tel quel
+ * (iso-design), harmonisation a proposer au client.
+ */
+.ditl-contact-bloc--1 h3.ditl-contact-bloc__titre {
+	color: #585858;
+}
+
+/*
+ * DEPENDANCE A SURVEILLER : les polices Jost (ce texte) et Roboto (les
+ * intitules ci-dessus) ne sont pas chargees par le theme. Elles arrivent
+ * aujourd'hui avec les feuilles de polices declarees par Elementor a partir
+ * des donnees dormantes de la page et de son kit. Le jour ou ces donnees
+ * seront purgees (phase 2), le gabarit devra demander ces deux polices
+ * lui-meme, sinon les coordonnees changeront de police.
+ */
+p.ditl-contact-bloc__texte {
+	margin: 0;
+	color: #eca500;
+	font-family: "Jost", Sans-serif;
+	font-size: 25px;
+	line-height: 1.4em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Variante de la banniere de la page francaise (16)
+ * ------------------------------------------------------------------------ */
+
+.page-id-16 .ditl-hero {
+	align-items: stretch;
+	min-height: 570px;
+	padding: 10px;
+}
+
+.page-id-16 .ditl-hero__col {
+	justify-content: center;
+	gap: 0;
+}
+
+.page-id-16 .ditl-hero__spacer {
+	height: 177px;
+}
+
+.page-id-16 h1.ditl-hero__title {
+	margin-bottom: 20px;
+	color: #24458E;
+	font-size: 70px;
+	font-weight: 500;
+	line-height: 1.4em;
+	letter-spacing: 8.5px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Variante de la banniere de la page anglaise (2595) : pas de hauteur
+ * minimale, espaceur de 20vh, widgets espaces de 20px
+ * ------------------------------------------------------------------------ */
+
+.page-id-2595 .ditl-hero {
+	min-height: 0;
+}
+
+.page-id-2595 .ditl-hero__col {
+	gap: 20px;
+}
+
+.page-id-2595 .ditl-hero__spacer {
+	height: 20vh;
+}
+
+/*
+ * La page anglaise portait une couleur de texte mauve sur les coordonnees
+ * (reglage local, hors charte de la version francaise de reference) :
+ * conserve tel quel (iso-design), a arbitrer avec le client.
+ */
+.page-id-2595 p.ditl-contact-bloc__texte {
+	color: #A981D5;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tablette (<= 1024px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 1024px) {
+
+	.ditl-contact-section {
+		padding: 100px 20px;
+	}
+
+	.ditl-contact-col--coordonnees {
+		padding-left: 50px;
+	}
+
+	h2.ditl-contact-titre {
+		font-size: 30px;
+	}
+
+	/* Meme depassement de 15px qu'en grand ecran (30px + 15px). */
+	.ditl-contact-formulaire {
+		padding: 30px 30px 45px;
+	}
+
+	h3.ditl-contact-bloc__titre {
+		font-size: 15px;
+	}
+
+	p.ditl-contact-bloc__texte {
+		font-size: 22px;
+	}
+
+	.page-id-16 .ditl-hero {
+		min-height: 400px;
+	}
+
+	/* L'espaceur de la banniere francaise ne variait pas avec la largeur. */
+	.page-id-16 .ditl-hero__spacer {
+		height: 177px;
+	}
+
+	.page-id-16 h1.ditl-hero__title {
+		margin-bottom: 0;
+		font-size: 50px;
+		letter-spacing: 7px;
+	}
+
+	.page-id-2595 .ditl-hero {
+		min-height: 0;
+	}
+
+	/* Espaceur en pixels sous 1024px (la valeur commune est masquee par la
+	   portee .page-id-2595 de la regle en grand ecran). */
+	.page-id-2595 .ditl-hero__spacer {
+		height: 150px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile (<= 767px)
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 767px) {
+
+	.ditl-contact-section {
+		padding: 50px 10px;
+	}
+
+	.ditl-contact-section__inner {
+		flex-wrap: wrap;
+	}
+
+	.ditl-contact-col {
+		width: 100%;
+	}
+
+	.ditl-contact-col--coordonnees {
+		margin-top: 40px;
+		padding-left: 10px;
+	}
+
+	/* Sans marge haute, la boite d'origine ne depassait plus. */
+	.ditl-contact-formulaire {
+		margin-top: 0;
+		margin-bottom: 0;
+		padding: 30px;
+	}
+
+	/* Icone au-dessus du texte, comme le comportement mobile d'origine. */
+	.ditl-contact-bloc {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	h2.ditl-contact-titre {
+		text-align: center;
+	}
+
+	h3.ditl-contact-bloc__titre {
+		font-size: 16px;
+	}
+
+	.page-id-16 .ditl-hero {
+		min-height: 300px;
+	}
+
+	/* Les deux bannieres gardaient leur retrait de 10px en mobile. */
+	.page-id-16 .ditl-hero__col,
+	.page-id-2595 .ditl-hero__col {
+		padding: 10px;
+	}
+
+	.page-id-16 .ditl-hero__spacer {
+		height: 177px;
+	}
+
+	.page-id-16 h1.ditl-hero__title {
+		font-size: 35px;
+		letter-spacing: 3px;
+	}
+
+	.page-id-2595 .ditl-hero {
+		min-height: 0;
+	}
+
+	.page-id-2595 .ditl-hero__spacer {
+		height: 120px;
+	}
+}

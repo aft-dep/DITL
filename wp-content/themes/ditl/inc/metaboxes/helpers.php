@@ -133,6 +133,42 @@ function ditl_sanitize_ids_json( $value ) {
 }
 
 /**
+ * Retourne l'apercu d'un media pour les metaboxes (ecran d'edition).
+ *
+ * wp_get_attachment_image pose width="1" height="1" sur les SVG de la
+ * mediatheque (icones du gabarit Contact), qui n'ont pas de metadonnees
+ * d'image : l'apercu serait invisible. Pour ce seul type de fichier, un <img>
+ * simple est rendu, dimensionne par le fichier lui-meme et plafonne par la
+ * feuille de style admin. Tout autre type conserve exactement la sortie de
+ * wp_get_attachment_image (les PDF, notamment, ont une vignette generee mais
+ * pas de dimensions racine : les tester sur les metadonnees les casserait).
+ *
+ * Tout attribut ajoute au markup de repli doit passer par esc_attr().
+ *
+ * @param mixed $attachment_id ID de l'attachement (0 ou invalide : chaine vide).
+ * @return string Markup de l'apercu (deja echappe).
+ */
+function ditl_metabox_media_preview( $attachment_id ) {
+	$attachment_id = absint( $attachment_id );
+
+	if ( $attachment_id <= 0 ) {
+		return '';
+	}
+
+	if ( 'image/svg+xml' !== get_post_mime_type( $attachment_id ) ) {
+		return wp_get_attachment_image( $attachment_id, 'medium' );
+	}
+
+	$url = wp_get_attachment_url( $attachment_id );
+
+	if ( ! $url ) {
+		return '';
+	}
+
+	return '<img src="' . esc_url( $url ) . '" alt="" />';
+}
+
+/**
  * Lit une meta stockee en JSON et la retourne sous forme de tableau.
  *
  * @param int    $post_id  ID de la page.

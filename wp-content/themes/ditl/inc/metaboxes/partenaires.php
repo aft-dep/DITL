@@ -222,11 +222,7 @@ function ditl_partenaires_render_partenaire_row( $index, $pays = '', $partenaire
 		<div class="ditl-media-field">
 			<input type="hidden" name="ditl_partenaires_logo_id[]" class="ditl-media-value" value="<?php echo esc_attr( $logo_id ? $logo_id : '' ); ?>" />
 			<div class="ditl-media-preview">
-				<?php
-				if ( $logo_id ) {
-					echo wp_get_attachment_image( $logo_id, 'medium' );
-				}
-				?>
+				<?php echo ditl_metabox_media_preview( $logo_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
 			</div>
 			<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
 			<button type="button" class="button ditl-media-remove"<?php echo $logo_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
@@ -256,11 +252,7 @@ function ditl_partenaires_render_partenaire_row( $index, $pays = '', $partenaire
 		<div class="ditl-media-field">
 			<input type="hidden" name="ditl_partenaires_image_extra_id[]" class="ditl-media-value" value="<?php echo esc_attr( $image_extra_id ? $image_extra_id : '' ); ?>" />
 			<div class="ditl-media-preview">
-				<?php
-				if ( $image_extra_id ) {
-					echo wp_get_attachment_image( $image_extra_id, 'medium' );
-				}
-				?>
+				<?php echo ditl_metabox_media_preview( $image_extra_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
 			</div>
 			<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
 			<button type="button" class="button ditl-media-remove"<?php echo $image_extra_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
