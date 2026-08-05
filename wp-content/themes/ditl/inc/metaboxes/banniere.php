@@ -39,6 +39,7 @@ function ditl_gabarits_templates() {
 		DITL_TPL_ACCUEIL,
 		DITL_TPL_PARTENAIRES,
 		DITL_TPL_CONTACT,
+		DITL_TPL_LIVRABLE,
 	);
 }
 
@@ -204,6 +205,7 @@ function ditl_gabarits_admin_assets( $hook_suffix ) {
 				'ditl-accueil'     => array( DITL_TPL_ACCUEIL ),
 				'ditl-partenaires' => array( DITL_TPL_PARTENAIRES ),
 				'ditl-contact'     => array( DITL_TPL_CONTACT ),
+				'ditl-livrable'    => array( DITL_TPL_LIVRABLE ),
 			),
 			'i18n'      => array(
 				'chooseImage'  => __( 'Choisir une image', 'ditl' ),

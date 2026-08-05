@@ -214,8 +214,9 @@ if ( ! function_exists( 'ditl_migration_contact_extraire' ) ) {
 						$contexte = '' !== $titre ? sprintf( '"%s"', $titre ) : sprintf( 'n.%d', count( $data['coord_blocs'] ) + 1 );
 
 						// La description est conservee TELLE QUELLE (liens tel:,
-						// <br>) ; wp_kses_post est applique a l'enregistrement
-						// par le sanitize_callback de la meta.
+						// <br>) ; la liste blanche kses dediee (voir
+						// ditl_contact_filtrer_description) est appliquee a
+						// l'enregistrement par le sanitize_callback de la meta.
 						$description = isset( $reglages['description_text'] ) && is_scalar( $reglages['description_text'] ) ? trim( (string) $reglages['description_text'] ) : '';
 
 						ditl_migration_contact_signaler_tel( $description, $contexte );

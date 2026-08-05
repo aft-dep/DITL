@@ -1,0 +1,215 @@
+/**
+ * Gabarit "Livrable" - styles du rendu public.
+ *
+ * Reproduit a l'identique le rendu Elementor d'origine (iso-design).
+ * Les conteneurs en boite sont dans gabarits-communs.css ; ce gabarit n'a
+ * pas de banniere (le H1 est rendu directement par le template).
+ *
+ * L'essentiel de la typographie (tailles de titres responsives, listes,
+ * interlignes) vient des reglages globaux d'Astra, identiques a ceux qui
+ * habillaient les widgets Elementor : seuls les ecarts sont poses ici.
+ *
+ * Les deux pages n'avaient pas la meme structure Elementor : variantes
+ * scopees par page (pattern .page-id-XXXX etabli sur les autres gabarits,
+ * a generaliser lors de la migration des autres langues, phase 2).
+ * - 1852 : page francaise (titres en Roboto via le kit, sections 1 et 2
+ *          centrees, section 2 posee dans une grille aux deux premieres
+ *          rangees egalisees - respiration heritee de l'original).
+ * - 4108 : page anglaise (H1 dans une boite de 1600px, titres de section
+ *          de 24px gras avec marges dediees, contenu aux marges heritees
+ *          du decoupage en widgets de l'original).
+ *
+ * DEPENDANCE A SURVEILLER : la police Roboto (titres de la page francaise)
+ * n'est pas chargee par le theme. Elle arrive aujourd'hui avec la feuille
+ * de polices declaree par Elementor a partir des donnees dormantes de la
+ * page et de son kit. Le jour ou ces donnees seront purgees (phase 2), le
+ * gabarit devra demander cette police lui-meme.
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Titre H1 de la page (ex-widget titre Elementor : centre, sans marge,
+ * taille et interligne des reglages globaux d'Astra)
+ * ------------------------------------------------------------------------ */
+
+h1.ditl-liv-titre-page {
+	margin: 0;
+	text-align: center;
+}
+
+/* ---------------------------------------------------------------------------
+ * Sections de livrables : pile verticale, ecart de 20px entre elements
+ * (espacement des widgets du kit Elementor), filets entre sections
+ * ------------------------------------------------------------------------ */
+
+.ditl-liv-sections {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.ditl-liv-section {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+/* Titre H2 de section : sans marge, le reste suit le theme (la page
+   francaise et la page anglaise posent leurs variantes plus bas). */
+h2.ditl-liv-titre {
+	margin: 0;
+}
+
+/* Le contenu HTML riche suit les reglages globaux d'Astra (paragraphes,
+   titres H3, listes), comme dans le widget texte d'origine. */
+
+/* Filet separateur (widget divider Elementor : trait plein noir de 1px,
+   pleine largeur, 15px d'ecart de part et d'autre). */
+hr.ditl-liv-separateur {
+	width: 100%;
+	height: 0;
+	margin: 15px 0;
+	border: 0;
+	border-top: 1px solid #000;
+}
+
+/* ---------------------------------------------------------------------------
+ * Bouton de telechargement (widget bouton Elementor + styles boutons
+ * globaux d'Astra, comme sur les autres gabarits : survol orange global)
+ * ------------------------------------------------------------------------ */
+
+.ditl-liv-action {
+	text-align: center;
+}
+
+.ditl-liv-bouton {
+	display: inline-block;
+	padding: 10px 20px;
+	border: 0;
+	border-radius: 0;
+	background-color: #b881ef;
+	color: #FFFFFF;
+	/* Comme Astra : taille en rem, reduite avec la base html sous 545px. */
+	font-size: 16px;
+	font-size: 1.0666666666667rem;
+	font-weight: 400;
+	letter-spacing: 3px;
+	line-height: 1em;
+	text-align: center;
+	text-decoration: none;
+	text-transform: none;
+	transition: all 0.3s;
+}
+
+.ditl-liv-bouton:visited {
+	color: #FFFFFF;
+}
+
+.ditl-liv-bouton:hover,
+.ditl-liv-bouton:focus {
+	background-color: #eca500;
+	color: #FFFFFF;
+	text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Variantes de la page francaise (1852)
+ * ------------------------------------------------------------------------ */
+
+/* Titres en Roboto (typographie du kit Elementor de la page d'origine). */
+.page-id-1852 h1.ditl-liv-titre-page {
+	font-family: "Roboto", Sans-serif;
+	font-weight: 400;
+}
+
+/* Sections 1 et 2 : titre centre en Roboto (les sections 3 et 4 gardent
+   l'alignement a gauche du theme, leur span inline porte la typographie). */
+.page-id-1852 .ditl-liv-section--1 h2.ditl-liv-titre,
+.page-id-1852 .ditl-liv-section--2 h2.ditl-liv-titre {
+	font-family: "Roboto", Sans-serif;
+	font-weight: 400;
+	text-align: center;
+}
+
+/*
+ * Section 2 : l'original la posait dans une grille Elementor a une colonne
+ * dont les DEUX premieres rangees (titre et contenu) sont egalisees en
+ * hauteur : le titre occupe une rangee aussi haute que le contenu, d'ou une
+ * respiration sous le titre. Conserve tel quel (iso-design), a arbitrer
+ * avec le client.
+ */
+.page-id-1852 .ditl-liv-section--2 {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: repeat(2, 1fr);
+	gap: 20px;
+	justify-items: center;
+	align-items: start;
+}
+
+/* ---------------------------------------------------------------------------
+ * Variantes de la page anglaise (4108)
+ * ------------------------------------------------------------------------ */
+
+/* Le H1 vivait dans une boite Elementor elargie a 1600px. */
+.page-id-4108 .ditl-liv-entete .ditl-boxed__inner {
+	max-width: 1600px;
+}
+
+.page-id-4108 h1.ditl-liv-titre-page {
+	margin-bottom: 16px;
+}
+
+/* Titres de section : 24px gras, marges du widget d'origine (32px au-dessus,
+   16px en dessous, qui s'ajoutent a l'ecart de 20px entre elements). */
+.page-id-4108 h2.ditl-liv-titre {
+	margin: 32px 0 16px;
+	font-size: 24px;
+	font-weight: 700;
+	text-align: center;
+}
+
+/*
+ * Contenu : l'original le decoupait en widgets (introduction, intertitres
+ * H3, listes) espaces de 20px, l'introduction portant une marge de 16px
+ * sur ses quatre cotes. Le contenu migre est un seul bloc HTML : les marges
+ * ci-dessous recomposent exactement les memes ecarts.
+ */
+
+/* Introduction (paragraphes ou div en tete de bloc) : marge laterale de
+   16px du widget d'origine. !important requis : l'introduction de la
+   section 2 porte un style inline "margin: 0px" herite de la migration
+   (dans l'original, la marge vivait sur le conteneur du widget). */
+.page-id-4108 .ditl-liv-contenu > p,
+.page-id-4108 .ditl-liv-contenu > div {
+	margin: 0 16px !important;
+}
+
+.page-id-4108 .ditl-liv-contenu > :first-child {
+	margin-top: 16px !important;
+}
+
+/* Intertitres H3 : 24px gras (reglage du widget d'origine) ; 36px au-dessus
+   apres l'introduction (16px de marge basse du widget + 20px d'ecart). */
+.page-id-4108 .ditl-liv-contenu > h3 {
+	margin-top: 36px;
+	font-size: 24px;
+	font-weight: 700;
+}
+
+/* Apres une liste : l'ecart d'origine est la marge basse de la liste
+   (1.5em, soit 1.5rem a la taille de texte de bureau) + 20px. Les marges
+   verticales fusionnent : la plus grande des deux l'emporte. */
+.page-id-4108 .ditl-liv-contenu > ul + h3 {
+	margin-top: calc(1.5rem + 20px);
+}
+
+/* Sous 921px, le texte courant d'Astra passe a 1.0666rem : la marge basse
+   des listes (1.5em) suit. */
+@media (max-width: 921px) {
+
+	.page-id-4108 .ditl-liv-contenu > ul + h3 {
+		margin-top: calc(1.6rem + 20px);
+	}
+}
