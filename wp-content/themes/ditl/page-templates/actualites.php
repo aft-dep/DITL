@@ -87,6 +87,8 @@ get_header(); ?>
 						<?php if ( $ditl_actus->have_posts() ) { ?>
 						<div class="ditl-boxed ditl-actus">
 							<div class="ditl-boxed__inner">
+								<?php // H2 reserve aux lecteurs d'ecran : evite le saut de titres H1 -> H3 des cartes (RGAA 9.1), sans effet visuel (la page d'origine n'a pas de titre de section). ?>
+								<h2 class="screen-reader-text"><?php echo esc_html( $ditl_labels['region'] ); ?></h2>
 								<div
 									class="ditl-carousel"
 									role="region"

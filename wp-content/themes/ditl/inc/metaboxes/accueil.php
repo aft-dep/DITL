@@ -48,16 +48,17 @@ define( 'DITL_TPL_ACCUEIL', 'page-templates/accueil.php' );
  * @return string Chaine JSON nettoyee (objet aux cles garanties).
  */
 function ditl_accueil_sanitize_hero_json( $value ) {
-	$data = json_decode( (string) $value, true );
+	$data = is_scalar( $value ) ? json_decode( (string) $value, true ) : null;
 
 	if ( ! is_array( $data ) ) {
 		$data = array();
 	}
 
+	// Rejet des valeurs non scalaires (JSON inattendu) avant tout cast.
 	$propre = array(
-		'sous_titre'   => isset( $data['sous_titre'] ) ? sanitize_text_field( (string) $data['sous_titre'] ) : '',
-		'bouton_texte' => isset( $data['bouton_texte'] ) ? sanitize_text_field( (string) $data['bouton_texte'] ) : '',
-		'bouton_url'   => isset( $data['bouton_url'] ) ? esc_url_raw( trim( (string) $data['bouton_url'] ) ) : '',
+		'sous_titre'   => isset( $data['sous_titre'] ) && is_scalar( $data['sous_titre'] ) ? sanitize_text_field( (string) $data['sous_titre'] ) : '',
+		'bouton_texte' => isset( $data['bouton_texte'] ) && is_scalar( $data['bouton_texte'] ) ? sanitize_text_field( (string) $data['bouton_texte'] ) : '',
+		'bouton_url'   => isset( $data['bouton_url'] ) && is_scalar( $data['bouton_url'] ) ? esc_url_raw( trim( (string) $data['bouton_url'] ) ) : '',
 	);
 
 	return (string) wp_json_encode( $propre, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
@@ -70,18 +71,19 @@ function ditl_accueil_sanitize_hero_json( $value ) {
  * @return string Chaine JSON nettoyee (objet aux cles garanties).
  */
 function ditl_accueil_sanitize_presentation_json( $value ) {
-	$data = json_decode( (string) $value, true );
+	$data = is_scalar( $value ) ? json_decode( (string) $value, true ) : null;
 
 	if ( ! is_array( $data ) ) {
 		$data = array();
 	}
 
+	// Rejet des valeurs non scalaires (JSON inattendu) avant tout cast.
 	$propre = array(
-		'titre'        => isset( $data['titre'] ) ? sanitize_text_field( (string) $data['titre'] ) : '',
-		'texte'        => isset( $data['texte'] ) ? wp_kses_post( (string) $data['texte'] ) : '',
-		'bouton_texte' => isset( $data['bouton_texte'] ) ? sanitize_text_field( (string) $data['bouton_texte'] ) : '',
-		'bouton_url'   => isset( $data['bouton_url'] ) ? esc_url_raw( trim( (string) $data['bouton_url'] ) ) : '',
-		'image_id'     => isset( $data['image_id'] ) ? absint( $data['image_id'] ) : 0,
+		'titre'        => isset( $data['titre'] ) && is_scalar( $data['titre'] ) ? sanitize_text_field( (string) $data['titre'] ) : '',
+		'texte'        => isset( $data['texte'] ) && is_scalar( $data['texte'] ) ? wp_kses_post( (string) $data['texte'] ) : '',
+		'bouton_texte' => isset( $data['bouton_texte'] ) && is_scalar( $data['bouton_texte'] ) ? sanitize_text_field( (string) $data['bouton_texte'] ) : '',
+		'bouton_url'   => isset( $data['bouton_url'] ) && is_scalar( $data['bouton_url'] ) ? esc_url_raw( trim( (string) $data['bouton_url'] ) ) : '',
+		'image_id'     => isset( $data['image_id'] ) && is_scalar( $data['image_id'] ) ? absint( $data['image_id'] ) : 0,
 	);
 
 	return (string) wp_json_encode( $propre, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
@@ -94,7 +96,7 @@ function ditl_accueil_sanitize_presentation_json( $value ) {
  * @return string Chaine JSON nettoyee (objet aux cles garanties).
  */
 function ditl_accueil_sanitize_livrables_json( $value ) {
-	$data = json_decode( (string) $value, true );
+	$data = is_scalar( $value ) ? json_decode( (string) $value, true ) : null;
 
 	if ( ! is_array( $data ) ) {
 		$data = array();
@@ -108,8 +110,9 @@ function ditl_accueil_sanitize_livrables_json( $value ) {
 			continue;
 		}
 
-		$image_id = isset( $item['image_id'] ) ? absint( $item['image_id'] ) : 0;
-		$texte    = isset( $item['texte'] ) ? wp_kses_post( (string) $item['texte'] ) : '';
+		// Rejet des valeurs non scalaires (JSON inattendu) avant tout cast.
+		$image_id = isset( $item['image_id'] ) && is_scalar( $item['image_id'] ) ? absint( $item['image_id'] ) : 0;
+		$texte    = isset( $item['texte'] ) && is_scalar( $item['texte'] ) ? wp_kses_post( (string) $item['texte'] ) : '';
 
 		// Les vignettes entierement vides sont ignorees.
 		if ( 0 === $image_id && '' === trim( wp_strip_all_tags( $texte ) ) ) {
@@ -128,8 +131,8 @@ function ditl_accueil_sanitize_livrables_json( $value ) {
 	}
 
 	$propre = array(
-		'titre' => isset( $data['titre'] ) ? sanitize_text_field( (string) $data['titre'] ) : '',
-		'intro' => isset( $data['intro'] ) ? wp_kses_post( (string) $data['intro'] ) : '',
+		'titre' => isset( $data['titre'] ) && is_scalar( $data['titre'] ) ? sanitize_text_field( (string) $data['titre'] ) : '',
+		'intro' => isset( $data['intro'] ) && is_scalar( $data['intro'] ) ? wp_kses_post( (string) $data['intro'] ) : '',
 		'items' => $propres,
 	);
 
@@ -143,14 +146,14 @@ function ditl_accueil_sanitize_livrables_json( $value ) {
  * @return string Chaine JSON nettoyee (objet aux cles garanties).
  */
 function ditl_accueil_sanitize_actualites_json( $value ) {
-	$data = json_decode( (string) $value, true );
+	$data = is_scalar( $value ) ? json_decode( (string) $value, true ) : null;
 
 	if ( ! is_array( $data ) ) {
 		$data = array();
 	}
 
 	$propre = array(
-		'titre' => isset( $data['titre'] ) ? sanitize_text_field( (string) $data['titre'] ) : '',
+		'titre' => isset( $data['titre'] ) && is_scalar( $data['titre'] ) ? sanitize_text_field( (string) $data['titre'] ) : '',
 	);
 
 	return (string) wp_json_encode( $propre, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
@@ -163,7 +166,7 @@ function ditl_accueil_sanitize_actualites_json( $value ) {
  * @return string Chaine JSON nettoyee (objet aux cles garanties).
  */
 function ditl_accueil_sanitize_partenaires_json( $value ) {
-	$data = json_decode( (string) $value, true );
+	$data = is_scalar( $value ) ? json_decode( (string) $value, true ) : null;
 
 	if ( ! is_array( $data ) ) {
 		$data = array();
@@ -173,7 +176,8 @@ function ditl_accueil_sanitize_partenaires_json( $value ) {
 
 	if ( isset( $data['logo_ids'] ) && is_array( $data['logo_ids'] ) ) {
 		foreach ( $data['logo_ids'] as $logo_id ) {
-			$logo_id = absint( $logo_id );
+			// Rejet des valeurs non scalaires (JSON inattendu) avant tout cast.
+			$logo_id = is_scalar( $logo_id ) ? absint( $logo_id ) : 0;
 
 			if ( $logo_id > 0 ) {
 				$logo_ids[] = $logo_id;
@@ -182,10 +186,10 @@ function ditl_accueil_sanitize_partenaires_json( $value ) {
 	}
 
 	$propre = array(
-		'titre'        => isset( $data['titre'] ) ? sanitize_text_field( (string) $data['titre'] ) : '',
-		'texte'        => isset( $data['texte'] ) ? wp_kses_post( (string) $data['texte'] ) : '',
-		'bouton_texte' => isset( $data['bouton_texte'] ) ? sanitize_text_field( (string) $data['bouton_texte'] ) : '',
-		'bouton_url'   => isset( $data['bouton_url'] ) ? esc_url_raw( trim( (string) $data['bouton_url'] ) ) : '',
+		'titre'        => isset( $data['titre'] ) && is_scalar( $data['titre'] ) ? sanitize_text_field( (string) $data['titre'] ) : '',
+		'texte'        => isset( $data['texte'] ) && is_scalar( $data['texte'] ) ? wp_kses_post( (string) $data['texte'] ) : '',
+		'bouton_texte' => isset( $data['bouton_texte'] ) && is_scalar( $data['bouton_texte'] ) ? sanitize_text_field( (string) $data['bouton_texte'] ) : '',
+		'bouton_url'   => isset( $data['bouton_url'] ) && is_scalar( $data['bouton_url'] ) ? esc_url_raw( trim( (string) $data['bouton_url'] ) ) : '',
 		'logo_ids'     => array_values( $logo_ids ),
 		'carrousel'    => ! empty( $data['carrousel'] ),
 	);
@@ -534,7 +538,7 @@ function ditl_accueil_save_metabox( $post_id ) {
 		'texte'        => ditl_accueil_lire_html_post( 'ditl_accueil_pres_texte' ),
 		'bouton_texte' => ditl_accueil_lire_texte_post( 'ditl_accueil_pres_bouton_texte' ),
 		'bouton_url'   => ditl_accueil_lire_url_post( 'ditl_accueil_pres_bouton_url' ),
-		'image_id'     => isset( $_POST['ditl_accueil_pres_image_id'] ) ? absint( wp_unslash( $_POST['ditl_accueil_pres_image_id'] ) ) : 0,
+		'image_id'     => isset( $_POST['ditl_accueil_pres_image_id'] ) && is_scalar( $_POST['ditl_accueil_pres_image_id'] ) ? absint( wp_unslash( $_POST['ditl_accueil_pres_image_id'] ) ) : 0,
 	);
 	update_post_meta( $post_id, '_ditl_accueil_presentation', wp_slash( (string) wp_json_encode( $presentation, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) ) );
 

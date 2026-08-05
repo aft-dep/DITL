@@ -229,7 +229,7 @@ function ditl_resultats_save_metabox( $post_id ) {
 	update_post_meta( $post_id, '_ditl_sections', wp_slash( $sections_json ) );
 
 	// Bandeau de mise en avant (optionnel).
-	$bandeau_image_id = isset( $_POST['ditl_resultats_bandeau_image_id'] ) ? absint( wp_unslash( $_POST['ditl_resultats_bandeau_image_id'] ) ) : 0;
+	$bandeau_image_id = isset( $_POST['ditl_resultats_bandeau_image_id'] ) && is_scalar( $_POST['ditl_resultats_bandeau_image_id'] ) ? absint( wp_unslash( $_POST['ditl_resultats_bandeau_image_id'] ) ) : 0;
 	update_post_meta( $post_id, '_ditl_bandeau_image_id', $bandeau_image_id );
 
 	$bandeau_texte = isset( $_POST['ditl_resultats_bandeau_texte'] ) && is_string( $_POST['ditl_resultats_bandeau_texte'] ) ? wp_kses_post( wp_unslash( $_POST['ditl_resultats_bandeau_texte'] ) ) : '';

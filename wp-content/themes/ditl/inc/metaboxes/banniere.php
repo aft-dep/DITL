@@ -44,6 +44,36 @@ function ditl_gabarits_templates() {
 }
 
 /**
+ * Empeche Polylang de propager les gabarits DiTL aux traductions.
+ *
+ * Le reglage Polylang du site synchronise _wp_page_template entre les
+ * langues. Or la migration des gabarits est progressive : quand une page
+ * FR/EN recoit un gabarit DiTL, ses traductions ES/PT/DE n'ont pas encore
+ * les metas _ditl_* (hors synchronisation, car protegees) - la propagation
+ * du seul template rendrait leur contenu vide. Constate en local sur 6
+ * pages (05/08/2026), et se reproduirait a chaque rejeu des migrations en
+ * preprod/prod : le template d'un gabarit DiTL n'est donc jamais propage.
+ * La synchronisation redevient normale pour tout autre modele de page.
+ * Garde a retirer en phase 2, quand toutes les langues seront migrees
+ * (et Polylang remplace par WPML).
+ *
+ * @param string[] $metas Cles de metas que Polylang s'apprete a copier.
+ * @param bool     $sync  True pour une synchronisation, false pour une copie.
+ * @param int      $from  ID du contenu source.
+ * @return string[] Cles filtrees.
+ */
+function ditl_gabarits_bloquer_sync_template( $metas, $sync, $from ) {
+	if ( is_array( $metas )
+		&& in_array( '_wp_page_template', $metas, true )
+		&& in_array( get_page_template_slug( $from ), ditl_gabarits_templates(), true ) ) {
+		$metas = array_values( array_diff( $metas, array( '_wp_page_template' ) ) );
+	}
+
+	return $metas;
+}
+add_filter( 'pll_copy_post_metas', 'ditl_gabarits_bloquer_sync_template', 10, 3 );
+
+/**
  * Declare les metas de banniere communes aux gabarits (protegees).
  */
 function ditl_banniere_register_meta() {
@@ -145,7 +175,7 @@ function ditl_banniere_save_metabox( $post_id ) {
 	}
 
 	// Image de banniere.
-	$hero_image_id = isset( $_POST['ditl_hero_image_id'] ) ? absint( wp_unslash( $_POST['ditl_hero_image_id'] ) ) : 0;
+	$hero_image_id = isset( $_POST['ditl_hero_image_id'] ) && is_scalar( $_POST['ditl_hero_image_id'] ) ? absint( wp_unslash( $_POST['ditl_hero_image_id'] ) ) : 0;
 	update_post_meta( $post_id, '_ditl_hero_image_id', $hero_image_id );
 
 	// Titre de la banniere (texte simple).

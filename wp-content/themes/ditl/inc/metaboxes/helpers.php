@@ -74,6 +74,10 @@ function ditl_meta_auth_callback( $allowed, $meta_key, $post_id, $user_id ) {
  * @return string Chaine JSON nettoyee (tableau vide si invalide).
  */
 function ditl_sanitize_sections_json( $value ) {
+	if ( ! is_scalar( $value ) ) {
+		return '[]';
+	}
+
 	$sections = json_decode( (string) $value, true );
 
 	if ( ! is_array( $sections ) ) {
@@ -87,8 +91,9 @@ function ditl_sanitize_sections_json( $value ) {
 			continue;
 		}
 
-		$title   = isset( $section['title'] ) ? sanitize_text_field( $section['title'] ) : '';
-		$content = isset( $section['content'] ) ? wp_kses_post( $section['content'] ) : '';
+		// Rejet des valeurs non scalaires (JSON inattendu) avant tout cast.
+		$title   = isset( $section['title'] ) && is_scalar( $section['title'] ) ? sanitize_text_field( (string) $section['title'] ) : '';
+		$content = isset( $section['content'] ) && is_scalar( $section['content'] ) ? wp_kses_post( (string) $section['content'] ) : '';
 
 		if ( '' === $title && '' === trim( wp_strip_all_tags( $content ) ) ) {
 			continue;
@@ -110,6 +115,10 @@ function ditl_sanitize_sections_json( $value ) {
  * @return string Chaine JSON d'entiers positifs (tableau vide si invalide).
  */
 function ditl_sanitize_ids_json( $value ) {
+	if ( ! is_scalar( $value ) ) {
+		return '[]';
+	}
+
 	$ids = json_decode( (string) $value, true );
 
 	if ( ! is_array( $ids ) ) {
@@ -122,7 +131,8 @@ function ditl_sanitize_ids_json( $value ) {
 	$propres = array();
 
 	foreach ( $ids as $id ) {
-		$id = absint( $id );
+		// Rejet des valeurs non scalaires (JSON inattendu) avant tout cast.
+		$id = is_scalar( $id ) ? absint( $id ) : 0;
 
 		if ( $id > 0 ) {
 			$propres[] = $id;
