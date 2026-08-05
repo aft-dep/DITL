@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.8.1' );
+define( 'DITL_THEME_VERSION', '0.9.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -179,6 +179,35 @@ function ditl_enqueue_assets_gabarits() {
 	}
 }
 add_action( 'wp_enqueue_scripts', 'ditl_enqueue_assets_gabarits' );
+
+/**
+ * Charge la feuille des articles migres depuis Elementor.
+ *
+ * Seuls les articles convertis en post_content classique utilisent des
+ * classes ditl-art-* : la feuille n'est chargee que si le contenu en
+ * porte une. Le test se fait sur le contenu deja en memoire (aucune
+ * requete supplementaire) et laisse le HTML des articles classiques
+ * strictement identique (pas de balise link inutile).
+ */
+function ditl_enqueue_assets_articles() {
+	if ( ! is_singular( 'post' ) ) {
+		return;
+	}
+
+	$ditl_post = get_queried_object();
+
+	if ( ! $ditl_post instanceof WP_Post || false === strpos( $ditl_post->post_content, 'ditl-art-' ) ) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'ditl-gabarit-article',
+		get_stylesheet_directory_uri() . '/assets/css/gabarit-article.css',
+		array( 'ditl-style' ),
+		DITL_THEME_VERSION
+	);
+}
+add_action( 'wp_enqueue_scripts', 'ditl_enqueue_assets_articles' );
 
 /**
  * Retire les scripts Elementor et les assets UPK / Swiper sur les

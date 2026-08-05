@@ -1,0 +1,127 @@
+/**
+ * Articles migres depuis Elementor - styles du rendu public.
+ *
+ * Reproduit a l'identique le rendu des articles construits avec Elementor
+ * (2 actualites x 5 langues) convertis en post_content classique
+ * (cli/migrate-articles.php). Chaque bloc ditl-art-* correspond a un
+ * conteneur Elementor en boite du kit 1659 : contenu de 1140px centre,
+ * remplissage de 10px, widgets espaces de 20px. Les blocs adjacents
+ * cumulent leurs remplissages (10px + 10px), ce qui redonne exactement
+ * l'espacement de 20px des widgets d'origine.
+ *
+ * Les selecteurs sont strictement prefixes ditl-art- (plus une portee
+ * .postid-XXXX) : aucune regle ne peut fuir sur les articles classiques.
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Squelette : chaque bloc de premier niveau reprend la boite des conteneurs
+ * Elementor (1140px de contenu centre, remplissage de 10px).
+ *
+ * Les selecteurs sont prefixes de .entry-content pour l'emporter sur les
+ * regles .entry-content[data-ast-blocks-layout] > * d'Astra : certains
+ * articles migres conservent des commentaires Gutenberg herites du contenu
+ * d'origine, has_blocks() les considere en blocs et Astra pose alors cet
+ * attribut (max-width a la largeur du site, marge basse de 1em sous les
+ * figures), sans effet a l'epoque Elementor.
+ * ------------------------------------------------------------------------ */
+
+.entry-content > figure.ditl-art-image,
+.entry-content > .ditl-art-texte,
+.entry-content > p.ditl-art-boutons {
+	box-sizing: border-box;
+	max-width: 1160px;
+	margin: 0 auto;
+	padding: 10px;
+}
+
+/*
+ * Sur les articles Elementor, le contenu commencait au ras de l'en-tete :
+ * la marge basse de 2em que le theme pose sous .entry-header des articles
+ * n'avait pas d'effet. Le premier bloc migre la neutralise pour retrouver
+ * la position d'origine. Les blocs migres partagent la police de base de
+ * l'en-tete : -2em suit la meme valeur a tous les ecrans (30px sur grand
+ * ecran, 29.184px sous 544px).
+ */
+.entry-content > figure.ditl-art-image:first-child,
+.entry-content > .ditl-art-texte:first-child {
+	margin-top: -2em;
+}
+
+/* ---------------------------------------------------------------------------
+ * Image de tete (ex-widget image, centre par defaut chez Elementor)
+ * ------------------------------------------------------------------------ */
+
+figure.ditl-art-image {
+	text-align: center;
+}
+
+/* ---------------------------------------------------------------------------
+ * Blocs de texte : la typographie interne (paragraphes, listes, titres)
+ * suit le theme, comme dans le widget texte d'origine. Seul le reglage
+ * local "justifie" des articles Analyse comparative est repris.
+ * ------------------------------------------------------------------------ */
+
+.ditl-art-texte--justifie {
+	text-align: justify;
+}
+
+/* ---------------------------------------------------------------------------
+ * Groupe de boutons : ex-widgets bouton empiles dans un conteneur en
+ * colonne, espaces de 20px, alignes a gauche
+ * ------------------------------------------------------------------------ */
+
+p.ditl-art-boutons {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 20px;
+}
+
+/*
+ * Bouton : reprise exacte des styles que le customizer Astra applique aux
+ * boutons Elementor (.elementor-widget-button .elementor-button : fond et
+ * bordure #b881ef, texte et survol sur la palette globale, 16px / 400,
+ * interlettrage 3px, rayon nul, remplissage 10px 20px) completes de la
+ * base du widget bouton Elementor (inline-block, texte centre, transition).
+ */
+a.ditl-art-bouton {
+	display: inline-block;
+	padding: 10px 20px;
+	border: 0 solid #b881ef;
+	border-radius: 0;
+	background-color: #b881ef;
+	color: var(--ast-global-color-5);
+	/* 16px sur la base de 15px du theme ; suit la base reduite en mobile. */
+	font-size: 16px;
+	font-size: 1.0666666666667rem;
+	font-weight: 400;
+	line-height: 1em;
+	letter-spacing: 3px;
+	text-align: center;
+	text-decoration: none;
+	text-transform: none;
+	transition: all 0.3s;
+}
+
+a.ditl-art-bouton:visited {
+	color: var(--ast-global-color-5);
+}
+
+a.ditl-art-bouton:hover,
+a.ditl-art-bouton:focus {
+	color: var(--ast-global-color-5);
+	background-color: var(--ast-global-color-1);
+	border-color: var(--ast-global-color-1);
+}
+
+/* ---------------------------------------------------------------------------
+ * Cas particulier : la newsletter francaise (5703) se terminait par un
+ * conteneur Elementor vide de 20px (remplissages seuls) ; le remplissage
+ * bas du groupe de boutons le reproduit (10px + 20px)
+ * ------------------------------------------------------------------------ */
+
+.postid-5703 p.ditl-art-boutons {
+	padding-bottom: 30px;
+}
