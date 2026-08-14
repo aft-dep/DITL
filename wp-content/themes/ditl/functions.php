@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.9.0' );
+define( 'DITL_THEME_VERSION', '0.10.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -59,6 +59,28 @@ function ditl_href_from_meta_url( $url ) {
 	}
 
 	return $url;
+}
+
+/**
+ * URL Google Fonts d'une famille utilisee par les gabarits.
+ *
+ * Meme source et meme forme d'URL que les feuilles de polices qu'Elementor
+ * chargeait avant sa desactivation (iso-comportement, donc acceptable
+ * aujourd'hui ; l'hebergement local des polices reste a arbitrer en
+ * phase 1/2, pour la performance ET pour le RGPD : l'appel a
+ * fonts.googleapis.com transmet l'adresse IP du visiteur a Google,
+ * point releve par la CNIL). Seule la
+ * graisse 400 est demandee : c'est la seule reellement utilisee par les
+ * blocs concernes (intitules Roboto du gabarit Contact a graisse 400
+ * explicite, textes Jost au 400 du corps de page, titres Roboto du gabarit
+ * Livrable a 400 explicite ou herite, sans gras ni italique imbriques),
+ * la ou Elementor chargeait les 18 variantes de chaque famille.
+ *
+ * @param string $famille Nom de la famille (ex. "Roboto", "Jost").
+ * @return string URL de la feuille de style Google Fonts.
+ */
+function ditl_url_google_font( $famille ) {
+	return 'https://fonts.googleapis.com/css?family=' . rawurlencode( $famille ) . ':400&display=swap';
 }
 
 /**
@@ -144,6 +166,13 @@ function ditl_enqueue_assets_gabarits() {
 			array( 'ditl-gabarits-communs' ),
 			DITL_THEME_VERSION
 		);
+
+		// Polices des blocs de coordonnees : Roboto (intitules) et Jost
+		// (textes), auparavant chargees par les feuilles de polices
+		// d'Elementor. Voir ditl_url_google_font() pour le choix des
+		// graisses.
+		wp_enqueue_style( 'ditl-police-roboto', ditl_url_google_font( 'Roboto' ), array(), null );
+		wp_enqueue_style( 'ditl-police-jost', ditl_url_google_font( 'Jost' ), array(), null );
 	}
 
 	if ( is_page_template( DITL_TPL_LIVRABLE ) ) {
@@ -153,6 +182,10 @@ function ditl_enqueue_assets_gabarits() {
 			array( 'ditl-gabarits-communs' ),
 			DITL_THEME_VERSION
 		);
+
+		// Police des titres de la page francaise (Roboto), auparavant
+		// chargee par les feuilles de polices d'Elementor.
+		wp_enqueue_style( 'ditl-police-roboto', ditl_url_google_font( 'Roboto' ), array(), null );
 	}
 
 	if ( is_page_template( DITL_TPL_ACCUEIL ) ) {
@@ -210,6 +243,41 @@ function ditl_enqueue_assets_articles() {
 add_action( 'wp_enqueue_scripts', 'ditl_enqueue_assets_articles' );
 
 /**
+ * Retire le chargement paresseux de l'image du logo du site (header).
+ *
+ * Le logo du header est au-dessus de la ligne de flottaison sur toutes les
+ * pages : son chargement paresseux penalise le LCP. Symptome constate : le
+ * loading="lazy" observe sur le logo venait du module d'optimisation des
+ * images d'Elementor (option elementor_optimized_image_loading, active par
+ * defaut), qui reecrit les balises img du header dans un tampon de sortie ;
+ * il disparait avec la desactivation d'Elementor. Ce filtre garantit
+ * ensuite que le logo reste charge immediatement quel que soit le chemin
+ * de rendu : get_custom_logo() omet deja l'attribut, mais les variantes de
+ * logo d'Astra (header mobile, header transparent) passent par
+ * wp_get_attachment_image() sans cette protection, et le chargement
+ * paresseux natif de WordPress redevient actif sans Elementor.
+ *
+ * Cible uniquement l'attachement declare comme logo du site (les autres
+ * images gardent leur chargement paresseux). La cle est retiree du tableau
+ * (un false y deviendrait loading="" a l'echappement) : aucun impact
+ * visuel, seul l'attribut disparait.
+ *
+ * @param array   $attributs  Attributs de l'image.
+ * @param WP_Post $attachment Attachement en cours de rendu.
+ * @return array Attributs, sans chargement paresseux pour le logo.
+ */
+function ditl_logo_sans_lazy( $attributs, $attachment ) {
+	$ditl_logo_id = (int) get_theme_mod( 'custom_logo' );
+
+	if ( $ditl_logo_id > 0 && $attachment instanceof WP_Post && $ditl_logo_id === (int) $attachment->ID ) {
+		unset( $attributs['loading'] );
+	}
+
+	return $attributs;
+}
+add_filter( 'wp_get_attachment_image_attributes', 'ditl_logo_sans_lazy', 20, 2 );
+
+/**
  * Retire les scripts Elementor et les assets UPK / Swiper sur les
  * gabarits sur mesure.
  *
@@ -220,6 +288,13 @@ add_action( 'wp_enqueue_scripts', 'ditl_enqueue_assets_articles' );
  * carrousel d'Ultimate Post Kit et de Swiper restent charges alors que le
  * carrousel des gabarits est rendu maison (ditl-carousel). Rien sur ces
  * pages n'en depend : aucune classe upk-* ni swiper-* dans leur rendu.
+ *
+ * NOTE (desactivation d'Elementor, phase 1) : une fois Elementor et ses
+ * addons desactives par cli/desactiver-elementor.php, ces dequeues ne
+ * trouvent plus rien a retirer et deviennent sans effet. Ils sont conserves
+ * volontairement pour proteger le cas ou le theme serait deploye avant la
+ * desactivation des extensions (production) ; a retirer en phase 2 avec la
+ * purge des metas Elementor.
  */
 function ditl_retire_scripts_elementor_gabarit() {
 	if ( ! is_page_template( ditl_gabarits_templates() ) ) {

@@ -19,11 +19,10 @@
  *          de 24px gras avec marges dediees, contenu aux marges heritees
  *          du decoupage en widgets de l'original).
  *
- * DEPENDANCE A SURVEILLER : la police Roboto (titres de la page francaise)
- * n'est pas chargee par le theme. Elle arrive aujourd'hui avec la feuille
- * de polices declaree par Elementor a partir des donnees dormantes de la
- * page et de son kit. Le jour ou ces donnees seront purgees (phase 2), le
- * gabarit devra demander cette police lui-meme.
+ * La police Roboto (titres de la page francaise) est chargee par le theme
+ * sur ce gabarit (graisse 400 seule, voir ditl_url_google_font() dans
+ * functions.php) : elle ne depend plus de la feuille de polices
+ * qu'Elementor declarait avant sa desactivation.
  *
  * @package DiTL
  */

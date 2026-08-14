@@ -19,6 +19,14 @@
  *                                   d'un widget image-carousel (EN, carrousel=true)
  *
  * Cas particuliers traites (signales par des warnings) :
+ * - INTRO DU BLOC LIVRABLES : le widget text-editor d'origine contenait du
+ *   markup Elementor rendu, colle tel quel par le client (wrappers
+ *   div.e-con / e-con-inner / elementor-widget autour du contenu utile,
+ *   puis un conteneur vide servant d'espaceur vertical). Ce markup dependait
+ *   de frontend.min.css : l'intro est normalisee au contenu utile seul
+ *   (concatenation des div.elementor-widget-container), la mise en boite et
+ *   l'espacement equivalents sont repris par gabarit-accueil.css
+ *   (.ditl-accueil-livr__intro--normalisee).
  * - CORRECTION VOLONTAIRE : dans le carrousel EN, l'attachment 4993 (logo
  *   INSTITUT ESCOLA DEL TREBALL, supprime de la mediatheque, fichier 404 en
  *   prod) est remplace par 5803 (logo-escola-del-treball.png), deja utilise
@@ -157,6 +165,102 @@ if ( ! function_exists( 'ditl_migration_accueil_verifier_attachment' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ditl_migration_accueil_normaliser_intro' ) ) {
+	/**
+	 * Retire du HTML de l'intro du bloc Livrables les wrappers Elementor
+	 * que le widget d'origine embarquait (markup rendu colle dans le widget
+	 * texte par le client : conteneurs div.e-con / e-con-inner /
+	 * elementor-widget autour du contenu utile, puis un conteneur vide
+	 * servant d'espaceur vertical, une espace insecable sur la page FR).
+	 *
+	 * Le contenu utile est la concatenation du contenu des
+	 * div.elementor-widget-container ; les wrappers et l'espaceur sont
+	 * abandonnes : la mise en boite et l'espacement equivalents sont
+	 * assures par gabarit-accueil.css (.ditl-accueil-livr__intro--normalisee).
+	 *
+	 * Sans wrapper detecte, le HTML ressort inchange : une intro deja
+	 * normalisee est stable au rejeu. Si du texte inattendu vit hors des
+	 * wrappers, l'intro est conservee telle quelle (warning), aucune perte
+	 * de contenu possible.
+	 *
+	 * @param string $html HTML de l'intro issu du widget text-editor.
+	 * @return string HTML normalise (contenu utile seul).
+	 */
+	function ditl_migration_accueil_normaliser_intro( $html ) {
+		if ( false === strpos( $html, 'elementor-widget-container' ) ) {
+			return $html;
+		}
+
+		// Tokenise les balises div pour extraire le contenu de chaque
+		// div.elementor-widget-container en suivant la profondeur
+		// d'imbrication (les autres balises n'ont pas besoin d'etre suivies).
+		if ( ! preg_match_all( '#<div\b[^>]*>|</div\s*>#i', $html, $ditl_balises, PREG_OFFSET_CAPTURE ) ) {
+			return $html;
+		}
+
+		$contenus   = array();
+		$plages     = array(); // Plages extraites [debut, fin], ordonnees.
+		$debut      = null; // Offset du contenu du widget-container courant.
+		$profondeur = 0;
+
+		foreach ( $ditl_balises[0] as $ditl_balise ) {
+			list( $texte_balise, $offset ) = $ditl_balise;
+
+			if ( '/' === $texte_balise[1] ) {
+				// Balise fermante.
+				if ( null !== $debut ) {
+					$profondeur--;
+
+					if ( 0 === $profondeur ) {
+						$contenus[] = substr( $html, $debut, $offset - $debut );
+						$plages[]   = array( $debut, $offset );
+						$debut      = null;
+					}
+				}
+			} elseif ( null !== $debut ) {
+				$profondeur++;
+			} elseif ( false !== stripos( $texte_balise, 'elementor-widget-container' ) ) {
+				$debut      = $offset + strlen( $texte_balise );
+				$profondeur = 1;
+			}
+		}
+
+		if ( array() === $contenus || null !== $debut ) {
+			WP_CLI::warning( 'Intro du bloc Livrables : wrappers Elementor mal formes, intro conservee telle quelle.' );
+			return $html;
+		}
+
+		// Controle de non-perte : reconstruit par offsets ce qui vit HORS
+		// des plages extraites (un texte hors wrappers qui dupliquerait un
+		// contenu extrait ne peut donc pas masquer une perte). Il ne doit
+		// rester que des balises de wrappers et du blanc (dont l'espace
+		// insecable de l'espaceur, reprise par le CSS du gabarit).
+		$restant = '';
+		$curseur = 0;
+
+		foreach ( $plages as $ditl_plage ) {
+			$restant .= substr( $html, $curseur, $ditl_plage[0] - $curseur );
+			$curseur  = $ditl_plage[1];
+		}
+
+		$restant .= substr( $html, $curseur );
+
+		$restant = wp_strip_all_tags( $restant );
+		$restant = str_replace( array( "\xC2\xA0", '&nbsp;' ), ' ', $restant );
+
+		if ( '' !== trim( $restant ) ) {
+			WP_CLI::warning( sprintf( 'Intro du bloc Livrables : contenu inattendu hors des wrappers Elementor ("%s..."), intro conservee telle quelle.', mb_substr( trim( $restant ), 0, 60 ) ) );
+			return $html;
+		}
+
+		$normalise = trim( implode( "\n", array_map( 'trim', $contenus ) ) );
+
+		WP_CLI::log( sprintf( '  (intro du bloc Livrables : wrappers Elementor retires, %d -> %d caracteres ; boite et espaceur repris par gabarit-accueil.css)', mb_strlen( $html ), mb_strlen( $normalise ) ) );
+
+		return $normalise;
+	}
+}
+
 if ( ! function_exists( 'ditl_migration_accueil_extraire' ) ) {
 	/**
 	 * Parcourt recursivement l'arbre Elementor et collecte les donnees du gabarit.
@@ -255,8 +359,9 @@ if ( ! function_exists( 'ditl_migration_accueil_extraire' ) ) {
 							$nb_items = count( $data['livrables']['items'] );
 
 							if ( 0 === $nb_items && '' === $data['livrables']['intro'] ) {
-								// Avant la premiere vignette : introduction du bloc.
-								$data['livrables']['intro'] = $html;
+								// Avant la premiere vignette : introduction du bloc,
+								// normalisee (wrappers Elementor colles retires).
+								$data['livrables']['intro'] = ditl_migration_accueil_normaliser_intro( $html );
 							} elseif ( $nb_items > 0 && '' === $data['livrables']['items'][ $nb_items - 1 ]['texte'] ) {
 								$data['livrables']['items'][ $nb_items - 1 ]['texte'] = $html;
 							} else {

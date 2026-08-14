@@ -66,6 +66,18 @@ get_header(); ?>
 
 				$ditl_livr_visible = ( '' !== $ditl_livr_titre || '' !== trim( wp_strip_all_tags( $ditl_livr_intro ) ) || array() !== $ditl_livr_items );
 
+				// Transition Elementor : tant que l'intro stockee contient
+				// encore les wrappers Elementor historiques (avant rejeu de
+				// cli/migrate-accueil.php), sa mise en boite reste portee par
+				// les regles .e-con du gabarit ; une fois l'intro normalisee
+				// (contenu utile seul), le modificateur ci-dessous porte la
+				// mise en boite equivalente. Le marqueur detecte est le meme
+				// que la garde d'entree de la normalisation cote migration
+				// (la classe precise des wrappers, qu'un texte saisi par un
+				// editeur ne peut pas contenir par accident). A simplifier en
+				// phase 2 avec la purge des metas Elementor.
+				$ditl_livr_intro_normalisee = ( false === strpos( $ditl_livr_intro, 'elementor-widget-container' ) );
+
 				// Bloc Actualites (liste dynamique, seul le titre est stocke).
 				$ditl_actus_titre = isset( $ditl_actualites['titre'] ) ? (string) $ditl_actualites['titre'] : '';
 
@@ -188,7 +200,7 @@ get_header(); ?>
 								<h2 class="ditl-accueil-livr__titre"><?php echo esc_html( $ditl_livr_titre ); ?></h2>
 								<?php } ?>
 								<?php if ( '' !== $ditl_livr_intro ) { ?>
-								<div class="ditl-accueil-livr__intro"><?php echo wp_kses_post( ditl_format_rich_text( $ditl_livr_intro ) ); ?></div>
+								<div class="ditl-accueil-livr__intro<?php echo $ditl_livr_intro_normalisee ? ' ditl-accueil-livr__intro--normalisee' : ''; ?>"><?php echo wp_kses_post( ditl_format_rich_text( $ditl_livr_intro ) ); ?></div>
 								<?php } ?>
 								<?php if ( array() !== $ditl_livr_items ) { ?>
 								<div class="ditl-accueil-livr__grille">

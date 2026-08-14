@@ -169,8 +169,9 @@ h2.ditl-accueil-livr__titre {
 }
 
 /*
- * L'intro conserve le markup Elementor residuel stocke en meta. Dans le
- * rendu d'origine, ce residu heritait des variables CSS des conteneurs
+ * REGLES DE TRANSITION (a retirer en phase 2 avec la purge des metas) :
+ * tant que l'intro stockee contient encore les wrappers Elementor
+ * historiques, ce residu heritait des variables CSS des conteneurs
  * Elementor parents (--display:flex) et sa boite interne etait centree a
  * la largeur de contenu (1140px). Hors contexte Elementor ces variables
  * n'existent plus : la meme mise en boite est posee explicitement ici.
@@ -183,6 +184,35 @@ h2.ditl-accueil-livr__titre {
 	width: 100%;
 	max-width: 1140px;
 	margin: 0 auto;
+}
+
+/*
+ * Intro normalisee (contenu utile seul, sans wrappers Elementor : etat
+ * produit par cli/migrate-accueil.php depuis la desactivation d'Elementor).
+ * Reproduit la boite que les wrappers d'origine formaient : conteneur avec
+ * 10px de retrait lateral, boite interne de 1140px centree avec 10px de
+ * respiration verticale. Le remplissage de 10px vit ici a l'interieur de la
+ * largeur maximale : 1140px + 2 x 10px, contenu a 1140px comme avant.
+ */
+.ditl-accueil-livr__intro--normalisee {
+	width: 100%;
+	max-width: calc(1140px + 20px);
+	margin: 0 auto;
+	padding: 10px;
+}
+
+/*
+ * Page francaise : dans le markup d'origine, le conteneur vide qui suivait
+ * l'intro contenait une espace insecable, soit une ligne de texte vide sous
+ * la liste (environ 26px a la taille de texte de bureau, suit les metriques
+ * de la police du corps de page). Reproduite par un pseudo-element aux memes
+ * metriques. La page anglaise n'avait rien (conteneur reellement vide,
+ * hauteur nulle) : variante scopee, comme les autres ecarts FR/EN du
+ * gabarit (generalisation en phase 2 avec les autres langues).
+ */
+.page-id-3075 .ditl-accueil-livr__intro--normalisee::after {
+	content: "\00a0";
+	display: block;
 }
 
 .ditl-accueil-livr__grille {
