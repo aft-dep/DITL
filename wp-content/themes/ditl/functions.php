@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.10.0' );
+define( 'DITL_THEME_VERSION', '0.11.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -24,6 +24,11 @@ require_once get_stylesheet_directory() . '/inc/metaboxes/accueil.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/partenaires.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/contact.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/livrable.php';
+
+/*
+ * Ajustements SEO (iso-SEO du <head> apres activation de Yoast).
+ */
+require_once get_stylesheet_directory() . '/inc/seo.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget

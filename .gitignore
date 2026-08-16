@@ -41,8 +41,10 @@ Desktop.ini
 *.sublime-workspace
 
 # --- Dependances ---
+# Motifs ancres a la racine : les plugins/themes WordPress versionnes embarquent
+# leurs propres vendor/, dist/, cache/... qui font partie du code livre.
 node_modules/
-vendor/
+/vendor/
 
 # --- Environnement / secrets ---
 .env
@@ -52,12 +54,12 @@ vendor/
 
 # --- Logs / caches / builds ---
 *.log
-logs/
-cache/
-tmp/
-temp/
-dist/
-build/
+/logs/
+/cache/
+/tmp/
+/temp/
+/dist/
+/build/
 
 # --- Archives / dumps ---
 *.zip
