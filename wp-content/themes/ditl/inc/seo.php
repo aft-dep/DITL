@@ -90,3 +90,51 @@ function ditl_seo_robots_txt_regles_wp( $robots_txt_helper ) {
 	$robots_txt_helper->add_allow( '*', '/wp-admin/admin-ajax.php' );
 }
 add_action( 'Yoast\WP\SEO\register_robots_rules', 'ditl_seo_robots_txt_regles_wp' );
+
+/**
+ * Redirige en 301 les anciennes URLs d'archives d'auteur vers les nouvelles.
+ *
+ * Le script cli/securiser-auteurs.php remplace les user_nicename qui
+ * exposaient des identifiants de connexion reels (constat de l'audit
+ * securite du 16/08) et consigne chaque changement dans l'option
+ * ditl_redirections_auteurs (ancien slug => nouveau slug). Iso-SEO oblige,
+ * les URLs d'auteur deja indexees ne doivent pas casser : quand une requete
+ * d'archive d'auteur aboutit a un 404 sur un ancien slug connu, elle est
+ * redirigee en 301 vers l'archive du nouveau slug.
+ *
+ * Compromis assume : les cles de la table sont les anciens nicenames, qui
+ * etaient egaux aux logins - mais ces slugs etaient deja publics (URLs
+ * indexees, sitemap). La 301 confirme seulement une correspondance deja
+ * connue des moteurs ; elle n'expose rien de nouveau et les nouvelles URLs
+ * ne derivent plus du login. La cible est validee comme utilisateur
+ * existant avant toute redirection : aucune redirection arbitraire
+ * possible. La pagination d'archive (/page/2/) n'est pas reportee : la
+ * redirection renvoie a la premiere page de la nouvelle archive (assume).
+ */
+function ditl_seo_redirection_anciens_auteurs() {
+	if ( ! is_404() ) {
+		return;
+	}
+
+	$ditl_ancien = (string) get_query_var( 'author_name' );
+
+	if ( '' === $ditl_ancien ) {
+		return;
+	}
+
+	$ditl_redirections = get_option( 'ditl_redirections_auteurs', array() );
+
+	if ( ! is_array( $ditl_redirections ) || empty( $ditl_redirections[ $ditl_ancien ] ) ) {
+		return;
+	}
+
+	$ditl_utilisateur = get_user_by( 'slug', (string) $ditl_redirections[ $ditl_ancien ] );
+
+	if ( ! $ditl_utilisateur instanceof WP_User ) {
+		return;
+	}
+
+	wp_safe_redirect( get_author_posts_url( $ditl_utilisateur->ID ), 301 );
+	exit;
+}
+add_action( 'template_redirect', 'ditl_seo_redirection_anciens_auteurs' );
