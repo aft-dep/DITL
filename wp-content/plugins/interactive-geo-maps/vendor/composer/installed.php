@@ -1,0 +1,52 @@
+<?php return array(
+    'root' => array(
+        'name' => 'interactivegeomaps/interactive-geo-maps',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '00cd7116468df5e1de8c6d4d15d3565a91f39bf8',
+        'type' => 'wordpress-plugin',
+        'install_path' => __DIR__ . '/../../build',
+        'aliases' => array(),
+        'dev' => false,
+    ),
+    'versions' => array(
+        'freemius/wordpress-sdk' => array(
+            'pretty_version' => '2.12.0',
+            'version' => '2.12.0.0',
+            'reference' => 'db6f35a2b3d318a53330409dbeab49156ee76dd8',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../freemius/wordpress-sdk',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'hassankhan/config' => array(
+            'pretty_version' => '3.2.0',
+            'version' => '3.2.0.0',
+            'reference' => 'cf63da451c4d226df983017932b9cef1b6d49db5',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../hassankhan/config',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'interactivegeomaps/interactive-geo-maps' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '00cd7116468df5e1de8c6d4d15d3565a91f39bf8',
+            'type' => 'wordpress-plugin',
+            'install_path' => __DIR__ . '/../../build',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'saltus/framework' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '5afce29e0bc789f0f65a36853003e576a787e67c',
+            'type' => 'project',
+            'install_path' => __DIR__ . '/../saltus/framework',
+            'aliases' => array(
+                0 => '9999999-dev',
+            ),
+            'dev_requirement' => false,
+        ),
+    ),
+);

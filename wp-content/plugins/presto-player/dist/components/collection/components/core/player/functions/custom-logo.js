@@ -1,0 +1,1 @@
+export default o=>{o.on("ready",()=>{if(!o?.config?.logo||o?.config?.logo_added)return;if(o.isAudio)return;const e=o?.elements?.controls;if(console.log(e),!e||!e.parentNode)return;const t=document.createElement("img");t.src=o?.config?.logo,t.className="presto-player__logo is-bottom-right",t.setAttribute("part","logo"),e.parentNode.insertBefore(t,e),o.config.logo_added=!0})};

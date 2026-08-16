@@ -1,0 +1,52 @@
+<?php
+namespace Saltus\WP\Framework\Features\DragAndDrop;
+
+use Saltus\WP\Framework\Infrastructure\Service\{
+	Assembly,
+	Actionable,
+	Service,
+	Conditional
+};
+
+
+/**
+ */
+class DragAndDrop implements Service, Conditional, Actionable, Assembly {
+
+	/**
+	 * Instantiate this Service object.
+	 *
+	 */
+	public function __construct() {}
+
+	/**
+	 * Create a new instance of the service provider
+	 *
+	 * @return object The new instance
+	 */
+	public static function make( $name, $project, $args ) {
+		return new SaltusDragAndDrop( $name, $project, $args );
+	}
+
+	/**
+	 * Check whether the conditional service is currently needed.
+	 *
+	 * @return bool Whether the conditional service is needed.
+	 */
+	public static function is_needed(): bool {
+
+		/*
+		 * This service loads in most screens:
+		 * - admin: in the edit screen
+		 * - ajax:  while updating menu order
+		 * - front: during pre_get_posts, etc
+		 */
+		return is_admin();
+	}
+
+	public function add_action() {
+		$actions = new UpdateMenuDragAndDrop();
+		$actions->add_action();
+	}
+
+}

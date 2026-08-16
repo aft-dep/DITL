@@ -1,0 +1,65 @@
+{
+    "name": "mundschenk-at/check-wp-requirements",
+    "description": "A class to allow WordPress plugins to check certain runtime requirements before activation.",
+    "type": "library",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Peter Putzer",
+            "email": "github@mundschenk.at",
+            "homepage": "https://code.mundschenk.at",
+            "role": "Developer"
+        }
+    ],
+
+    "require": {
+        "php": ">=7.4.0"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.4",
+        "wp-coding-standards/wpcs": "^3",
+        "phpcompatibility/php-compatibility": "^9.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpunit/phpunit": "5.*||6.*||7.*||8.*||9.*",
+        "mikey179/vfsstream": "~1",
+        "brain/monkey": "^2.2",
+        "yoast/phpunit-polyfills": "1.*||2.*||3.*",
+        "phpstan/phpstan": "^2",
+        "szepeviktor/phpstan-wordpress": "^2.0.0-rc.2",
+        "phpstan/extension-installer": "^1.2",
+        "phpstan/phpstan-phpunit": "^2",
+        "phpstan/phpstan-mockery": "^2.0",
+        "shish/safe": "^2"
+    },
+
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+
+    "autoload": {
+        "classmap": ["src/"]
+    },
+    "autoload-dev": {
+        "classmap": ["tests/"]
+    },
+
+    "scripts": {
+        "test": [
+            "phpunit --testsuite CheckWPRequirements"
+        ],
+        "coverage": [
+            "XDEBUG_MODE=coverage phpunit --testsuite CheckWPRequirements --coverage-html tests/coverage"
+        ],
+        "phpcs": [
+            "vendor/bin/phpcs -p -s src/ tests/ --extensions=php"
+        ],
+        "phpstan": [
+            "phpstan analyse --ansi src/*.php tests/*.php --memory-limit 2G"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true
+        }
+    }
+}
