@@ -20,9 +20,9 @@
  *          du decoupage en widgets de l'original).
  *
  * La police Roboto (titres de la page francaise) est chargee par le theme
- * sur ce gabarit (graisse 400 seule, voir ditl_url_google_font() dans
- * functions.php) : elle ne depend plus de la feuille de polices
- * qu'Elementor declarait avant sa desactivation.
+ * sur ce gabarit (graisse 400 seule, auto-hebergee : voir
+ * ditl_url_police_locale() dans functions.php) : elle ne depend ni des
+ * feuilles qu'Elementor declarait avant sa desactivation, ni de Google.
  *
  * @package DiTL
  */

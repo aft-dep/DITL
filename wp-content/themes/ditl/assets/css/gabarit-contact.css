@@ -132,9 +132,9 @@ h3.ditl-contact-bloc__titre {
 
 /*
  * Les polices Jost (ce texte) et Roboto (les intitules ci-dessus) sont
- * chargees par le theme sur ce gabarit (graisse 400 seule, voir
- * ditl_url_google_font() dans functions.php) : elles ne dependent plus des
- * feuilles de polices qu'Elementor declarait avant sa desactivation.
+ * chargees par le theme sur ce gabarit (graisse 400 seule, auto-hebergees :
+ * voir ditl_url_police_locale() dans functions.php) : elles ne dependent ni
+ * des feuilles qu'Elementor declarait avant sa desactivation, ni de Google.
  */
 p.ditl-contact-bloc__texte {
 	margin: 0;

@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.13.0' );
+define( 'DITL_THEME_VERSION', '0.14.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -29,6 +29,18 @@ require_once get_stylesheet_directory() . '/inc/metaboxes/livrable.php';
  * Ajustements SEO (iso-SEO du <head> apres activation de Yoast).
  */
 require_once get_stylesheet_directory() . '/inc/seo.php';
+
+/*
+ * Optimisation du chargement (degraissage des assets, preloads).
+ */
+require_once get_stylesheet_directory() . '/inc/perf.php';
+
+/*
+ * Jumeaux WebP des images : coeur de conversion partage (CLI + hooks) et
+ * conversion automatique a l'upload. Aucun cout front : hooks medias
+ * uniquement (upload, regeneration, suppression).
+ */
+require_once get_stylesheet_directory() . '/inc/webp.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
@@ -102,25 +114,25 @@ function ditl_page_est_francaise() {
 }
 
 /**
- * URL Google Fonts d'une famille utilisee par les gabarits.
+ * URL de la feuille de police locale d'une famille utilisee par les gabarits.
  *
- * Meme source et meme forme d'URL que les feuilles de polices qu'Elementor
- * chargeait avant sa desactivation (iso-comportement, donc acceptable
- * aujourd'hui ; l'hebergement local des polices reste a arbitrer en
- * phase 1/2, pour la performance ET pour le RGPD : l'appel a
- * fonts.googleapis.com transmet l'adresse IP du visiteur a Google,
- * point releve par la CNIL). Seule la
- * graisse 400 est demandee : c'est la seule reellement utilisee par les
- * blocs concernes (intitules Roboto du gabarit Contact a graisse 400
- * explicite, textes Jost au 400 du corps de page, titres Roboto du gabarit
- * Livrable a 400 explicite ou herite, sans gras ni italique imbriques),
- * la ou Elementor chargeait les 18 variantes de chaque famille.
+ * Les polices Roboto et Jost sont hebergees dans le theme (assets/fonts/,
+ * woff2 jeux latin + latin-ext) : plus aucune requete vers
+ * fonts.googleapis.com (performance : requete tierce en moins ; RGPD :
+ * l'adresse IP du visiteur n'est plus transmise a Google, point releve par
+ * la CNIL). Les feuilles reprennent a l'identique les declarations que
+ * Google servait (font-display: swap, unicode-range). Seule la graisse 400
+ * est embarquee : c'est la seule reellement utilisee par les blocs
+ * concernes (intitules Roboto du gabarit Contact a graisse 400 explicite,
+ * textes Jost au 400 du corps de page, titres Roboto du gabarit Livrable a
+ * 400 explicite ou herite, sans gras ni italique imbriques), la ou
+ * Elementor chargeait les 18 variantes de chaque famille.
  *
- * @param string $famille Nom de la famille (ex. "Roboto", "Jost").
- * @return string URL de la feuille de style Google Fonts.
+ * @param string $famille Nom de la famille en minuscules ("roboto", "jost").
+ * @return string URL de la feuille de style locale du theme.
  */
-function ditl_url_google_font( $famille ) {
-	return 'https://fonts.googleapis.com/css?family=' . rawurlencode( $famille ) . ':400&display=swap';
+function ditl_url_police_locale( $famille ) {
+	return get_stylesheet_directory_uri() . '/assets/css/police-' . $famille . '.css';
 }
 
 /**
@@ -208,11 +220,10 @@ function ditl_enqueue_assets_gabarits() {
 		);
 
 		// Polices des blocs de coordonnees : Roboto (intitules) et Jost
-		// (textes), auparavant chargees par les feuilles de polices
-		// d'Elementor. Voir ditl_url_google_font() pour le choix des
-		// graisses.
-		wp_enqueue_style( 'ditl-police-roboto', ditl_url_google_font( 'Roboto' ), array(), null );
-		wp_enqueue_style( 'ditl-police-jost', ditl_url_google_font( 'Jost' ), array(), null );
+		// (textes), hebergees localement dans le theme. Voir
+		// ditl_url_police_locale() pour le choix des graisses.
+		wp_enqueue_style( 'ditl-police-roboto', ditl_url_police_locale( 'roboto' ), array(), DITL_THEME_VERSION );
+		wp_enqueue_style( 'ditl-police-jost', ditl_url_police_locale( 'jost' ), array(), DITL_THEME_VERSION );
 	}
 
 	if ( is_page_template( DITL_TPL_LIVRABLE ) ) {
@@ -223,9 +234,9 @@ function ditl_enqueue_assets_gabarits() {
 			DITL_THEME_VERSION
 		);
 
-		// Police des titres de la page francaise (Roboto), auparavant
-		// chargee par les feuilles de polices d'Elementor.
-		wp_enqueue_style( 'ditl-police-roboto', ditl_url_google_font( 'Roboto' ), array(), null );
+		// Police des titres de la page francaise (Roboto), hebergee
+		// localement dans le theme.
+		wp_enqueue_style( 'ditl-police-roboto', ditl_url_police_locale( 'roboto' ), array(), DITL_THEME_VERSION );
 	}
 
 	if ( is_page_template( DITL_TPL_ACCUEIL ) ) {

@@ -28,6 +28,9 @@ wp-content/aiowps_backups/
 .user.ini
 aios-bootstrap.php
 wp-content/mu-plugins/aios-firewall-loader.php
+# Polices Google auto-hebergees par Astra (option self_hosted_gfonts) :
+# telechargees au premier rendu, regenerees par cli/optimiser-chargement.php
+wp-content/astra-local-fonts/
 
 # --- Systeme / OS ---
 .DS_Store
