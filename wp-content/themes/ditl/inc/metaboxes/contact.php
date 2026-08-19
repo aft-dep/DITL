@@ -239,49 +239,6 @@ function ditl_contact_add_metabox() {
 add_action( 'add_meta_boxes_page', 'ditl_contact_add_metabox' );
 
 /**
- * Retourne la liste des formulaires WPForms proposables dans la metabox.
- *
- * Les formulaires publies sont listes ; l'ID deja enregistre est ajoute a la
- * liste s'il n'y figure pas (formulaire en brouillon par exemple), afin qu'un
- * enregistrement ne le perde pas silencieusement.
- *
- * @param int $form_id ID actuellement enregistre (0 si aucun).
- * @return array Liste [ID => libelle].
- */
-function ditl_contact_liste_formulaires( $form_id ) {
-	$formulaires = array();
-
-	$posts = get_posts(
-		array(
-			'post_type'        => DITL_CONTACT_FORM_POST_TYPE,
-			'post_status'      => 'publish',
-			'numberposts'      => 100,
-			'orderby'          => 'title',
-			'order'            => 'ASC',
-			'suppress_filters' => false,
-			// Toutes langues : un meme formulaire sert les pages de chaque langue.
-			'lang'             => '',
-		)
-	);
-
-	foreach ( $posts as $ditl_formulaire_post ) {
-		$titre = '' !== $ditl_formulaire_post->post_title ? $ditl_formulaire_post->post_title : __( '(sans titre)', 'ditl' );
-
-		/* translators: 1 : titre du formulaire, 2 : ID du formulaire. */
-		$formulaires[ $ditl_formulaire_post->ID ] = sprintf( __( '%1$s (ID %2$d)', 'ditl' ), $titre, $ditl_formulaire_post->ID );
-	}
-
-	$form_id = absint( $form_id );
-
-	if ( $form_id > 0 && ! isset( $formulaires[ $form_id ] ) ) {
-		/* translators: %d : ID du formulaire. */
-		$formulaires[ $form_id ] = sprintf( __( 'ID %d (formulaire non publie ou introuvable)', 'ditl' ), $form_id );
-	}
-
-	return $formulaires;
-}
-
-/**
  * Affiche un bloc de coordonnees (ligne existante ou modele JS).
  *
  * Reutilise le markup des lignes repetables (.ditl-section) : ajout,
@@ -302,14 +259,7 @@ function ditl_contact_render_bloc_row( $index, $bloc = array() ) {
 	?>
 	<div class="ditl-section">
 		<span class="ditl-field-label"><?php esc_html_e( 'Icone du bloc', 'ditl' ); ?></span>
-		<div class="ditl-media-field">
-			<input type="hidden" name="ditl_contact_coord_icone_id[]" class="ditl-media-value" value="<?php echo esc_attr( $icone_id ? $icone_id : '' ); ?>" />
-			<div class="ditl-media-preview">
-				<?php echo ditl_metabox_media_preview( $icone_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
-			</div>
-			<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
-			<button type="button" class="button ditl-media-remove"<?php echo $icone_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
-		</div>
+		<?php ditl_metabox_render_media_field( 'ditl_contact_coord_icone_id[]', $icone_id ); ?>
 
 		<label>
 			<span class="ditl-field-label"><?php esc_html_e( 'Intitule du bloc (H3)', 'ditl' ); ?></span>
@@ -341,7 +291,14 @@ function ditl_contact_render_metabox( $post ) {
 	$coord_titre = isset( $coordonnees['titre'] ) ? (string) $coordonnees['titre'] : '';
 	$blocs       = isset( $coordonnees['blocs'] ) && is_array( $coordonnees['blocs'] ) ? $coordonnees['blocs'] : array();
 
-	$formulaires = ditl_contact_liste_formulaires( $form_id );
+	// Formulaires WPForms publies, toutes langues (un meme formulaire sert
+	// les pages de chaque langue) ; helper partage avec le gabarit Livrable.
+	$formulaires = ditl_metabox_liste_publications(
+		DITL_CONTACT_FORM_POST_TYPE,
+		$form_id,
+		/* translators: %d : ID du formulaire. */
+		__( 'ID %d (formulaire non publie ou introuvable)', 'ditl' )
+	);
 	?>
 	<div class="ditl-metabox">
 		<p class="description">

@@ -62,49 +62,8 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit( 1 );
 }
 
-if ( ! function_exists( 'ditl_migration_accueil_url_relative' ) ) {
-	/**
-	 * Rend relative une URL pointant vers le site lui-meme.
-	 *
-	 * Les URLs des JSON Elementor pointent vers la production
-	 * (https://ditlproject.eu/...) : on ne conserve que le chemin pour que
-	 * la valeur reste valable en local, preprod et prod. Les URLs externes
-	 * sont laissees intactes.
-	 *
-	 * @param string $url URL a normaliser.
-	 * @return string URL relative si interne, inchangee sinon.
-	 */
-	function ditl_migration_accueil_url_relative( $url ) {
-		$parties = wp_parse_url( $url );
-
-		if ( empty( $parties['host'] ) ) {
-			return $url;
-		}
-
-		$hote_site      = (string) wp_parse_url( home_url(), PHP_URL_HOST );
-		$hotes_internes = array( 'ditlproject.eu', 'www.ditlproject.eu' );
-
-		if ( '' !== $hote_site ) {
-			$hotes_internes[] = $hote_site;
-		}
-
-		if ( ! in_array( strtolower( $parties['host'] ), $hotes_internes, true ) ) {
-			return $url;
-		}
-
-		$relative = isset( $parties['path'] ) && '' !== $parties['path'] ? $parties['path'] : '/';
-
-		if ( isset( $parties['query'] ) ) {
-			$relative .= '?' . $parties['query'];
-		}
-
-		if ( isset( $parties['fragment'] ) ) {
-			$relative .= '#' . $parties['fragment'];
-		}
-
-		return $relative;
-	}
-}
+// Bibliotheque commune des scripts CLI du theme.
+require_once __DIR__ . '/commun.php';
 
 if ( ! function_exists( 'ditl_migration_accueil_bouton' ) ) {
 	/**
@@ -125,7 +84,7 @@ if ( ! function_exists( 'ditl_migration_accueil_bouton' ) ) {
 		$url   = isset( $reglages['link']['url'] ) ? trim( (string) $reglages['link']['url'] ) : '';
 
 		if ( '' !== $url ) {
-			$url = ditl_migration_accueil_url_relative( $url );
+			$url = ditl_cli_url_relative( $url );
 
 			// URL interne (devenue relative) : verifie qu'elle mene quelque part.
 			if ( 0 === strpos( $url, '/' ) && 0 === url_to_postid( home_url( $url ) ) ) {
@@ -142,26 +101,6 @@ if ( ! function_exists( 'ditl_migration_accueil_bouton' ) ) {
 			'texte' => $texte,
 			'url'   => $url,
 		);
-	}
-}
-
-if ( ! function_exists( 'ditl_migration_accueil_verifier_attachment' ) ) {
-	/**
-	 * Verifie qu'un ID d'attachement reference existe encore en mediatheque.
-	 *
-	 * @param int    $attachment_id ID a verifier (0 ignore).
-	 * @param string $contexte      Contexte pour le message de warning.
-	 */
-	function ditl_migration_accueil_verifier_attachment( $attachment_id, $contexte ) {
-		if ( $attachment_id <= 0 ) {
-			return;
-		}
-
-		$attachment = get_post( $attachment_id );
-
-		if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
-			WP_CLI::warning( sprintf( 'Attachment %d introuvable (%s).', $attachment_id, $contexte ) );
-		}
 	}
 }
 
@@ -438,58 +377,18 @@ if ( ! function_exists( 'ditl_migration_accueil_extraire' ) ) {
 // Lecture des arguments : IDs de pages + mode simulation eventuel.
 // ---------------------------------------------------------------------------
 
-$ditl_dry_run  = false;
-$ditl_page_ids = array();
-
-foreach ( (array) $args as $ditl_arg ) {
-	if ( 'dry-run' === $ditl_arg || '--dry-run' === $ditl_arg ) {
-		$ditl_dry_run = true;
-		continue;
-	}
-
-	$ditl_id = absint( $ditl_arg );
-
-	if ( $ditl_id > 0 ) {
-		$ditl_page_ids[] = $ditl_id;
-	} else {
-		WP_CLI::warning( sprintf( 'Argument ignore (ID de page invalide) : %s', $ditl_arg ) );
-	}
-}
-
-if ( empty( $ditl_page_ids ) ) {
-	WP_CLI::error( 'Aucun ID de page fourni. Usage : wp eval-file ... <id> [<id>...] [dry-run]' );
-}
-
-if ( $ditl_dry_run ) {
-	WP_CLI::log( '=== MODE SIMULATION (dry-run) : aucune ecriture en base ===' );
-}
+$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page' );
+$ditl_dry_run  = $ditl_modes['dry_run'];
+$ditl_page_ids = $ditl_modes['ids'];
 
 // ---------------------------------------------------------------------------
 // Traitement page par page.
 // ---------------------------------------------------------------------------
 
 foreach ( $ditl_page_ids as $ditl_page_id ) {
-	$ditl_page = get_post( $ditl_page_id );
+	$ditl_elements = ditl_cli_charger_arbre_elementor( $ditl_page_id, 'page' );
 
-	if ( ! $ditl_page || 'page' !== $ditl_page->post_type ) {
-		WP_CLI::warning( sprintf( 'Page %d introuvable (ou pas de type "page") : ignoree.', $ditl_page_id ) );
-		continue;
-	}
-
-	WP_CLI::log( '' );
-	WP_CLI::log( sprintf( '--- Page %d : "%s" ---', $ditl_page_id, $ditl_page->post_title ) );
-
-	$ditl_elementor_raw = (string) get_post_meta( $ditl_page_id, '_elementor_data', true );
-
-	if ( '' === $ditl_elementor_raw ) {
-		WP_CLI::warning( sprintf( 'Page %d : meta _elementor_data absente ou vide, page ignoree.', $ditl_page_id ) );
-		continue;
-	}
-
-	$ditl_elements = json_decode( $ditl_elementor_raw, true );
-
-	if ( ! is_array( $ditl_elements ) ) {
-		WP_CLI::warning( sprintf( 'Page %d : JSON _elementor_data illisible, page ignoree.', $ditl_page_id ) );
+	if ( null === $ditl_elements ) {
 		continue;
 	}
 
@@ -549,15 +448,15 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 	}
 
 	// Verification d'existence de tous les attachments references.
-	ditl_migration_accueil_verifier_attachment( $ditl_data['hero_image_id'], 'image de banniere' );
-	ditl_migration_accueil_verifier_attachment( $ditl_data['presentation']['image_id'], 'image du bloc Presentation' );
+	ditl_cli_verifier_attachment( $ditl_data['hero_image_id'], 'image de banniere' );
+	ditl_cli_verifier_attachment( $ditl_data['presentation']['image_id'], 'image du bloc Presentation' );
 
 	foreach ( $ditl_data['livrables']['items'] as $ditl_i => $ditl_item ) {
-		ditl_migration_accueil_verifier_attachment( $ditl_item['image_id'], sprintf( 'vignette Livrables n.%d', $ditl_i + 1 ) );
+		ditl_cli_verifier_attachment( $ditl_item['image_id'], sprintf( 'vignette Livrables n.%d', $ditl_i + 1 ) );
 	}
 
 	foreach ( $ditl_data['partenaires']['logo_ids'] as $ditl_logo_id ) {
-		ditl_migration_accueil_verifier_attachment( $ditl_logo_id, 'logo partenaire' );
+		ditl_cli_verifier_attachment( $ditl_logo_id, 'logo partenaire' );
 	}
 
 	// Recapitulatif lisible des valeurs extraites.

@@ -299,3 +299,126 @@ function ditl_metabox_lire_sections_post( $prefix ) {
 
 	return $sections;
 }
+
+/**
+ * Affiche le champ media partage des metaboxes (valeur cachee, apercu,
+ * boutons choisir/retirer).
+ *
+ * Markup attendu par le JS commun (assets/admin/metabox-gabarits.js) :
+ * .ditl-media-field, .ditl-media-value, .ditl-media-preview. Couvre un
+ * champ simple ("xxx") comme une ligne repetable ("xxx[]") : le name est
+ * repris tel quel.
+ *
+ * Le HTML des metaboxes est indente en tabulations et les champs media ne
+ * vivent pas tous a la meme profondeur selon les gabarits : la profondeur
+ * est parametrable pour garder une sortie strictement identique aux blocs
+ * remplaces (l'appelant place le bloc, cette fonction indente l'interieur).
+ *
+ * @param string $name          Attribut name du champ cache.
+ * @param int    $attachment_id ID de l'attachement (0 si aucun).
+ * @param int    $profondeur    Tabulations de la ligne d'appel (defaut 2).
+ */
+function ditl_metabox_render_media_field( $name, $attachment_id, $profondeur = 2 ) {
+	$t0 = str_repeat( "\t", $profondeur );
+	$t1 = $t0 . "\t";
+	$t2 = $t1 . "\t";
+
+	echo '<div class="ditl-media-field">' . "\n";
+	echo $t1 . '<input type="hidden" name="' . esc_attr( $name ) . '" class="ditl-media-value" value="' . esc_attr( $attachment_id ? $attachment_id : '' ) . '" />' . "\n";
+	echo $t1 . '<div class="ditl-media-preview">' . "\n";
+	echo $t2;
+	echo ditl_metabox_media_preview( $attachment_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe.
+	echo $t1 . '</div>' . "\n";
+	echo $t1 . '<button type="button" class="button ditl-media-choose">' . esc_html__( 'Choisir une image', 'ditl' ) . '</button>' . "\n";
+	echo $t1 . '<button type="button" class="button ditl-media-remove"' . ( $attachment_id ? '' : ' style="display:none"' ) . '>' . esc_html__( 'Retirer l\'image', 'ditl' ) . '</button>' . "\n";
+	echo $t0 . '</div>' . "\n";
+}
+
+/**
+ * Affiche le champ galerie partage des metaboxes (valeur JSON cachee,
+ * vignettes triables, bouton de choix).
+ *
+ * Markup attendu par le JS commun (assets/admin/metabox-gabarits.js) :
+ * .ditl-gallery-field, .ditl-gallery-value, .ditl-gallery-preview,
+ * .ditl-gallery-item-remove, .ditl-gallery-choose.
+ *
+ * Meme principe d'indentation parametrable que le champ media (voir
+ * ditl_metabox_render_media_field) : sortie strictement identique aux
+ * blocs remplaces, y compris les tabulations emises par la boucle.
+ *
+ * @param string $name       Attribut name du champ cache.
+ * @param array  $ids        IDs d'attachements de la galerie.
+ * @param int    $profondeur Tabulations de la ligne d'appel (defaut 2).
+ */
+function ditl_metabox_render_gallery_field( $name, $ids, $profondeur = 2 ) {
+	$t0 = str_repeat( "\t", $profondeur );
+	$t1 = $t0 . "\t";
+	$t2 = $t1 . "\t";
+	$t3 = $t2 . "\t";
+	$t4 = $t3 . "\t";
+
+	echo '<div class="ditl-gallery-field">' . "\n";
+	echo $t1 . '<input type="hidden" name="' . esc_attr( $name ) . '" class="ditl-gallery-value" value="' . esc_attr( (string) wp_json_encode( $ids ) ) . '" />' . "\n";
+	echo $t1 . '<ul class="ditl-gallery-preview">' . "\n";
+	echo $t2;
+
+	foreach ( $ids as $attachment_id ) {
+		echo $t3 . '<li data-id="' . esc_attr( $attachment_id ) . '">' . "\n";
+		echo $t4;
+		echo wp_get_attachment_image( $attachment_id, 'thumbnail' );
+		echo $t4 . '<button type="button" class="button-link ditl-gallery-item-remove" title="' . esc_attr__( 'Retirer cette image', 'ditl' ) . '">&times;</button>' . "\n";
+		echo $t3 . '</li>' . "\n";
+		echo $t2;
+	}
+
+	echo $t1 . '</ul>' . "\n";
+	echo $t1 . '<button type="button" class="button ditl-gallery-choose">' . esc_html__( 'Choisir des images', 'ditl' ) . '</button>' . "\n";
+	echo $t0 . '</div>' . "\n";
+}
+
+/**
+ * Retourne la liste des publications proposables dans un selecteur de metabox.
+ *
+ * Les publications publiees du type demande sont listees, toutes langues
+ * confondues ; l'ID deja enregistre est ajoute a la liste s'il n'y figure
+ * pas (publication en brouillon par exemple), afin qu'un enregistrement ne
+ * le perde pas silencieusement.
+ *
+ * @param string $post_type            Type de publication a lister.
+ * @param int    $id_actuel            ID actuellement enregistre (0 si aucun).
+ * @param string $libelle_introuvable  Libelle sprintf (%d = ID) de l'entree
+ *                                     ajoutee quand l'ID enregistre est
+ *                                     absent de la liste.
+ * @return array Liste [ID => libelle].
+ */
+function ditl_metabox_liste_publications( $post_type, $id_actuel, $libelle_introuvable ) {
+	$liste = array();
+
+	$posts = get_posts(
+		array(
+			'post_type'        => $post_type,
+			'post_status'      => 'publish',
+			'numberposts'      => 100,
+			'orderby'          => 'title',
+			'order'            => 'ASC',
+			'suppress_filters' => false,
+			// Toutes langues : le choix appartient a chaque page appelante.
+			'lang'             => '',
+		)
+	);
+
+	foreach ( $posts as $ditl_publication ) {
+		$titre = '' !== $ditl_publication->post_title ? $ditl_publication->post_title : __( '(sans titre)', 'ditl' );
+
+		/* translators: 1 : titre de la publication, 2 : ID de la publication. */
+		$liste[ $ditl_publication->ID ] = sprintf( __( '%1$s (ID %2$d)', 'ditl' ), $titre, $ditl_publication->ID );
+	}
+
+	$id_actuel = absint( $id_actuel );
+
+	if ( $id_actuel > 0 && ! isset( $liste[ $id_actuel ] ) ) {
+		$liste[ $id_actuel ] = sprintf( $libelle_introuvable, $id_actuel );
+	}
+
+	return $liste;
+}

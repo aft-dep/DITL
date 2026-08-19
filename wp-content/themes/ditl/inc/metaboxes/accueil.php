@@ -259,14 +259,7 @@ function ditl_accueil_render_livrable_row( $index, $item = array() ) {
 	?>
 	<div class="ditl-section">
 		<span class="ditl-field-label"><?php esc_html_e( 'Icone de la vignette', 'ditl' ); ?></span>
-		<div class="ditl-media-field">
-			<input type="hidden" name="ditl_accueil_livrable_image_id[]" class="ditl-media-value" value="<?php echo esc_attr( $image_id ? $image_id : '' ); ?>" />
-			<div class="ditl-media-preview">
-				<?php echo ditl_metabox_media_preview( $image_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
-			</div>
-			<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
-			<button type="button" class="button ditl-media-remove"<?php echo $image_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
-		</div>
+		<?php ditl_metabox_render_media_field( 'ditl_accueil_livrable_image_id[]', $image_id ); ?>
 		<span class="ditl-field-label"><?php esc_html_e( 'Texte de la vignette', 'ditl' ); ?></span>
 		<textarea class="ditl-section-editor" id="<?php echo esc_attr( 'ditl-accueil-livrable-texte-' . $index ); ?>" name="ditl_accueil_livrable_texte[]" rows="6"><?php echo esc_textarea( $texte ); ?></textarea>
 	</div>
@@ -349,14 +342,7 @@ function ditl_accueil_render_metabox( $post ) {
 
 		<div class="ditl-field">
 			<span class="ditl-field-label"><?php esc_html_e( 'Image d\'illustration', 'ditl' ); ?></span>
-			<div class="ditl-media-field">
-				<input type="hidden" name="ditl_accueil_pres_image_id" class="ditl-media-value" value="<?php echo esc_attr( $pres_image_id ? $pres_image_id : '' ); ?>" />
-				<div class="ditl-media-preview">
-					<?php echo ditl_metabox_media_preview( $pres_image_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
-				</div>
-				<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
-				<button type="button" class="button ditl-media-remove"<?php echo $pres_image_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
-			</div>
+			<?php ditl_metabox_render_media_field( 'ditl_accueil_pres_image_id', $pres_image_id, 3 ); ?>
 		</div>
 
 		<h3><?php esc_html_e( 'Bloc Livrables', 'ditl' ); ?></h3>
@@ -419,18 +405,7 @@ function ditl_accueil_render_metabox( $post ) {
 
 		<div class="ditl-field">
 			<span class="ditl-field-label"><?php esc_html_e( 'Logos des partenaires', 'ditl' ); ?></span>
-			<div class="ditl-gallery-field">
-				<input type="hidden" name="ditl_accueil_part_logo_ids" class="ditl-gallery-value" value="<?php echo esc_attr( (string) wp_json_encode( $logo_ids ) ); ?>" />
-				<ul class="ditl-gallery-preview">
-					<?php foreach ( $logo_ids as $logo_id ) : ?>
-						<li data-id="<?php echo esc_attr( $logo_id ); ?>">
-							<?php echo wp_get_attachment_image( $logo_id, 'thumbnail' ); ?>
-							<button type="button" class="button-link ditl-gallery-item-remove" title="<?php esc_attr_e( 'Retirer cette image', 'ditl' ); ?>">&times;</button>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-				<button type="button" class="button ditl-gallery-choose"><?php esc_html_e( 'Choisir des images', 'ditl' ); ?></button>
-			</div>
+			<?php ditl_metabox_render_gallery_field( 'ditl_accueil_part_logo_ids', $logo_ids, 3 ); ?>
 		</div>
 
 		<div class="ditl-field">

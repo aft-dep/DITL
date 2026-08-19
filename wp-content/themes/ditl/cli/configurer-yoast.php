@@ -46,7 +46,8 @@
  *   wp eval-file wp-content/themes/ditl/cli/configurer-yoast.php dry-run
  *   wp eval-file wp-content/themes/ditl/cli/configurer-yoast.php
  *
- * Le mode simulation accepte "dry-run" ou "--dry-run".
+ * Le mode simulation accepte "dry-run" ou "--dry-run". Pas de mode
+ * annuler : l'argument "annuler" est refuse avec une erreur explicite.
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
@@ -60,6 +61,9 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit( 1 );
 }
 
+// Bibliotheque commune des scripts CLI du theme.
+require_once __DIR__ . '/commun.php';
+
 if ( ! class_exists( 'WPSEO_Options' ) ) {
 	WP_CLI::error( 'Yoast SEO n\'est pas actif : activer l\'extension wordpress-seo avant de rejouer ce script.' );
 }
@@ -68,14 +72,15 @@ if ( ! class_exists( 'WPSEO_Options' ) ) {
 // Lecture des arguments : mode simulation eventuel.
 // ---------------------------------------------------------------------------
 
-$ditl_dry_run = false;
+$ditl_modes   = ditl_cli_lire_modes( $args );
+$ditl_dry_run = $ditl_modes['dry_run'];
 
-foreach ( (array) $args as $ditl_arg ) {
-	if ( 'dry-run' === $ditl_arg || '--dry-run' === $ditl_arg ) {
-		$ditl_dry_run = true;
-	} else {
-		WP_CLI::warning( sprintf( 'Argument ignore : %s', $ditl_arg ) );
-	}
+// Pas de mode annuler ici : la configuration Yoast se rejoue, elle ne
+// s'annule pas. Refus explicite (avant factorisation, "annuler" n'etait
+// qu'un argument inconnu signale par un warning, puis le script
+// s'executait quand meme en mode normal).
+if ( $ditl_modes['annuler'] ) {
+	WP_CLI::error( 'Ce script n\'a pas de mode annuler : argument refuse.' );
 }
 
 if ( $ditl_dry_run ) {

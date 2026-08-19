@@ -52,7 +52,7 @@ get_header(); ?>
 				$ditl_hero_title    = (string) get_post_meta( $ditl_post_id, '_ditl_hero_title', true );
 
 				// Variante de structure selon la langue de la page (voir en-tete).
-				$ditl_variante_fr = ( 0 === strpos( (string) get_locale(), 'fr' ) );
+				$ditl_variante_fr = ditl_page_est_francaise();
 
 				// Les groupes sans partenaire ne rendent rien : on les ecarte
 				// avant de compter (la detection du dernier partenaire, qui

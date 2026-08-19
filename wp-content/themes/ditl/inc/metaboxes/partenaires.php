@@ -219,14 +219,7 @@ function ditl_partenaires_render_partenaire_row( $index, $pays = '', $partenaire
 		<p class="description"><?php esc_html_e( 'Les partenaires consecutifs de meme pays sont regroupes sous un seul titre. Laisser vide pour rattacher ce partenaire au meme pays que le precedent.', 'ditl' ); ?></p>
 
 		<span class="ditl-field-label"><?php esc_html_e( 'Logo du partenaire', 'ditl' ); ?></span>
-		<div class="ditl-media-field">
-			<input type="hidden" name="ditl_partenaires_logo_id[]" class="ditl-media-value" value="<?php echo esc_attr( $logo_id ? $logo_id : '' ); ?>" />
-			<div class="ditl-media-preview">
-				<?php echo ditl_metabox_media_preview( $logo_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
-			</div>
-			<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
-			<button type="button" class="button ditl-media-remove"<?php echo $logo_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
-		</div>
+		<?php ditl_metabox_render_media_field( 'ditl_partenaires_logo_id[]', $logo_id ); ?>
 
 		<label>
 			<span class="ditl-field-label"><?php esc_html_e( 'Titre du partenaire (H3)', 'ditl' ); ?></span>
@@ -249,14 +242,7 @@ function ditl_partenaires_render_partenaire_row( $index, $pays = '', $partenaire
 		<p class="description"><?php esc_html_e( 'Site du partenaire (URL externe complete). Pour un lien interne, preferer une URL relative (ex. /partenaires/).', 'ditl' ); ?></p>
 
 		<span class="ditl-field-label"><?php esc_html_e( 'Image complementaire (optionnelle, affichee apres le bouton)', 'ditl' ); ?></span>
-		<div class="ditl-media-field">
-			<input type="hidden" name="ditl_partenaires_image_extra_id[]" class="ditl-media-value" value="<?php echo esc_attr( $image_extra_id ? $image_extra_id : '' ); ?>" />
-			<div class="ditl-media-preview">
-				<?php echo ditl_metabox_media_preview( $image_extra_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
-			</div>
-			<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
-			<button type="button" class="button ditl-media-remove"<?php echo $image_extra_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
-		</div>
+		<?php ditl_metabox_render_media_field( 'ditl_partenaires_image_extra_id[]', $image_extra_id ); ?>
 	</div>
 	<?php
 }

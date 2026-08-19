@@ -129,18 +129,7 @@ function ditl_projet_ditl_render_metabox( $post ) {
 
 		<div class="ditl-field">
 			<span class="ditl-field-label"><?php esc_html_e( 'Galerie d\'images (carrousel)', 'ditl' ); ?></span>
-			<div class="ditl-gallery-field">
-				<input type="hidden" name="ditl_carousel_ids" class="ditl-gallery-value" value="<?php echo esc_attr( (string) wp_json_encode( $carousel_ids ) ); ?>" />
-				<ul class="ditl-gallery-preview">
-					<?php foreach ( $carousel_ids as $attachment_id ) : ?>
-						<li data-id="<?php echo esc_attr( $attachment_id ); ?>">
-							<?php echo wp_get_attachment_image( $attachment_id, 'thumbnail' ); ?>
-							<button type="button" class="button-link ditl-gallery-item-remove" title="<?php esc_attr_e( 'Retirer cette image', 'ditl' ); ?>">&times;</button>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-				<button type="button" class="button ditl-gallery-choose"><?php esc_html_e( 'Choisir des images', 'ditl' ); ?></button>
-			</div>
+			<?php ditl_metabox_render_gallery_field( 'ditl_carousel_ids', $carousel_ids, 3 ); ?>
 			<p class="description"><?php esc_html_e( 'Galerie optionnelle affichee en bas de page. Laisser vide pour ne pas afficher de carrousel.', 'ditl' ); ?></p>
 		</div>
 	</div>

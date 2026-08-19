@@ -38,7 +38,7 @@ get_header(); ?>
 
 				// Libelles selon la langue de la page (site multilingue sans
 				// fichiers de traduction du theme : francais, sinon anglais).
-				$ditl_fr     = ( 0 === strpos( (string) get_locale(), 'fr' ) );
+				$ditl_fr     = ditl_page_est_francaise();
 				$ditl_labels = array(
 					'region' => $ditl_fr ? 'Dernières actualités' : 'Latest news',
 					'role'   => $ditl_fr ? 'carrousel' : 'carousel',
@@ -50,17 +50,9 @@ get_header(); ?>
 					'read'   => $ditl_fr ? 'Lire l\'article : %s' : 'Read the post: %s',
 				);
 
-				// Les 6 derniers articles publies ; Polylang limite la requete
-				// a la langue courante de la page.
-				$ditl_actus = new WP_Query(
-					array(
-						'post_type'           => 'post',
-						'post_status'         => 'publish',
-						'posts_per_page'      => 6,
-						'ignore_sticky_posts' => true,
-						'no_found_rows'       => true,
-					)
-				);
+				// Les 6 derniers articles publies (requete partagee avec le
+				// gabarit Accueil, voir functions.php).
+				$ditl_actus = ditl_query_dernieres_actus();
 
 				astra_entry_before();
 				?>

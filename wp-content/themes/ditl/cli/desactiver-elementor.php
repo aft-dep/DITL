@@ -64,24 +64,18 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit( 1 );
 }
 
+// Bibliotheque commune des scripts CLI du theme.
+require_once __DIR__ . '/commun.php';
+
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 // ---------------------------------------------------------------------------
 // Lecture des arguments : mode annulation et mode simulation eventuels.
 // ---------------------------------------------------------------------------
 
-$ditl_dry_run = false;
-$ditl_annuler = false;
-
-foreach ( (array) $args as $ditl_arg ) {
-	if ( 'dry-run' === $ditl_arg || '--dry-run' === $ditl_arg ) {
-		$ditl_dry_run = true;
-	} elseif ( 'annuler' === $ditl_arg || '--annuler' === $ditl_arg ) {
-		$ditl_annuler = true;
-	} else {
-		WP_CLI::warning( sprintf( 'Argument ignore : %s', $ditl_arg ) );
-	}
-}
+$ditl_modes   = ditl_cli_lire_modes( $args );
+$ditl_dry_run = $ditl_modes['dry_run'];
+$ditl_annuler = $ditl_modes['annuler'];
 
 if ( $ditl_dry_run ) {
 	WP_CLI::log( '=== MODE SIMULATION (dry-run) : aucune ecriture en base ===' );

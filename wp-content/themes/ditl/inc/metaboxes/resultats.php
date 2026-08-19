@@ -172,14 +172,7 @@ function ditl_resultats_render_metabox( $post ) {
 
 			<div class="ditl-field">
 				<span class="ditl-field-label"><?php esc_html_e( 'Image de fond du bandeau', 'ditl' ); ?></span>
-				<div class="ditl-media-field">
-					<input type="hidden" name="ditl_resultats_bandeau_image_id" class="ditl-media-value" value="<?php echo esc_attr( $bandeau_image_id ? $bandeau_image_id : '' ); ?>" />
-					<div class="ditl-media-preview">
-						<?php echo ditl_metabox_media_preview( $bandeau_image_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
-					</div>
-					<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
-					<button type="button" class="button ditl-media-remove"<?php echo $bandeau_image_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
-				</div>
+				<?php ditl_metabox_render_media_field( 'ditl_resultats_bandeau_image_id', $bandeau_image_id, 4 ); ?>
 			</div>
 
 			<div class="ditl-field">

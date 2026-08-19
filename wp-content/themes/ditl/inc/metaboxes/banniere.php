@@ -139,14 +139,7 @@ function ditl_banniere_render_metabox( $post ) {
 
 		<div class="ditl-field">
 			<span class="ditl-field-label"><?php esc_html_e( 'Image de banniere', 'ditl' ); ?></span>
-			<div class="ditl-media-field">
-				<input type="hidden" name="ditl_hero_image_id" class="ditl-media-value" value="<?php echo esc_attr( $hero_image_id ? $hero_image_id : '' ); ?>" />
-				<div class="ditl-media-preview">
-					<?php echo ditl_metabox_media_preview( $hero_image_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup deja echappe. ?>
-				</div>
-				<button type="button" class="button ditl-media-choose"><?php esc_html_e( 'Choisir une image', 'ditl' ); ?></button>
-				<button type="button" class="button ditl-media-remove"<?php echo $hero_image_id ? '' : ' style="display:none"'; ?>><?php esc_html_e( 'Retirer l\'image', 'ditl' ); ?></button>
-			</div>
+			<?php ditl_metabox_render_media_field( 'ditl_hero_image_id', $hero_image_id, 3 ); ?>
 		</div>
 
 		<div class="ditl-field">

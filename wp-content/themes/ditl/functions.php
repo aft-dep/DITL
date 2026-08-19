@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.12.0' );
+define( 'DITL_THEME_VERSION', '0.13.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -64,6 +64,41 @@ function ditl_href_from_meta_url( $url ) {
 	}
 
 	return $url;
+}
+
+/**
+ * Requete des dernieres actualites affichees par les gabarits.
+ *
+ * Requete partagee entre les gabarits Actualites (carrousel) et Accueil
+ * (bloc actualites) : les 6 derniers articles publies ; Polylang limite
+ * la requete a la langue courante de la page.
+ *
+ * @return WP_Query Les 6 derniers articles publies de la langue courante.
+ */
+function ditl_query_dernieres_actus() {
+	return new WP_Query(
+		array(
+			'post_type'           => 'post',
+			'post_status'         => 'publish',
+			'posts_per_page'      => 6,
+			'ignore_sticky_posts' => true,
+			'no_found_rows'       => true,
+		)
+	);
+}
+
+/**
+ * Indique si la page rendue est en francais.
+ *
+ * Centralise le test de langue des gabarits (libelles et variantes de
+ * structure FR/EN, site multilingue sans fichiers de traduction du theme).
+ * NB : cette logique sera revisitee en phase 2 (fichiers .po) ; ce helper
+ * centralise seulement le point de decision.
+ *
+ * @return bool True si la locale courante est francaise.
+ */
+function ditl_page_est_francaise() {
+	return 0 === strpos( (string) get_locale(), 'fr' );
 }
 
 /**

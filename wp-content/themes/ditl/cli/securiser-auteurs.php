@@ -31,6 +31,11 @@
  *   wp eval-file wp-content/themes/ditl/cli/securiser-auteurs.php
  *   wp eval-file wp-content/themes/ditl/cli/securiser-auteurs.php annuler
  *
+ * Le mode simulation accepte "dry-run" ou "--dry-run", l'annulation
+ * "annuler" ou "--annuler" (combinables). Avant la factorisation des
+ * scripts CLI, "--annuler" etait traite en argument inconnu et le script
+ * s'executait en mode normal : corrige (voir ditl_cli_lire_modes).
+ *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
  * @package DiTL
@@ -43,22 +48,16 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit( 1 );
 }
 
+// Bibliotheque commune des scripts CLI du theme.
+require_once __DIR__ . '/commun.php';
+
 // ---------------------------------------------------------------------------
 // Lecture des arguments : simulation ou annulation.
 // ---------------------------------------------------------------------------
 
-$ditl_dry_run = false;
-$ditl_annuler = false;
-
-foreach ( (array) $args as $ditl_arg ) {
-	if ( 'dry-run' === $ditl_arg || '--dry-run' === $ditl_arg ) {
-		$ditl_dry_run = true;
-	} elseif ( 'annuler' === $ditl_arg ) {
-		$ditl_annuler = true;
-	} else {
-		WP_CLI::warning( sprintf( 'Argument ignore : %s', $ditl_arg ) );
-	}
-}
+$ditl_modes   = ditl_cli_lire_modes( $args );
+$ditl_dry_run = $ditl_modes['dry_run'];
+$ditl_annuler = $ditl_modes['annuler'];
 
 if ( $ditl_dry_run ) {
 	WP_CLI::log( '=== MODE SIMULATION (dry-run) : aucune ecriture en base ===' );

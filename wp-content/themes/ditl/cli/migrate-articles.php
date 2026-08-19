@@ -114,49 +114,8 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	exit( 1 );
 }
 
-if ( ! function_exists( 'ditl_migration_articles_url_relative' ) ) {
-	/**
-	 * Rend relative une URL pointant vers le site lui-meme.
-	 *
-	 * Les URLs des JSON Elementor pointent vers la production
-	 * (https://ditlproject.eu/...) : on ne conserve que le chemin pour que
-	 * la valeur reste valable en local, preprod et prod. Les URLs externes
-	 * sont laissees intactes.
-	 *
-	 * @param string $url URL a normaliser.
-	 * @return string URL relative si interne, inchangee sinon.
-	 */
-	function ditl_migration_articles_url_relative( $url ) {
-		$parties = wp_parse_url( $url );
-
-		if ( empty( $parties['host'] ) ) {
-			return $url;
-		}
-
-		$hote_site      = (string) wp_parse_url( home_url(), PHP_URL_HOST );
-		$hotes_internes = array( 'ditlproject.eu', 'www.ditlproject.eu' );
-
-		if ( '' !== $hote_site ) {
-			$hotes_internes[] = $hote_site;
-		}
-
-		if ( ! in_array( strtolower( $parties['host'] ), $hotes_internes, true ) ) {
-			return $url;
-		}
-
-		$relative = isset( $parties['path'] ) && '' !== $parties['path'] ? $parties['path'] : '/';
-
-		if ( isset( $parties['query'] ) ) {
-			$relative .= '?' . $parties['query'];
-		}
-
-		if ( isset( $parties['fragment'] ) ) {
-			$relative .= '#' . $parties['fragment'];
-		}
-
-		return $relative;
-	}
-}
+// Bibliotheque commune des scripts CLI du theme.
+require_once __DIR__ . '/commun.php';
 
 if ( ! function_exists( 'ditl_migration_articles_bouton' ) ) {
 	/**
@@ -177,7 +136,7 @@ if ( ! function_exists( 'ditl_migration_articles_bouton' ) ) {
 		$url   = isset( $reglages['link']['url'] ) ? trim( (string) $reglages['link']['url'] ) : '';
 
 		if ( '' !== $url ) {
-			$url = ditl_migration_articles_url_relative( $url );
+			$url = ditl_cli_url_relative( $url );
 
 			// URL interne (devenue relative) : verifie que le fichier existe.
 			// Les chemins contenant ".." sont rejetes (pas de sortie d'ABSPATH)
@@ -445,72 +404,46 @@ if ( ! function_exists( 'ditl_migration_articles_assembler' ) ) {
 // Lecture des arguments : IDs d'articles + mode simulation eventuel.
 // ---------------------------------------------------------------------------
 
-$ditl_dry_run  = false;
-$ditl_post_ids = array();
-
-foreach ( (array) $args as $ditl_arg ) {
-	if ( 'dry-run' === $ditl_arg || '--dry-run' === $ditl_arg ) {
-		$ditl_dry_run = true;
-		continue;
-	}
-
-	$ditl_id = absint( $ditl_arg );
-
-	if ( $ditl_id > 0 ) {
-		$ditl_post_ids[] = $ditl_id;
-	} else {
-		WP_CLI::warning( sprintf( 'Argument ignore (ID d\'article invalide) : %s', $ditl_arg ) );
-	}
-}
-
-if ( empty( $ditl_post_ids ) ) {
-	WP_CLI::error( 'Aucun ID d\'article fourni. Usage : wp eval-file ... <id> [<id>...] [dry-run]' );
-}
-
-if ( $ditl_dry_run ) {
-	WP_CLI::log( '=== MODE SIMULATION (dry-run) : aucune ecriture en base ===' );
-}
+$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'd\'article' );
+$ditl_dry_run  = $ditl_modes['dry_run'];
+$ditl_post_ids = $ditl_modes['ids'];
 
 // ---------------------------------------------------------------------------
 // Traitement article par article.
 // ---------------------------------------------------------------------------
 
 foreach ( $ditl_post_ids as $ditl_post_id ) {
+	// Garde propre aux articles : uniquement ceux construits avec Elementor
+	// (meta _elementor_edit_mode presente, meme vide) ou deja migres par ce
+	// script (marqueur _ditl_backup_post_content). Un article classique
+	// jamais passe par Elementor n'a rien a faire ici.
+	$ditl_elements = ditl_cli_charger_arbre_elementor(
+		$ditl_post_id,
+		'post',
+		static function ( $ditl_post ) {
+			if ( ! metadata_exists( 'post', $ditl_post->ID, '_elementor_edit_mode' )
+				&& ! metadata_exists( 'post', $ditl_post->ID, '_ditl_backup_post_content' ) ) {
+				WP_CLI::warning( sprintf( 'Article %d : jamais construit avec Elementor (pas de meta _elementor_edit_mode) ni migre par ce script : refuse.', $ditl_post->ID ) );
+				return false;
+			}
+
+			return true;
+		}
+	);
+
+	if ( null === $ditl_elements ) {
+		continue;
+	}
+
+	// Relecture de l'article pour la suite du traitement (comparaison du
+	// contenu avant ecriture) ; l'objet vient du cache, aucun cout ajoute.
 	$ditl_post = get_post( $ditl_post_id );
 
-	if ( ! $ditl_post || 'post' !== $ditl_post->post_type ) {
-		WP_CLI::warning( sprintf( 'Article %d introuvable (ou pas de type "post") : ignore.', $ditl_post_id ) );
-		continue;
-	}
-
-	// Garde : uniquement les articles construits avec Elementor (meta
-	// _elementor_edit_mode presente, meme vide) ou deja migres par ce script
-	// (marqueur _ditl_backup_post_content). Un article classique jamais passe
-	// par Elementor n'a rien a faire ici.
+	// Les deux drapeaux testes par la garde resservent plus bas (sauvegarde
+	// initiale, purge du mode d'edition) : recalcules ici plutot qu'exportes
+	// de la closure, les metas sont en cache, aucun cout ajoute.
 	$ditl_edit_mode_presente = metadata_exists( 'post', $ditl_post_id, '_elementor_edit_mode' );
 	$ditl_deja_migre         = metadata_exists( 'post', $ditl_post_id, '_ditl_backup_post_content' );
-
-	if ( ! $ditl_edit_mode_presente && ! $ditl_deja_migre ) {
-		WP_CLI::warning( sprintf( 'Article %d : jamais construit avec Elementor (pas de meta _elementor_edit_mode) ni migre par ce script : refuse.', $ditl_post_id ) );
-		continue;
-	}
-
-	WP_CLI::log( '' );
-	WP_CLI::log( sprintf( '--- Article %d : "%s" ---', $ditl_post_id, mb_substr( $ditl_post->post_title, 0, 70 ) ) );
-
-	$ditl_elementor_raw = (string) get_post_meta( $ditl_post_id, '_elementor_data', true );
-
-	if ( '' === $ditl_elementor_raw ) {
-		WP_CLI::warning( sprintf( 'Article %d : meta _elementor_data absente ou vide, article ignore.', $ditl_post_id ) );
-		continue;
-	}
-
-	$ditl_elements = json_decode( $ditl_elementor_raw, true );
-
-	if ( ! is_array( $ditl_elements ) ) {
-		WP_CLI::warning( sprintf( 'Article %d : JSON _elementor_data illisible, article ignore.', $ditl_post_id ) );
-		continue;
-	}
 
 	$ditl_data = array(
 		'blocs' => array(),

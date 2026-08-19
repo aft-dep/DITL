@@ -218,50 +218,6 @@ function ditl_livrable_add_metabox() {
 add_action( 'add_meta_boxes_page', 'ditl_livrable_add_metabox' );
 
 /**
- * Retourne la liste des cartes Interactive Geo Maps proposables dans la metabox.
- *
- * Les cartes publiees sont listees, toutes langues confondues (chaque page
- * choisit la carte de sa langue) ; l'ID deja enregistre est ajoute a la
- * liste s'il n'y figure pas (carte en brouillon par exemple), afin qu'un
- * enregistrement ne le perde pas silencieusement.
- *
- * @param int $map_id ID actuellement enregistre (0 si aucun).
- * @return array Liste [ID => libelle].
- */
-function ditl_livrable_liste_cartes( $map_id ) {
-	$cartes = array();
-
-	$posts = get_posts(
-		array(
-			'post_type'        => DITL_LIVRABLE_CARTE_POST_TYPE,
-			'post_status'      => 'publish',
-			'numberposts'      => 100,
-			'orderby'          => 'title',
-			'order'            => 'ASC',
-			'suppress_filters' => false,
-			// Toutes langues : chaque page choisit la carte de sa langue.
-			'lang'             => '',
-		)
-	);
-
-	foreach ( $posts as $ditl_carte_post ) {
-		$titre = '' !== $ditl_carte_post->post_title ? $ditl_carte_post->post_title : __( '(sans titre)', 'ditl' );
-
-		/* translators: 1 : titre de la carte, 2 : ID de la carte. */
-		$cartes[ $ditl_carte_post->ID ] = sprintf( __( '%1$s (ID %2$d)', 'ditl' ), $titre, $ditl_carte_post->ID );
-	}
-
-	$map_id = absint( $map_id );
-
-	if ( $map_id > 0 && ! isset( $cartes[ $map_id ] ) ) {
-		/* translators: %d : ID de la carte. */
-		$cartes[ $map_id ] = sprintf( __( 'ID %d (carte non publiee ou introuvable)', 'ditl' ), $map_id );
-	}
-
-	return $cartes;
-}
-
-/**
  * Affiche une section de livrable (ligne existante ou modele JS).
  *
  * Reutilise le markup des lignes repetables (.ditl-section) : ajout,
@@ -318,7 +274,14 @@ function ditl_livrable_render_metabox( $post ) {
 	$map_id      = isset( $carte['map_id'] ) ? absint( $carte['map_id'] ) : 0;
 	$alternative = isset( $carte['alternative'] ) ? (string) $carte['alternative'] : '';
 
-	$cartes = ditl_livrable_liste_cartes( $map_id );
+	// Cartes Interactive Geo Maps publiees, toutes langues (chaque page
+	// choisit la carte de sa langue) ; helper partage avec le gabarit Contact.
+	$cartes = ditl_metabox_liste_publications(
+		DITL_LIVRABLE_CARTE_POST_TYPE,
+		$map_id,
+		/* translators: %d : ID de la carte. */
+		__( 'ID %d (carte non publiee ou introuvable)', 'ditl' )
+	);
 	?>
 	<div class="ditl-metabox">
 		<p class="description">
