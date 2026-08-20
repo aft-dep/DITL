@@ -1,0 +1,419 @@
+/*
+ * Ecran de connexion (wp-login) aux couleurs du site DiTL.
+ *
+ * Couvre toutes les vues : connexion, mot de passe oublie (lostpassword),
+ * email envoye (checkemail), nouveau mot de passe (resetpass, avec
+ * indicateur de force), messages d'erreur et de succes, liens de
+ * navigation, selecteur de langue.
+ *
+ * Palette du site (tokens de la palette globale Astra du customizer) :
+ * - orange DiTL  #eca500 (accent decoratif uniquement : insuffisant en
+ *   contraste sur blanc pour du texte ou un indicateur de focus)
+ * - bleu         #1e448f (liens, bouton principal, focus : 9,2:1 sur blanc)
+ * - bleu nuit    #0f172a (titres, labels : 17,9:1 sur blanc)
+ * - texte        #364151 (10,3:1 sur blanc, 9,4:1 sur #e7f6ff)
+ * - bleu clair   #e7f6ff (fond de page)
+ * - bordures     #d1dae5 (decoratives) ; #74839c pour les contours de
+ *   champs et de cases (3,8:1 sur blanc : seuil 3:1 des composants
+ *   d'interface, WCAG 1.4.11)
+ *
+ * Le logo est injecte en style en ligne par inc/connexion.php (URL
+ * dependante de l'environnement, jamais ecrite ici).
+ */
+
+/* ------------------------------------------------------------------ */
+/* Fond de page et typographie                                         */
+/* ------------------------------------------------------------------ */
+
+body.login {
+	background: #e7f6ff;
+	color: #364151;
+	font-family: "Exo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+	font-size: 14px;
+	padding: 0 16px;
+	box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------------ */
+/* Carte blanche : tout l'ecran (logo, formulaire, messages, liens)    */
+/* ------------------------------------------------------------------ */
+
+#login {
+	background: #ffffff;
+	border: 1px solid #d1dae5;
+	/* Filet superieur orange : rappel de l'accent DiTL, purement decoratif. */
+	border-top: 4px solid #eca500;
+	border-radius: 8px;
+	box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 420px;
+	margin: 48px auto 24px;
+	padding: 32px 28px 24px;
+}
+
+/* Le formulaire perd son propre cadre : la carte est portee par #login. */
+.login form {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	margin-top: 16px;
+	padding: 0;
+	overflow: visible;
+}
+
+/* ------------------------------------------------------------------ */
+/* Logo du site (image injectee en ligne par inc/connexion.php)        */
+/* ------------------------------------------------------------------ */
+
+.login h1 a {
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
+	display: block;
+	width: 100%;
+	max-width: 288px;
+	height: 92px;
+	margin: 0 auto 4px;
+}
+
+.login h1 a:focus {
+	outline: 2px solid #1e448f;
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Labels et champs                                                    */
+/* ------------------------------------------------------------------ */
+
+.login label {
+	color: #0f172a;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.login form .input,
+.login input[type="text"],
+.login input[type="password"] {
+	background: #ffffff;
+	border: 1px solid #74839c;
+	border-radius: 4px;
+	box-shadow: none;
+	color: #364151;
+	/* 16 px minimum : evite le zoom automatique d'iOS a la prise de focus. */
+	font-size: 16px;
+	line-height: 1.4;
+	margin: 6px 0 16px;
+	min-height: 44px;
+	padding: 8px 12px;
+}
+
+.login form .input:focus,
+.login input[type="text"]:focus,
+.login input[type="password"]:focus {
+	border-color: #1e448f;
+	box-shadow: 0 0 0 1px #1e448f;
+	outline: 2px solid transparent; /* mode contraste eleve Windows */
+}
+
+/* Champ mot de passe : laisse la place au bouton afficher/masquer. */
+.login .wp-pwd {
+	margin: 0;
+}
+
+/* Case "Se souvenir de moi" */
+.login form .forgetmenot {
+	float: none;
+	display: block;
+	margin: 0 0 16px;
+}
+
+.login form .forgetmenot label {
+	font-size: 14px;
+	font-weight: 400;
+	color: #364151;
+}
+
+.login input[type="checkbox"] {
+	border: 1px solid #74839c;
+	border-radius: 3px;
+	width: 18px;
+	height: 18px;
+}
+
+.login input[type="checkbox"]:checked {
+	background: #1e448f;
+	border-color: #1e448f;
+}
+
+.login input[type="checkbox"]:checked::before {
+	filter: brightness(0) invert(1); /* coche blanche sur fond bleu */
+}
+
+.login input[type="checkbox"]:focus {
+	border-color: #1e448f;
+	box-shadow: 0 0 0 1px #1e448f;
+	outline: 2px solid transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/* Boutons                                                             */
+/* ------------------------------------------------------------------ */
+
+/* Boutons secondaires : afficher/masquer le mot de passe, generer un
+   mot de passe, valider la langue. */
+.login .button,
+.login .button-secondary {
+	background: #ffffff;
+	border: 1px solid #1e448f;
+	border-radius: 4px;
+	color: #1e448f;
+	box-shadow: none;
+	text-shadow: none;
+}
+
+.login .button:hover,
+.login .button-secondary:hover {
+	background: #e7f6ff;
+	border-color: #16346e;
+	color: #16346e;
+}
+
+/* Bouton principal (Se connecter, Generer un mot de passe, etc.) :
+   bleu #1e448f, texte blanc = 9,2:1 (le plus lisible des deux tokens,
+   l'orange ne tenant pas le AA avec du texte blanc). */
+.login .button-primary {
+	background: #1e448f;
+	border: 1px solid #1e448f;
+	border-radius: 4px;
+	color: #ffffff;
+	box-shadow: none;
+	text-shadow: none;
+	float: none;
+	width: 100%;
+	min-height: 44px;
+	padding: 8px 16px;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.4;
+	transition: background-color 0.15s ease-in-out;
+}
+
+.login .button-primary:hover,
+.login .button-primary:active {
+	background: #16346e;
+	border-color: #16346e;
+	color: #ffffff;
+}
+
+.login .button:focus,
+.login .button-secondary:focus,
+.login .button-primary:focus {
+	outline: 2px solid #0f172a;
+	outline-offset: 2px;
+	box-shadow: none;
+	border-color: #1e448f;
+}
+
+.login p.submit {
+	margin: 4px 0 0;
+	padding: 0;
+	clear: both;
+}
+
+/* Bouton afficher/masquer : icone dashicon aux couleurs du site.
+   Le coeur le positionne en absolu dans .wp-pwd ; seule la couleur et
+   la zone de focus sont reprises ici. */
+.login .button.wp-hide-pw {
+	background: transparent;
+	border: 1px solid transparent;
+	color: #1e448f;
+	min-height: 40px;
+}
+
+.login .button.wp-hide-pw:hover {
+	background: transparent;
+	color: #16346e;
+}
+
+.login .button.wp-hide-pw:focus {
+	background: transparent;
+	outline: 2px solid #0f172a;
+	outline-offset: -2px;
+	box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Messages : erreurs et confirmations                                 */
+/* ------------------------------------------------------------------ */
+
+#login_error,
+.login .message,
+.login .success {
+	border-left: 4px solid #1e448f;
+	border-radius: 4px;
+	box-shadow: none;
+	background: #e7f6ff;
+	color: #364151;
+	margin: 16px 0 8px;
+	padding: 12px 14px;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+#login_error {
+	border-left-color: #b32d2e;
+	background: #fcf0f1;
+}
+
+.login .success {
+	border-left-color: #007017;
+	background: #edfaef;
+}
+
+#login_error a,
+.login .message a,
+.login .success a {
+	color: #1e448f;
+}
+
+/* ------------------------------------------------------------------ */
+/* Liens : mot de passe oublie, retour au site, confidentialite        */
+/* ------------------------------------------------------------------ */
+
+.login #nav,
+.login #backtoblog {
+	padding: 0;
+	text-align: center;
+	font-size: 14px;
+}
+
+.login #nav {
+	margin: 20px 0 0;
+}
+
+.login #backtoblog {
+	margin: 12px 0 0;
+}
+
+.login .privacy-policy-page-link {
+	margin: 16px 0 0;
+	text-align: center;
+	font-size: 13px;
+}
+
+.login #nav a,
+.login #backtoblog a,
+.login .privacy-policy-page-link a {
+	color: #1e448f;
+	text-decoration: underline;
+}
+
+.login #nav a:hover,
+.login #backtoblog a:hover,
+.login .privacy-policy-page-link a:hover,
+#login_error a:hover,
+.login .message a:hover,
+.login .success a:hover {
+	color: #0f172a;
+}
+
+.login #nav a:focus,
+.login #backtoblog a:focus,
+.login .privacy-policy-page-link a:focus,
+#login_error a:focus,
+.login .message a:focus,
+.login .success a:focus {
+	outline: 2px solid #1e448f;
+	outline-offset: 2px;
+	border-radius: 2px;
+	box-shadow: none;
+	color: #0f172a;
+}
+
+/* ------------------------------------------------------------------ */
+/* Nouveau mot de passe : indicateur de force et avertissements        */
+/* ------------------------------------------------------------------ */
+
+/* Les couleurs semantiques du coeur (rouge/orange/vert) sont conservees :
+   elles portent une information d'etat ; seule la forme est harmonisee. */
+#pass-strength-result {
+	border-radius: 4px;
+	font-size: 13px;
+	font-weight: 600;
+	margin: -8px 0 16px;
+	padding: 6px 8px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.login .pw-weak {
+	margin: 0 0 16px;
+}
+
+.login .pw-weak label {
+	font-weight: 400;
+	color: #364151;
+}
+
+/* Indicateur de saisie (verr. maj.) du coeur : couleur du texte du site. */
+.login .wp-pwd .text {
+	color: #364151;
+}
+
+/* ------------------------------------------------------------------ */
+/* Selecteur de langue (sous la carte)                                 */
+/* ------------------------------------------------------------------ */
+
+.login .language-switcher {
+	margin: 0 auto 24px;
+	padding: 0;
+}
+
+.login .language-switcher label {
+	color: #364151;
+	font-weight: 400;
+}
+
+.login .language-switcher select {
+	background-color: #ffffff;
+	border: 1px solid #74839c;
+	border-radius: 4px;
+	color: #364151;
+	font-size: 14px;
+	min-height: 36px;
+}
+
+.login .language-switcher select:focus {
+	border-color: #1e448f;
+	box-shadow: 0 0 0 1px #1e448f;
+	outline: 2px solid transparent;
+	color: #364151;
+}
+
+/* ------------------------------------------------------------------ */
+/* Reconnexion en fenetre integree (interim login, iframe de l'admin)  */
+/* ------------------------------------------------------------------ */
+
+.interim-login #login {
+	margin: 8px auto;
+	box-shadow: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mobile                                                              */
+/* ------------------------------------------------------------------ */
+
+@media screen and (max-width: 480px) {
+	#login {
+		margin-top: 24px;
+		padding: 24px 18px 20px;
+	}
+
+	.login h1 a {
+		max-width: 240px;
+		height: 80px;
+	}
+}

@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.14.0' );
+define( 'DITL_THEME_VERSION', '0.15.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -41,6 +41,11 @@ require_once get_stylesheet_directory() . '/inc/perf.php';
  * uniquement (upload, regeneration, suppression).
  */
 require_once get_stylesheet_directory() . '/inc/webp.php';
+
+/*
+ * Habillage de l'ecran de connexion (wp-login) aux couleurs du site.
+ */
+require_once get_stylesheet_directory() . '/inc/connexion.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
