@@ -26,12 +26,13 @@ if ($wfCoreActive && !(isset($wfCoreLoading) && $wfCoreLoading)) {
 else {
 	define('WORDFENCE_LS_FROM_CORE', ($wfCoreActive && isset($wfCoreLoading) && $wfCoreLoading));
 	
-	define('WORDFENCE_LS_VERSION', '1.1.15');
-	define('WORDFENCE_LS_BUILD_NUMBER', '1766263234');
+	define('WORDFENCE_LS_VERSION', '2.0.0');
+	define('WORDFENCE_LS_BUILD_NUMBER', '1786376654');
 
 	define('WORDFENCE_LS_PLUGIN_BASENAME', plugin_basename(__FILE__));
 	
 	if (!defined('WORDFENCE_LS_EMAIL_VALIDITY_DURATION_MINUTES')) { define('WORDFENCE_LS_EMAIL_VALIDITY_DURATION_MINUTES', 15); }
+	if (!defined('WORDFENCE_LS_MAX_PASSKEYS_PER_USER')) { define('WORDFENCE_LS_MAX_PASSKEYS_PER_USER', 20); }
 	
 	if (!WORDFENCE_LS_FROM_CORE) {
 		global $wp_plugin_paths;

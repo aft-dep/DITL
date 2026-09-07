@@ -158,7 +158,7 @@ class wfCredentialsController {
 		}
 		
 		$ipHex = wfDB::binaryValueToSQLHex(wfUtils::inet_pton($ip));
-		$result = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$table_wfLogins} WHERE action = 'loginOK' AND userID = %d AND IP = {$ipHex} LIMIT 0,1", $id), ARRAY_A);
+		$result = $wpdb->get_row($wpdb->prepare("SELECT id FROM {$table_wfLogins} WHERE action IN ('loginOK', 'loginPasskeyOK') AND userID = %d AND IP = {$ipHex} LIMIT 0,1", $id), ARRAY_A);
 		if (is_array($result)) {
 			return true;
 		}
@@ -312,8 +312,8 @@ class wfCredentialsController {
 				array('status' => 400));
 		}
 		else if (!empty($user)) {
-			wfAdminNoticeQueue::removeAdminNotice(false, '2faBreachPassword', array($user->ID));
-			wfAdminNoticeQueue::removeAdminNotice(false, 'previousIPBreachPassword', array($user->ID));
+			wfAdminNoticeQueue::removeAdminNoticeForCategory('2faBreachPassword', $user->ID);
+			wfAdminNoticeQueue::removeAdminNoticeForCategory('previousIPBreachPassword', $user->ID);
 			wfCredentialsController::clearCachedCredentialStatus($user);
 		}
 		

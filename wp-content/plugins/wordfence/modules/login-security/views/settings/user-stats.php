@@ -16,14 +16,16 @@ if (!defined('WORDFENCE_LS_VERSION')) { exit; }
 		</div>
 	</div>
 	<?php if (is_array($counts)) : ?>
-	<div class="wfls-block-content wfls-padding-no-left wfls-padding-no-right">
-		<table class="wfls-table wfls-table-striped wfls-table-header-separators wfls-table-expanded wfls-no-bottom">
+	<div class="wfls-block-content wfls-padding-no-left wfls-padding-no-right wfls-overflow-x-auto-xs">
+		<table class="wfls-table wfls-table-striped wfls-table-header-separators wfls-table-expanded wfls-table-condensed-xs wfls-no-bottom">
 			<thead>
 			<tr>
 				<th><?php esc_html_e('Role', 'wordfence'); ?></th>
 				<th class="wfls-center"><?php esc_html_e('Total Users', 'wordfence'); ?></th>
 				<th class="wfls-center"><?php esc_html_e('2FA Active', 'wordfence'); ?></th>
 				<th class="wfls-center"><?php esc_html_e('2FA Inactive', 'wordfence'); ?></th>
+				<th class="wfls-center"><?php esc_html_e('Passkey Active', 'wordfence'); ?></th>
+				<th class="wfls-center"><?php esc_html_e('Passkey Inactive', 'wordfence'); ?></th>
 			</tr>
 			</thead>
 			<tbody>
@@ -35,6 +37,8 @@ if (!defined('WORDFENCE_LS_VERSION')) { exit; }
 			foreach ($counts['avail_roles'] as $roleTag => $count):
 				$activeCount = (isset($counts['active_avail_roles'][$roleTag]) ? $counts['active_avail_roles'][$roleTag] : 0);
 				$inactiveCount = $count - $activeCount;
+				$passkeyActiveCount = (isset($counts['passkey_active_avail_roles'][$roleTag]) ? $counts['passkey_active_avail_roles'][$roleTag] : 0);
+				$passkeyInactiveCount = $count - $passkeyActiveCount;
 				if ($activeCount === 0 && $inactiveCount === 0)
 					continue;
 				$roleName = $roleNames[$roleTag];
@@ -51,6 +55,8 @@ if (!defined('WORDFENCE_LS_VERSION')) { exit; }
 						<?php echo number_format($inactiveCount); ?>
 						<?php if ($inactive): ?> (<?php esc_html_e('View users', 'wordfence') ?>)</a><?php endif ?>
 					</td>
+					<td class="wfls-center"><?php echo number_format($passkeyActiveCount); ?></td>
+					<td class="wfls-center"><?php echo number_format($passkeyInactiveCount); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
@@ -60,10 +66,12 @@ if (!defined('WORDFENCE_LS_VERSION')) { exit; }
 				<th class="wfls-center"><?php echo number_format($counts['total_users']); ?></th>
 				<th class="wfls-center"><?php echo number_format($counts['active_total_users']); ?></th>
 				<th class="wfls-center"><?php echo number_format($counts['total_users'] - $counts['active_total_users']); ?></th>
+				<th class="wfls-center"><?php echo number_format($counts['passkey_active_total_users']); ?></th>
+				<th class="wfls-center"><?php echo number_format($counts['total_users'] - $counts['passkey_active_total_users']); ?></th>
 			</tr>
 			<?php if (is_multisite()): ?>
 			<tr>
-				<td colspan="4" class="wfls-text-small"><?php esc_html_e('* User counts currently only reflect the main site on multisite installations.', 'wordfence'); ?></td>
+				<td colspan="6" class="wfls-text-small"><?php esc_html_e('* User counts currently only reflect the main site on multisite installations.', 'wordfence'); ?></td>
 			</tr>
 			<?php endif; ?>
 			</tfoot>

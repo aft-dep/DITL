@@ -4,10 +4,26 @@ if (!defined('WORDFENCE_LS_VERSION')) { exit; }
 /**
  * @var \WP_User $user The user being edited. Required.
  * @var bool $canEditUsers Whether or not the viewer of the page can edit other users. Optional, defaults to false.
+ * @var bool $twoFactorEnabledForUser Whether 2FA is enabled for this user's role. Optional, defaults to true.
+ * @var bool $targetUserPermissionDenied Whether the viewer is not allowed to view or edit the target user's 2FA. Optional, defaults to false.
+ * @var string $settingsURL The login security settings URL. Optional.
+ * @var bool $showSettingsButton Whether to show the settings button when 2FA is disabled for this user's role. Optional, defaults to true.
  */
 
 if (!isset($canEditUsers)) {
 	$canEditUsers = false;
+}
+if (!isset($twoFactorEnabledForUser)) {
+	$twoFactorEnabledForUser = true;
+}
+if (!isset($targetUserPermissionDenied)) {
+	$targetUserPermissionDenied = false;
+}
+if (!isset($settingsURL)) {
+	$settingsURL = is_multisite() ? network_admin_url('admin.php?page=WFLS#top#settings') : admin_url('admin.php?page=WFLS#top#settings');
+}
+if (!isset($showSettingsButton)) {
+	$showSettingsButton = true;
 }
 
 $ownAccount = false;
@@ -16,25 +32,47 @@ if ($ownUser->ID == $user->ID) {
 	$ownAccount = true;
 }
 
-$enabled = \WordfenceLS\Controller_Users::shared()->has_2fa_active($user);
-$requires2fa = \WordfenceLS\Controller_Users::shared()->requires_2fa($user, $inGracePeriod, $requiredAt);
-$lockedOut = $requires2fa && !$enabled;
-
 ?>
-<p><?php echo wp_kses(sprintf(__('Two-Factor Authentication, or 2FA, significantly improves login security for your website. Wordfence 2FA works with a number of TOTP-based apps like Google Authenticator, FreeOTP, and Authy. For a full list of tested TOTP-based apps, <a href="%s" target="_blank" rel="noopener noreferrer">click here</a>.', 'wordfence'), \WordfenceLS\Controller_Support::esc_supportURL(\WordfenceLS\Controller_Support::ITEM_MODULE_LOGIN_SECURITY_2FA)), array('a'=>array('href'=>array(), 'target'=>array(), 'rel'=>array()))); ?></p>
+<p><?php echo wp_kses(sprintf(/* translators: Support URL */ __('Two-Factor Authentication, or 2FA, significantly improves login security for your website. Wordfence 2FA works with a number of TOTP-based apps like Google Authenticator, FreeOTP, and Authy. For a full list of tested TOTP-based apps, <a href="%s" target="_blank" rel="noopener noreferrer">click here</a>.', 'wordfence'), \WordfenceLS\Controller_Support::esc_supportURL(\WordfenceLS\Controller_Support::ITEM_MODULE_LOGIN_SECURITY_2FA)), array('a'=>array('href'=>array(), 'target'=>array(), 'rel'=>array()))); ?></p>
 <?php if ($canEditUsers): ?>
 <div id="wfls-editing-display" class="wfls-flex-row wfls-flex-row-xs-wrappable wfls-flex-row-equal-heights">
 	<div class="wfls-block wfls-always-active wfls-flex-item-full-width wfls-add-bottom">
 		<div class="wfls-block-header wfls-block-header-border-bottom">
 			<div class="wfls-block-header-content">
 				<div class="wfls-block-title">
-					<strong><?php echo wp_kses(sprintf(__('Editing User:&nbsp;&nbsp;%s <span class="wfls-text-plain">%s</span>', 'wordfence'), get_avatar($user->ID, 16, '', $user->user_login), \WordfenceLS\Text\Model_HTML::esc_html($user->user_login) . ($ownAccount ? ' ' . __('(you)', 'wordfence') : '')), array('span'=>array('class'=>array()))); ?></strong>
+					<strong><?php echo wp_kses(sprintf(/* translators: 1. WordPress avatar tag; 2. WordPress username */ __('Editing User:&nbsp;&nbsp;%1$s <span class="wfls-text-plain">%2$s</span>', 'wordfence'), get_avatar($user->ID, 16, '', $user->user_login), \WordfenceLS\Text\Model_HTML::esc_html($user->user_login) . ($ownAccount ? ' ' . __('(you)', 'wordfence') : '')), array('span'=>array('class'=>array()))); ?></strong>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
 <?php endif; ?>
+<?php if ($targetUserPermissionDenied): ?>
+	<?php
+	echo \WordfenceLS\Model_View::create('page/feature-disabled', array(
+		'title' => __('Permission Denied', 'wordfence'),
+		'message' => __('You are not allowed to view or edit that user.', 'wordfence'),
+		'showSettingsButton' => false,
+	))->render();
+	return;
+	?>
+<?php endif; ?>
+<?php if (!$twoFactorEnabledForUser): ?>
+	<?php
+	echo \WordfenceLS\Model_View::create('page/feature-disabled', array(
+		'title' => $ownAccount ? __('Two-Factor Authentication is disabled', 'wordfence') : __('2FA is disabled for this user.', 'wordfence'),
+		'message' => $ownAccount ? __('Your role does not have permission to activate two-factor authentication.', 'wordfence') : ($showSettingsButton ? __('Enable two-factor authentication on the settings page for this user\'s role to manage 2FA for the user.', 'wordfence') : __('Two-factor authentication is not enabled for this user\'s role.', 'wordfence')),
+		'settingsURL' => $settingsURL,
+		'showSettingsButton' => $showSettingsButton,
+	))->render();
+	return;
+	?>
+<?php endif; ?>
+<?php
+$enabled = \WordfenceLS\Controller_Users::shared()->has_2fa_active($user);
+$requires2fa = \WordfenceLS\Controller_Users::shared()->requires_2fa($user, $inGracePeriod, $requiredAt);
+$lockedOut = $requires2fa && !$enabled;
+?>
 <div id="wfls-deactivation-controls" class="wfls-flex-row wfls-flex-row-wrappable wfls-flex-row-equal-heights"<?php if (!$enabled) { echo ' style="display: none;"'; } ?>>
 	<!-- begin status content -->
 	<div class="wfls-flex-row wfls-flex-row-equal-heights wfls-flex-item-xs-100">

@@ -194,7 +194,7 @@ foreach ($plugins as $plugin => $pluginData) {
 
 	$name = strip_tags(sprintf('%s (%s)', $pluginData['Name'], $slug));
 	if (!empty($pluginData['Version'])) {
-		$name .= ' - ' . strip_tags(sprintf(__('Version %s', 'wordfence'), $pluginData['Version']));
+		$name .= ' - ' . strip_tags(sprintf(/* translators: version number */ __('Version %s', 'wordfence'), $pluginData['Version']));
 	}
 
 	if (array_key_exists(trailingslashit(WP_PLUGIN_DIR) . $plugin, $activeNetworkPlugins)) {
@@ -233,7 +233,7 @@ if (!empty($muPlugins)) {
 
 		$name = strip_tags(sprintf('%s (%s)', $pluginData['Name'], $slug));
 		if (!empty($pluginData['Version'])) {
-			$name .= ' - ' . strip_tags(sprintf(__('Version %s', 'wordfence'), $pluginData['Version']));
+			$name .= ' - ' . strip_tags(sprintf(/* translators: version number */ __('Version %s', 'wordfence'), $pluginData['Version']));
 		}
 
 		$table[] = array(
@@ -307,7 +307,7 @@ if (!empty($themes)) {
 
 		$name = strip_tags(sprintf('%s (%s)', $themeData['Name'], $slug));
 		if (!empty($themeData['Version'])) {
-			$name .= ' - ' . strip_tags(sprintf(__('Version %s', 'wordfence'), $themeData['Version']));
+			$name .= ' - ' . strip_tags(sprintf(/* translators: version number */ __('Version %s', 'wordfence'), $themeData['Version']));
 		}
 
 		if ($currentTheme instanceof WP_Theme && $theme === $currentTheme->get_stylesheet()) {
@@ -351,6 +351,45 @@ foreach ($cron as $timestamp => $values) {
 				);
 			}
 		}
+	}
+}
+
+echo wfHelperString::plainTextTable($table) . "\n\n";
+
+?>
+
+## <?php esc_html_e('WordPress Hooks', 'wordfence') ?>: <?php esc_html_e('Registered listeners for certain WordPress actions and filters.', 'wordfence') ?> ##
+
+<?php
+
+$table = array(
+	array(
+		__('Hook', 'wordfence'),
+		__('Priority', 'wordfence'),
+		__('Class', 'wordfence'),
+		__('Function', 'wordfence'),
+	),
+);
+
+foreach (wfDiagnostic::getWordPressDiagnosticHooks() as $hookName) {
+	$listeners = wfDiagnostic::getWordPressHookListeners($hookName);
+	if (empty($listeners)) {
+		$table[] = array(
+			strip_tags($hookName),
+			__('No listeners registered', 'wordfence'),
+			'',
+			'',
+		);
+		continue;
+	}
+
+	foreach ($listeners as $listener) {
+		$table[] = array(
+			strip_tags($listener['hook']),
+			strip_tags((string) $listener['priority']),
+			$listener['class'] !== '' ? strip_tags($listener['class']) : '-',
+			$listener['function'] !== '' ? strip_tags($listener['function']) : '-',
+		);
 	}
 }
 
@@ -537,7 +576,7 @@ if (isset($issues['new']) && count($issues['new'])) {
 
 		$viewContent = '';
 		try {
-			$viewContent = wfView::create('scanner/issue-' . $i['type'], array('textOutput' => $i))->render();
+			$viewContent = wfView::create('scanner/text/issue-' . $i['type'], array('textOutput' => $i))->render();
 		}
 		catch (wfViewNotFoundException $e) {
 			//Ignore -- should never happen since we validate the type
