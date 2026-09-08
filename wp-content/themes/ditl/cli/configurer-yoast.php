@@ -26,7 +26,21 @@
  *   Open Graph / Twitter actifs, redirection des pages de fichiers joints
  *   active - identique au comportement actuel du coeur avec
  *   wp_attachment_pages_enabled a 0, qui redirige deja en 301 vers le
- *   fichier).
+ *   fichier) ;
+ * - crawl cleanup (lot configuration des extensions, 08/09/2026) : retrait
+ *   du <head> des balises sans consommateur (shortlink, lien REST API,
+ *   RSD / wlwmanifest, oEmbed, generator) et des en-tetes HTTP X-Powered-By
+ *   et X-Pingback ; flux secondaires desactives (commentaires globaux et
+ *   par article, auteurs, recherche) - le flux RSS principal
+ *   (remove_feed_global) RESTE actif ; nettoyage des URLs de recherche
+ *   (search_cleanup, emojis et motifs suspects) ; robots.txt : Disallow des
+ *   URLs de recherche (/?s=, /search/) et de /wp-json/ (deny_search_crawling,
+ *   deny_wp_json_crawling) - seul changement de robots.txt, aucune URL de
+ *   contenu concernee. remove_emoji_scripts : doublon inoffensif de
+ *   inc/perf.php (ditl_desactiver_emojis), pose pour que le retrait tienne
+ *   meme si le theme change. Fonctions editoriales sans usage coupees
+ *   (Slack sharing, suggestions de liens, insights, liste de taches,
+ *   contenu cornerstone) ; enable_index_now inchange.
  *
  * AUCUNE meta description n'est saisie (travail editorial ulterieur).
  *
@@ -121,6 +135,33 @@ $ditl_options_cibles = array(
 	'first_time_install'    => false,
 	'dismiss_configuration_workout_notice' => true,
 	'should_redirect_after_install_free'   => false,
+	// Crawl cleanup : balises du <head> et en-tetes HTTP sans consommateur.
+	'remove_shortlinks'            => true,
+	'remove_rest_api_links'        => true,
+	'remove_rsd_wlw_links'         => true,
+	'remove_oembed_links'          => true,
+	'remove_generator'             => true,
+	// Doublon inoffensif de inc/perf.php (ditl_desactiver_emojis).
+	'remove_emoji_scripts'         => true,
+	'remove_powered_by_header'     => true,
+	'remove_pingback_header'       => true,
+	// Flux secondaires : le flux principal (remove_feed_global) reste actif.
+	'remove_feed_global_comments'  => true,
+	'remove_feed_post_comments'    => true,
+	'remove_feed_authors'          => true,
+	'remove_feed_search'           => true,
+	// URLs de recherche : nettoyage et exclusion des robots.
+	'search_cleanup'               => true,
+	'search_cleanup_emoji'         => true,
+	'search_cleanup_patterns'      => true,
+	'deny_search_crawling'         => true,
+	'deny_wp_json_crawling'        => true,
+	// Fonctions editoriales sans usage sur ce site (allegent l'admin).
+	'enable_enhanced_slack_sharing' => false,
+	'enable_link_suggestions'       => false,
+	'enable_metabox_insights'       => false,
+	'enable_task_list'              => false,
+	'enable_cornerstone_content'    => false,
 );
 
 // Valeurs par defaut de Yoast deja correctes : verifiees (jamais ecrites),
@@ -136,6 +177,8 @@ $ditl_options_attendues = array(
 	// Redirection 301 des URLs de fichiers joints vers le fichier :
 	// comportement identique a l'existant (wp_attachment_pages_enabled = 0).
 	'disable-attachment'  => true,
+	// Flux RSS principal conserve (crawl cleanup ne le retire pas).
+	'remove_feed_global'  => false,
 );
 
 WP_CLI::log( '--- Options Yoast : valeurs cibles ---' );

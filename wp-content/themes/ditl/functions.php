@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.17.0' );
+define( 'DITL_THEME_VERSION', '0.18.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -52,6 +52,11 @@ require_once get_stylesheet_directory() . '/inc/connexion.php';
  * document), sans effet visuel.
  */
 require_once get_stylesheet_directory() . '/inc/a11y.php';
+
+/*
+ * Reglages d'extensions tierces sans option equivalente (hooks, constantes).
+ */
+require_once get_stylesheet_directory() . '/inc/extensions.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
