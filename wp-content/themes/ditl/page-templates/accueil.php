@@ -3,7 +3,7 @@
  * Template Name: Gabarit Accueil
  *
  * Gabarit sur mesure remplacant le rendu Elementor des pages d'accueil.
- * Banniere commune etendue (sous-titre H2 et bouton passes en arguments a
+ * Banniere commune etendue (sous-titre et bouton passes en arguments a
  * template-parts/gabarit-hero.php), bloc de presentation en deux colonnes,
  * bloc des livrables (vignettes), liste dynamique des 6 derniers articles
  * de la langue courante (rendu identique au widget UPK buzz-list d'origine)
@@ -116,6 +116,13 @@ get_header(); ?>
 					'resume' => $ditl_fr ? 'Reprendre le défilement automatique' : 'Resume automatic sliding',
 				);
 
+				// Passages anglais laisses en dur (sous-titre de la banniere =
+				// slogan du projet, "by" des cartes, comme sur le site
+				// d'origine) : signales par lang="en" sur les pages qui ne
+				// sont pas en anglais (RGAA 8.7), rien d'emis sinon.
+				$ditl_lang_en      = ditl_page_est_anglaise() ? '' : 'en';
+				$ditl_lang_en_attr = '' !== $ditl_lang_en ? ' lang="en"' : '';
+
 				// Les 6 derniers articles publies (requete partagee avec le
 				// gabarit Actualites, voir functions.php).
 				$ditl_actus = ditl_query_dernieres_actus();
@@ -145,9 +152,10 @@ get_header(); ?>
 							'template-parts/gabarit-hero',
 							null,
 							array(
-								'sous_titre'   => isset( $ditl_hero['sous_titre'] ) ? (string) $ditl_hero['sous_titre'] : '',
-								'bouton_texte' => isset( $ditl_hero['bouton_texte'] ) ? (string) $ditl_hero['bouton_texte'] : '',
-								'bouton_url'   => isset( $ditl_hero['bouton_url'] ) ? (string) $ditl_hero['bouton_url'] : '',
+								'sous_titre'      => isset( $ditl_hero['sous_titre'] ) ? (string) $ditl_hero['sous_titre'] : '',
+								'sous_titre_lang' => $ditl_lang_en,
+								'bouton_texte'    => isset( $ditl_hero['bouton_texte'] ) ? (string) $ditl_hero['bouton_texte'] : '',
+								'bouton_url'      => isset( $ditl_hero['bouton_url'] ) ? (string) $ditl_hero['bouton_url'] : '',
 							)
 						);
 						?>
@@ -244,12 +252,14 @@ get_header(); ?>
 										<div class="ditl-actu-item__img-wrap">
 											<?php
 											if ( has_post_thumbnail() ) {
-												// Comme l'original : taille "medium", alt = titre de l'article.
+												// Comme l'original : taille "medium". Vignette decorative
+												// (alt vide) : le titre juste a cote porte l'information,
+												// un alt identique serait lu deux fois (RGAA 1.2).
 												the_post_thumbnail(
 													'medium',
 													array(
 														'class' => 'ditl-actu-item__img',
-														'alt'   => the_title_attribute( array( 'echo' => false ) ),
+														'alt'   => '',
 													)
 												);
 											}
@@ -257,24 +267,30 @@ get_header(); ?>
 										</div>
 										<div class="ditl-actu-item__contenu">
 											<div class="ditl-actu-item__num" aria-hidden="true"></div>
+											<?php
+											// Ordre du DOM : titre, puis categorie, puis auteur / date
+											// (RGAA 10.3 : ordre de lecture coherent). L'ordre visuel
+											// d'origine (categorie au-dessus du titre) est restitue par
+											// la propriete CSS order, voir gabarit-accueil.css.
+											?>
 											<div class="ditl-actu-item__inner">
+												<h3 class="ditl-actu-item__titre">
+													<a class="ditl-souligne-anime" href="<?php echo esc_url( get_permalink() ); ?>"><?php echo esc_html( get_the_title() ); ?></a>
+												</h3>
 												<?php if ( ! empty( $ditl_categories ) ) { ?>
 												<div class="ditl-actu-item__categorie">
 													<a href="<?php echo esc_url( get_category_link( $ditl_categories[0] ) ); ?>"><?php echo esc_html( $ditl_categories[0]->name ); ?></a>
 												</div>
 												<?php } ?>
-												<h3 class="ditl-actu-item__titre">
-													<a class="ditl-souligne-anime" href="<?php echo esc_url( get_permalink() ); ?>"><?php echo esc_html( get_the_title() ); ?></a>
-												</h3>
-												<div class="ditl-actu-item__meta">
-													<div class="ditl-actu-item__auteur">
-														<span class="ditl-actu-item__par">by</span>
+												<p class="ditl-actu-item__meta">
+													<span class="ditl-actu-item__auteur">
+														<span class="ditl-actu-item__par"<?php echo $ditl_lang_en_attr; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- chaine fixe du gabarit. ?>>by</span>
 														<a href="<?php echo esc_url( get_author_posts_url( $ditl_author_id ) ); ?>"><?php echo esc_html( get_the_author() ); ?></a>
-													</div>
-													<div class="ditl-actu-item__date-wrap" data-separator="//">
-														<div class="ditl-actu-item__date"><?php echo esc_html( get_the_date( 'F j, Y' ) ); ?></div>
-													</div>
-												</div>
+													</span>
+													<span class="ditl-actu-item__date-wrap" data-separator="//">
+														<span class="ditl-actu-item__date"><?php echo esc_html( get_the_date( 'F j, Y' ) ); ?></span>
+													</span>
+												</p>
 											</div>
 										</div>
 									</article>
@@ -330,7 +346,8 @@ get_header(); ?>
 													role="group"
 													aria-label="<?php echo esc_attr( sprintf( $ditl_labels['slide'], $ditl_position, count( $ditl_part_logo_ids ) ) ); ?>"
 												>
-													<?php echo wp_get_attachment_image( $ditl_logo_id, 'large', false, array( 'class' => 'ditl-accueil-part__logo' ) ); ?>
+													<?php // Logo porteur d'information : alt de la mediatheque, sinon titre du media (RGAA 1.1). ?>
+													<?php echo wp_get_attachment_image( $ditl_logo_id, 'large', false, array_merge( array( 'class' => 'ditl-accueil-part__logo' ), ditl_attributs_alt_repli( $ditl_logo_id ) ) ); ?>
 												</li>
 													<?php
 												}
@@ -357,7 +374,8 @@ get_header(); ?>
 								<ul class="ditl-accueil-part__grille">
 									<?php foreach ( $ditl_part_logo_ids as $ditl_logo_id ) { ?>
 									<li class="ditl-accueil-part__logo-item">
-										<?php echo wp_get_attachment_image( $ditl_logo_id, 'large', false, array( 'class' => 'ditl-accueil-part__logo' ) ); ?>
+										<?php // Logo porteur d'information : alt de la mediatheque, sinon titre du media (RGAA 1.1). ?>
+										<?php echo wp_get_attachment_image( $ditl_logo_id, 'large', false, array_merge( array( 'class' => 'ditl-accueil-part__logo' ), ditl_attributs_alt_repli( $ditl_logo_id ) ) ); ?>
 									</li>
 									<?php } ?>
 								</ul>

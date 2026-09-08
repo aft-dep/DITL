@@ -116,6 +116,80 @@ function ditl_contact_filtrer_description( $description ) {
 }
 
 /**
+ * Normalise les liens tel: d'une description filtree (rendu uniquement).
+ *
+ * RFC 3966 : le numero d'un lien tel: ne doit pas contenir d'espaces (les
+ * espaces saisis pour la lisibilite du texte visible ne sont pas des
+ * separateurs valides et font echouer la composition sur certains
+ * terminaux). Le "(0)" du prefixe national ecrit apres un indicatif
+ * international (+33(0)6...) est retire lui aussi : compose tel quel, il
+ * donne un numero faux. Le texte visible du lien n'est pas touche ; le
+ * contenu stocke en base non plus (traitement au rendu, comme le filtre
+ * kses ci-dessus).
+ *
+ * @param string $html Description deja filtree par ditl_contact_filtrer_description().
+ * @return string Description aux href="tel:" normalises.
+ */
+function ditl_contact_normaliser_tel( $html ) {
+	return (string) preg_replace_callback(
+		'/href=(["\'])tel:([^"\']*)\1/i',
+		static function ( $m ) {
+			$numero = preg_replace( '/\s+/u', '', $m[2] );
+			$numero = null === $numero ? $m[2] : $numero;
+
+			if ( preg_match( '/^(\+[0-9]+)\(0\)(.*)$/s', $numero, $parties ) ) {
+				$numero = $parties[1] . $parties[2];
+			}
+
+			return 'href=' . $m[1] . 'tel:' . $numero . $m[1];
+		},
+		(string) $html
+	);
+}
+
+/**
+ * Lignes d'une description a rendre sous forme de liste.
+ *
+ * RGAA 9.3 : une suite de contacts (un lien par ligne, separees par <br>)
+ * est une liste. La description est decoupee sur ses <br> ; elle n'est
+ * rendue en liste que si au moins deux lignes non vides en resultent et que
+ * chacune contient un lien : une adresse postale sur plusieurs lignes ou un
+ * texte simple restent un paragraphe.
+ *
+ * @param string $html Description filtree (et tel: normalises).
+ * @return array Lignes HTML a rendre en <li>, ou tableau vide si la
+ *               description doit rester un paragraphe.
+ */
+function ditl_contact_lignes_liste( $html ) {
+	$lignes  = preg_split( '/<br\s*\/?>/i', (string) $html );
+	$propres = array();
+
+	foreach ( (array) $lignes as $ligne ) {
+		$ligne = trim( (string) $ligne );
+
+		if ( '' === trim( wp_strip_all_tags( $ligne ) ) ) {
+			continue;
+		}
+
+		// Une balise inline ouverte a cheval sur deux lignes est refermee
+		// dans chaque <li> (la liste blanche kses autorise a, strong, em).
+		$propres[] = force_balance_tags( $ligne );
+	}
+
+	if ( count( $propres ) < 2 ) {
+		return array();
+	}
+
+	foreach ( $propres as $ligne ) {
+		if ( false === stripos( $ligne, '<a ' ) ) {
+			return array();
+		}
+	}
+
+	return $propres;
+}
+
+/**
  * Nettoie un bloc de coordonnees {icone_id, titre, description}.
  *
  * @param mixed $bloc Donnees brutes du bloc.

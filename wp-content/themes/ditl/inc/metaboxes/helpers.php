@@ -132,7 +132,7 @@ function ditl_sanitize_ids_json( $value ) {
 
 	foreach ( $ids as $id ) {
 		// Rejet des valeurs non scalaires (JSON inattendu) avant tout cast.
-		$id = is_scalar( $id ) ? absint( $id ) : 0;
+		$id = is_scalar( $id ) && is_numeric( $id ) && abs( (float) $id ) <= PHP_INT_MAX ? absint( $id ) : 0;
 
 		if ( $id > 0 ) {
 			$propres[] = $id;

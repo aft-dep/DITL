@@ -139,10 +139,35 @@ get_header(); ?>
 											<?php if ( '' !== $ditl_bloc_titre ) { ?>
 											<h3 class="ditl-contact-bloc__titre"><?php echo esc_html( $ditl_bloc_titre ); ?></h3>
 											<?php } ?>
-											<?php if ( '' !== trim( wp_strip_all_tags( $ditl_description ) ) ) { ?>
-											<?php // Pas de ditl_format_rich_text ici : le widget icon-box d'Elementor imprime la description brute (ni shortcodes ni wptexturize), l'appliquer changerait la typographie du rendu. ?>
-											<p class="ditl-contact-bloc__texte"><?php echo ditl_contact_filtrer_description( $ditl_description ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Filtre par liste blanche kses dediee. ?></p>
-											<?php } ?>
+											<?php
+											if ( '' !== trim( wp_strip_all_tags( $ditl_description ) ) ) {
+												// Pas de ditl_format_rich_text ici : le widget icon-box
+												// d'Elementor imprime la description brute (ni shortcodes
+												// ni wptexturize), l'appliquer changerait la typographie
+												// du rendu. Filtre par liste blanche kses dediee, puis
+												// liens tel: normalises (RFC 3966, texte visible inchange).
+												$ditl_description_html = ditl_contact_normaliser_tel( ditl_contact_filtrer_description( $ditl_description ) );
+
+												// Plusieurs contacts, un lien par ligne : liste (RGAA 9.3),
+												// sans puce et sans marge pour un rendu identique au
+												// paragraphe a <br> d'origine (voir gabarit-contact.css).
+												$ditl_lignes = ditl_contact_lignes_liste( $ditl_description_html );
+
+												if ( array() !== $ditl_lignes ) {
+													?>
+											<ul class="ditl-contact-bloc__texte">
+												<?php foreach ( $ditl_lignes as $ditl_ligne ) { ?>
+												<li><?php echo $ditl_ligne; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Filtre par liste blanche kses dediee. ?></li>
+												<?php } ?>
+											</ul>
+													<?php
+												} else {
+													?>
+											<p class="ditl-contact-bloc__texte"><?php echo $ditl_description_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Filtre par liste blanche kses dediee. ?></p>
+													<?php
+												}
+											}
+											?>
 										</div>
 									</div>
 										<?php

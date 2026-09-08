@@ -9,7 +9,13 @@
  * Arguments optionnels (get_template_part(..., null, $args), utilises par les
  * gabarits Accueil et Partenaires ; les autres gabarits n'en passent pas,
  * rien ne change) :
- * - sous_titre     : sous-titre H2 affiche sous le H1.
+ * - sous_titre     : sous-titre affiche sous le H1. Rendu en <p> (et non en
+ *                    titre) : c'est le slogan du projet, pas un niveau de la
+ *                    hierarchie des titres (RGAA 9.1), meme rendu visuel via
+ *                    .ditl-hero__sous-titre dans gabarit-accueil.css.
+ * - sous_titre_lang : code de langue du sous-titre quand il differe de celui
+ *                    de la page (ex. "en" sur la page francaise, RGAA 8.7) ;
+ *                    vide par defaut, aucun attribut lang n'est alors emis.
  * - bouton_texte   : libelle du bouton d'appel a l'action.
  * - bouton_url     : URL du bouton (relative en meta, prefixee par l'URL du
  *                    site au rendu, meme regle que les autres gabarits).
@@ -36,8 +42,9 @@ $ditl_hero_title = (string) get_post_meta( get_the_ID(), '_ditl_hero_title', tru
 $ditl_hero_args = wp_parse_args(
 	isset( $args ) && is_array( $args ) ? $args : array(),
 	array(
-		'sous_titre'     => '',
-		'bouton_texte'   => '',
+		'sous_titre'      => '',
+		'sous_titre_lang' => '',
+		'bouton_texte'    => '',
 		'bouton_url'     => '',
 		'afficher_titre' => true,
 	)
@@ -66,7 +73,7 @@ $ditl_hero_href = ditl_href_from_meta_url( $ditl_hero_args['bouton_url'] );
 		<h1 class="ditl-hero__title"><?php echo esc_html( $ditl_hero_title ); ?></h1>
 		<?php } ?>
 		<?php if ( '' !== (string) $ditl_hero_args['sous_titre'] ) { ?>
-		<h2 class="ditl-hero__sous-titre"><?php echo esc_html( $ditl_hero_args['sous_titre'] ); ?></h2>
+		<p class="ditl-hero__sous-titre"<?php echo '' !== (string) $ditl_hero_args['sous_titre_lang'] ? ' lang="' . esc_attr( $ditl_hero_args['sous_titre_lang'] ) . '"' : ''; ?>><?php echo esc_html( $ditl_hero_args['sous_titre'] ); ?></p>
 		<?php } ?>
 		<?php if ( '' !== (string) $ditl_hero_args['bouton_texte'] && '' !== $ditl_hero_href ) { ?>
 		<div class="ditl-hero__action">

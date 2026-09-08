@@ -136,12 +136,28 @@ h3.ditl-contact-bloc__titre {
  * voir ditl_url_police_locale() dans functions.php) : elles ne dependent ni
  * des feuilles qu'Elementor declarait avant sa desactivation, ni de Google.
  */
-p.ditl-contact-bloc__texte {
+p.ditl-contact-bloc__texte,
+ul.ditl-contact-bloc__texte {
 	margin: 0;
 	color: #eca500;
 	font-family: "Jost", Sans-serif;
 	font-size: 25px;
 	line-height: 1.4em;
+}
+
+/*
+ * Variante liste (plusieurs contacts, un lien par ligne, RGAA 9.3) : meme
+ * rendu que le paragraphe a <br> d'origine, sans puce ni retrait, chaque
+ * element occupant exactement une ligne d'interligne.
+ */
+ul.ditl-contact-bloc__texte {
+	padding: 0;
+	list-style: none;
+}
+
+ul.ditl-contact-bloc__texte li {
+	margin: 0;
+	padding: 0;
 }
 
 /* ---------------------------------------------------------------------------
@@ -194,7 +210,8 @@ p.ditl-contact-bloc__texte {
  * (reglage local, hors charte de la version francaise de reference) :
  * conserve tel quel (iso-design), a arbitrer avec le client.
  */
-.page-id-2595 p.ditl-contact-bloc__texte {
+.page-id-2595 p.ditl-contact-bloc__texte,
+.page-id-2595 ul.ditl-contact-bloc__texte {
 	color: #A981D5;
 }
 
@@ -225,7 +242,8 @@ p.ditl-contact-bloc__texte {
 		font-size: 15px;
 	}
 
-	p.ditl-contact-bloc__texte {
+	p.ditl-contact-bloc__texte,
+	ul.ditl-contact-bloc__texte {
 		font-size: 22px;
 	}
 

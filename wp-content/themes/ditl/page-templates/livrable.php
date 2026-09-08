@@ -104,7 +104,14 @@ get_header(); ?>
 								<?php if ( '' !== $ditl_alternative ) { ?>
 								<p class="screen-reader-text"><?php echo wp_kses( nl2br( esc_html( $ditl_alternative ) ), array( 'br' => array() ) ); ?></p>
 								<?php } ?>
-								<div class="ditl-liv-carte">
+								<?php
+								// Carte illustrative (aucune zone n'a d'action) decrite par
+								// l'alternative ci-dessus : masquee aux technologies
+								// d'assistance, et retiree du parcours clavier par
+								// assets/js/ditl-carte.js une fois le graphe dessine
+								// (RGAA 4.12 / 4.13). Aucun effet visuel.
+								?>
+								<div class="ditl-liv-carte" aria-hidden="true">
 									<?php echo $ditl_carte_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- carte generee par le shortcode du plugin Interactive Geo Maps. ?>
 								</div>
 							</div>

@@ -106,42 +106,43 @@ get_header(); ?>
 												role="group"
 												aria-label="<?php echo esc_attr( sprintf( $ditl_labels['slide'], $ditl_position, (int) $ditl_actus->post_count ) ); ?>"
 											>
+												<?php
+												// Ordre du DOM : image (decorative), puis titre, categorie,
+												// lien de lecture, puis auteur / date (RGAA 10.3). Tous les
+												// blocs sont positionnes en absolu par rapport a la carte :
+												// l'ordre du DOM ne change pas leur position, la categorie
+												// est replacee au-dessus du titre par la propriete CSS order
+												// (voir gabarit-actualites.css).
+												?>
 												<article class="ditl-actu-card">
 													<div class="ditl-actu-card__image">
 														<?php
 														if ( has_post_thumbnail() ) {
-															// Comme l'original : taille "medium", alt = titre de l'article.
+															// Comme l'original : taille "medium". Vignette decorative
+															// (alt vide) : le titre de la carte porte l'information,
+															// un alt identique serait lu deux fois (RGAA 1.2).
 															the_post_thumbnail(
 																'medium',
 																array(
 																	'class' => 'ditl-actu-card__img',
-																	'alt'   => the_title_attribute( array( 'echo' => false ) ),
+																	'alt'   => '',
 																)
 															);
 														}
 														?>
-														<div class="ditl-actu-card__meta">
-															<div class="ditl-actu-card__avatar">
-																<?php echo get_avatar( $ditl_author_id, 48 ); ?>
-															</div>
-															<div class="ditl-actu-card__byline">
-																<div class="ditl-actu-card__author">
-																	<a href="<?php echo esc_url( get_author_posts_url( $ditl_author_id ) ); ?>"><?php echo esc_html( get_the_author() ); ?></a>
-																</div>
-																<div class="ditl-actu-card__date"><?php echo esc_html( get_the_date( 'F j, Y' ) ); ?></div>
-															</div>
-														</div>
 													</div>
 													<div class="ditl-actu-card__overlay">
 														<div class="ditl-actu-card__content">
+															<div class="ditl-actu-card__title-wrap">
+																<h3 class="ditl-actu-card__title">
+																	<a href="<?php echo esc_url( get_permalink() ); ?>"><?php echo esc_html( get_the_title() ); ?></a>
+																</h3>
+															</div>
 															<?php if ( ! empty( $ditl_categories ) ) { ?>
 															<div class="ditl-actu-card__category">
 																<a href="<?php echo esc_url( get_category_link( $ditl_categories[0] ) ); ?>"><?php echo esc_html( $ditl_categories[0]->name ); ?></a>
 															</div>
 															<?php } ?>
-															<h3 class="ditl-actu-card__title">
-																<a href="<?php echo esc_url( get_permalink() ); ?>"><?php echo esc_html( get_the_title() ); ?></a>
-															</h3>
 														</div>
 														<div class="ditl-actu-card__more-wrap">
 															<a
@@ -153,6 +154,17 @@ get_header(); ?>
 															</a>
 														</div>
 													</div>
+													<p class="ditl-actu-card__meta">
+														<span class="ditl-actu-card__avatar">
+															<?php echo get_avatar( $ditl_author_id, 48 ); ?>
+														</span>
+														<span class="ditl-actu-card__byline">
+															<span class="ditl-actu-card__author">
+																<a href="<?php echo esc_url( get_author_posts_url( $ditl_author_id ) ); ?>"><?php echo esc_html( get_the_author() ); ?></a>
+															</span>
+															<span class="ditl-actu-card__date"><?php echo esc_html( get_the_date( 'F j, Y' ) ); ?></span>
+														</span>
+													</p>
 												</article>
 											</li>
 												<?php

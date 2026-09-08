@@ -88,18 +88,29 @@
 	object-fit: cover;
 }
 
-/* Auteur et date, en surimpression en haut de carte. */
+/*
+ * Auteur et date, en surimpression en haut de carte. Balise <p> placee en
+ * fin de carte dans le DOM (RGAA 8.9 / 10.3) : position absolue par rapport
+ * a la carte, inchangee ; marges a 0 contre les regles d'Astra sur les
+ * paragraphes ; auteur et date en bloc (spans) comme les div d'origine.
+ */
 .ditl-carousel .ditl-actu-card__meta {
 	position: absolute;
 	top: 15px;
 	left: 15px;
 	display: flex;
 	align-items: center;
+	margin: 0;
 }
 
 .ditl-carousel .ditl-actu-card__avatar img {
 	border-radius: 80px;
 	margin-right: 10px;
+}
+
+.ditl-carousel .ditl-actu-card__author,
+.ditl-carousel .ditl-actu-card__date {
+	display: block;
 }
 
 .ditl-carousel .ditl-actu-card__author a {
@@ -115,11 +126,16 @@
 	font-weight: 500;
 }
 
-/* Bandeau sombre en bas de carte (lisibilite du texte sur l'image). */
+/*
+ * Bandeau sombre en bas de carte (lisibilite du texte sur l'image).
+ * z-index 1 : le bandeau reste peint au-dessus de l'image et du bloc
+ * auteur / date, comme lorsqu'il etait le dernier element du DOM.
+ */
 .ditl-carousel .ditl-actu-card__overlay {
 	position: absolute;
 	right: 0;
 	bottom: 0;
+	z-index: 1;
 	width: 100%;
 	height: auto;
 	background: rgba(43, 45, 66, 0.3);
@@ -127,12 +143,25 @@
 	backdrop-filter: blur(10px);
 }
 
+/*
+ * Colonne flex : le titre precede la categorie dans le DOM (RGAA 10.3), la
+ * categorie est replacee au-dessus par order. Le titre reste un <h3> en
+ * ligne dans son propre bloc (.__title-wrap), comme il l'etait dans le bloc
+ * de contenu : memes boites de ligne, rendu identique au pixel.
+ */
 .ditl-carousel .ditl-actu-card__content {
+	display: flex;
+	flex-direction: column;
 	padding: 20px;
 }
 
 .ditl-carousel .ditl-actu-card__category {
+	order: 1;
 	margin-bottom: 5px;
+}
+
+.ditl-carousel .ditl-actu-card__title-wrap {
+	order: 2;
 }
 
 .ditl-carousel .ditl-actu-card__category a {

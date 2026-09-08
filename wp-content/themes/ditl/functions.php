@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.15.0' );
+define( 'DITL_THEME_VERSION', '0.16.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -47,20 +47,98 @@ require_once get_stylesheet_directory() . '/inc/webp.php';
  */
 require_once get_stylesheet_directory() . '/inc/connexion.php';
 
+/*
+ * Corrections d'accessibilite portees par des hooks sur Astra (structure du
+ * document), sans effet visuel.
+ */
+require_once get_stylesheet_directory() . '/inc/a11y.php';
+
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
  * texte d'Elementor (shortcodes puis typographie WordPress), afin de
  * conserver un rendu identique a l'existant (ex. wptexturize transforme
  * un tiret simple entoure d'espaces en tiret demi-cadratin).
  *
+ * Filet d'accessibilite (RGAA 8.9 / 9.1) applique au passage : les titres
+ * vides (rien, espaces ou &nbsp; seulement, residus de collage depuis un
+ * editeur externe) sont retires, ainsi que les attributs data-* (marqueurs
+ * de l'editeur d'origine, sans role dans le rendu). Le contenu stocke en
+ * base n'est pas modifie.
+ *
  * @param string $content HTML riche issu d'une meta de gabarit.
  * @return string HTML pret a etre affiche (a echapper via wp_kses_post).
  */
 function ditl_format_rich_text( $content ) {
+	$content = ditl_nettoyer_html_colle( $content );
 	$content = shortcode_unautop( $content );
 	$content = do_shortcode( $content );
 
 	return wptexturize( $content );
+}
+
+/**
+ * Retire d'un HTML riche les titres vides et les attributs data-*.
+ *
+ * - Titre vide : <hN ...></hN> dont le contenu ne comporte que des espaces
+ *   (y compris &nbsp; sous ses formes entite ou caractere U+00A0) ou des
+ *   <br>. Un titre sans texte n'a aucun sens pour la structure du document
+ *   et est annonce comme titre vide par les lecteurs d'ecran.
+ * - Attribut data-* : jamais porteur d'information pour le visiteur ici
+ *   (aucun script du theme n'en lit dans les contenus des metas).
+ *
+ * Les chaines de remplacement sont fixes (aucune reference arriere), le
+ * contenu traite ne peut donc pas etre interprete.
+ *
+ * @param string $content HTML riche.
+ * @return string HTML sans titres vides ni attributs data-*.
+ */
+function ditl_nettoyer_html_colle( $content ) {
+	$content = (string) $content;
+
+	if ( '' === $content || false === strpos( $content, '<' ) ) {
+		return $content;
+	}
+
+	// Attributs data-* des balises ouvrantes. La balise n'est reecrite que si
+	// sa liste d'attributs se decompose entierement en attributs bien formes
+	// (nom, puis valeur optionnelle entre guillemets ou nue) : les attributs
+	// sont recopies un a un, sauf ceux dont le nom commence par data-. Une
+	// balise atypique ne correspond pas au motif et reste intacte.
+	// En cas d'echec PCRE (UTF-8 invalide, limite de retour arriere), le
+	// contenu est conserve tel quel plutot que vide silencieusement.
+	$resultat = preg_replace_callback(
+		'/<([a-zA-Z][a-zA-Z0-9:-]*)((?:\s+[^\s=\/>"\']+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>]+))?)*)\s*(\/?)>/',
+		static function ( $balise ) {
+			if ( false === stripos( $balise[2], 'data-' ) ) {
+				return $balise[0];
+			}
+
+			preg_match_all( '/\s+([^\s=\/>"\']+)(\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>]+))?/', $balise[2], $attributs, PREG_SET_ORDER );
+
+			$conserves = '';
+
+			foreach ( $attributs as $attribut ) {
+				if ( 0 === stripos( $attribut[1], 'data-' ) ) {
+					continue;
+				}
+
+				$conserves .= $attribut[0];
+			}
+
+			return '<' . $balise[1] . $conserves . $balise[3] . '>';
+		},
+		$content
+	);
+	$content  = null === $resultat ? $content : $resultat;
+
+	// Titres dont le contenu se limite a des blancs, &nbsp; ou <br>.
+	$resultat = preg_replace(
+		'/<h([1-6])(?:\s[^<>]*)?>(?:\s|&nbsp;|&#160;|&#xA0;|\x{00A0}|<br\s*\/?>)*<\/h\1\s*>/iu',
+		'',
+		$content
+	);
+
+	return null === $resultat ? $content : $resultat;
 }
 
 /**
@@ -116,6 +194,43 @@ function ditl_query_dernieres_actus() {
  */
 function ditl_page_est_francaise() {
 	return 0 === strpos( (string) get_locale(), 'fr' );
+}
+
+/**
+ * Indique si la page rendue est en anglais.
+ *
+ * Sert a signaler les passages anglais laisses en dur dans les gabarits
+ * (RGAA 8.7 : attribut lang sur un changement de langue) : l'attribut n'est
+ * emis que si la langue de la page n'est pas deja l'anglais.
+ *
+ * @return bool True si la locale courante est anglaise.
+ */
+function ditl_page_est_anglaise() {
+	return 0 === strpos( (string) get_locale(), 'en' );
+}
+
+/**
+ * Attributs d'image completant un alt vide par le titre du media.
+ *
+ * RGAA 1.1 : une image porteuse d'information (logo de partenaire) doit
+ * avoir une alternative. Quand le champ "Texte alternatif" de la mediatheque
+ * est vide, le titre de l'attachment sert de repli (meme regle que la
+ * galerie du gabarit Projet DiTL). Le tableau retourne est vide si l'alt de
+ * la mediatheque est renseigne : wp_get_attachment_image() l'emet alors
+ * lui-meme.
+ *
+ * @param int $attachment_id ID du media.
+ * @return array Attributs a passer a wp_get_attachment_image() (alt ou rien).
+ */
+function ditl_attributs_alt_repli( $attachment_id ) {
+	$attachment_id = absint( $attachment_id );
+	$alt           = trim( (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) );
+
+	if ( '' !== $alt ) {
+		return array();
+	}
+
+	return array( 'alt' => trim( wp_strip_all_tags( get_the_title( $attachment_id ) ) ) );
 }
 
 /**
@@ -242,6 +357,21 @@ function ditl_enqueue_assets_gabarits() {
 		// Police des titres de la page francaise (Roboto), hebergee
 		// localement dans le theme.
 		wp_enqueue_style( 'ditl-police-roboto', ditl_url_police_locale( 'roboto' ), array(), DITL_THEME_VERSION );
+
+		// Neutralisation de la carte interactive pour les technologies
+		// d'assistance (voir le gabarit) : script charge uniquement si une
+		// carte est reglee sur la page.
+		$ditl_livrable_carte = ditl_get_meta_json( get_queried_object_id(), '_ditl_livrable_carte' );
+
+		if ( ! empty( $ditl_livrable_carte['map_id'] ) ) {
+			wp_enqueue_script(
+				'ditl-carte',
+				get_stylesheet_directory_uri() . '/assets/js/ditl-carte.js',
+				array(),
+				DITL_THEME_VERSION,
+				true
+			);
+		}
 	}
 
 	if ( is_page_template( DITL_TPL_ACCUEIL ) ) {

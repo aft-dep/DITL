@@ -30,10 +30,19 @@
 	display: none;
 }
 
-h2.ditl-hero__sous-titre {
+/*
+ * Sous-titre de la banniere : rendu en <p> (slogan, pas un titre, RGAA 9.1).
+ * Les proprietes que le <h2> d'origine heritait des styles de titres d'Astra
+ * (couleur des titres, famille de police des titres, interligne 1.3) sont
+ * reprises explicitement pour un rendu identique au pixel.
+ */
+p.ditl-hero__sous-titre {
 	margin: 0;
+	color: #0F172A;
+	font-family: "Exo", sans-serif;
 	font-size: 40px;
 	font-weight: 300;
+	line-height: 1.3;
 	letter-spacing: 6.3px;
 	text-align: center;
 	text-transform: uppercase;
@@ -347,7 +356,16 @@ h2.ditl-accueil-actus__titre {
 	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
 }
 
+/*
+ * Colonne flex pour dissocier l'ordre du DOM (titre, categorie, meta :
+ * RGAA 10.3) de l'ordre visuel d'origine (categorie, titre, meta), restitue
+ * par la propriete order. Les marges ne fusionnent pas en flex : aucune
+ * n'etait fusionnee ici (categorie margin-bottom 5px contre titre a 0, meta
+ * en padding), le rendu est identique au pixel.
+ */
 .ditl-actu-item__inner {
+	display: flex;
+	flex-direction: column;
 	padding-left: 15px;
 	border-left: 2px solid #8D99AE;
 	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
@@ -355,6 +373,7 @@ h2.ditl-accueil-actus__titre {
 
 .ditl-actu-item__categorie {
 	display: flex;
+	order: 1;
 	margin-bottom: 5px;
 }
 
@@ -368,6 +387,7 @@ h2.ditl-accueil-actus__titre {
 }
 
 h3.ditl-actu-item__titre {
+	order: 2;
 	margin: 0;
 	font-size: 16px;
 	font-weight: 700;
@@ -397,11 +417,14 @@ h3.ditl-actu-item__titre {
 /*
  * Auteur puis date sur deux lignes : c'est le rendu effectif du widget
  * d'origine sur les deux pages (la date passait systematiquement a la
- * ligne sous l'auteur).
+ * ligne sous l'auteur). Balise <p> (RGAA 8.9), marges a 0 : les regles
+ * d'Astra sur les paragraphes du contenu ne s'appliquent pas.
  */
-.ditl-actu-item__meta {
+p.ditl-actu-item__meta {
 	position: relative;
 	display: block;
+	order: 3;
+	margin: 0;
 	padding-top: 10px;
 	color: #8D99AE;
 	font-size: 11px;
@@ -414,7 +437,7 @@ h3.ditl-actu-item__titre {
 /*
  * Bloc flex de niveau bloc (comme le widget d'origine) : il occupe sa
  * propre ligne, ce qui pousse la date a la ligne suivante. La specificite
- * doit depasser celle de la regle generique ".__meta > div" ci-dessous.
+ * doit depasser celle de la regle generique ".__meta > span" ci-dessous.
  */
 .ditl-actu-item__meta .ditl-actu-item__auteur {
 	display: flex;
@@ -432,17 +455,17 @@ h3.ditl-actu-item__titre {
 }
 
 /* Separateur "//" entre auteur et date (attribut data-separator). */
-.ditl-actu-item__meta > div {
+.ditl-actu-item__meta > span {
 	position: relative;
 	display: inline-flex;
 }
 
-.ditl-actu-item__meta > div::before {
+.ditl-actu-item__meta > span::before {
 	content: attr(data-separator);
 	margin: 0 5px;
 }
 
-.ditl-actu-item__meta > div:nth-child(1)::before {
+.ditl-actu-item__meta > span:nth-child(1)::before {
 	display: none;
 }
 
@@ -755,7 +778,7 @@ ul.ditl-accueil-part__grille {
 
 @media (max-width: 1024px) {
 
-	h2.ditl-hero__sous-titre {
+	p.ditl-hero__sous-titre {
 		font-size: 35px;
 		letter-spacing: 4px;
 	}
@@ -799,7 +822,7 @@ ul.ditl-accueil-part__grille {
 
 @media (max-width: 767px) {
 
-	h2.ditl-hero__sous-titre {
+	p.ditl-hero__sous-titre {
 		font-size: 25px;
 		letter-spacing: 2px;
 	}

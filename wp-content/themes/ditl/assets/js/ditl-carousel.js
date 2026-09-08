@@ -9,7 +9,8 @@
  * Accessibilite : vrais boutons avec libelles, navigation clavier sur la
  * region (fleches gauche / droite), bouton pause / lecture (RGAA 13.8),
  * pause au survol et au focus, pas d'autoplay si l'utilisateur prefere
- * reduire les animations. Seules les cartes physiquement affichees sont
+ * reduire les animations, aria-live sur la piste (off en defilement
+ * automatique, polite a l'arret). Seules les cartes physiquement affichees sont
  * exposees et tabulables ; si le focus atteint malgre tout une carte hors
  * champ, le carrousel se recale dessus sans animation.
  *
@@ -248,6 +249,21 @@
 			if ( autoplayAllowed() ) {
 				timer = window.setInterval( next, DELAY );
 			}
+
+			syncLive();
+		}
+
+		// Motif APG "carousel" : la piste ne fait aucune annonce pendant le
+		// defilement automatique (aria-live off) et annonce les changements
+		// de diapositive a l'arret (polite : pause, survol, focus, mouvement
+		// reduit). Sans objet en mode statique.
+		function syncLive() {
+			if ( staticMode ) {
+				track.removeAttribute( 'aria-live' );
+				return;
+			}
+
+			track.setAttribute( 'aria-live', timer ? 'off' : 'polite' );
 		}
 
 		function syncPauseButton() {
