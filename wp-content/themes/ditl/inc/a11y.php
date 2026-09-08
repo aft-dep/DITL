@@ -1,10 +1,11 @@
 <?php
 /**
- * Corrections d'accessibilite portees par des hooks sur Astra.
+ * Corrections d'accessibilite portees par des hooks sur Astra, WPForms et
+ * Complianz.
  *
- * Regroupe les ajustements de structure du document que le theme parent
- * n'offre pas en option et qui ne changent aucun pixel (RGAA / WCAG,
- * suite a l'audit Access42 de juillet 2026). Chaque correction est
+ * Regroupe les ajustements de structure du document que le theme parent et
+ * les extensions n'offrent pas en option et qui ne changent aucun pixel
+ * (RGAA / WCAG, suite a l'audit Access42 de juillet 2026). Chaque correction est
  * documentee avec le critere vise. Seule exception visible, validee : le
  * titre de la page de resultats de recherche traduit en francais (8.7).
  *
@@ -366,3 +367,384 @@ function ditl_a11y_titre_recherche_fr( $valeur ) {
 	return $valeur;
 }
 add_filter( 'astra_get_option_section-search-page-title-custom-title', 'ditl_a11y_titre_recherche_fr' );
+
+/**
+ * Formulaire de contact WPForms : finalite des champs a completer.
+ *
+ * RGAA 11.13 : le formulaire 6 (Contact, FR et EN) est bati sur des champs
+ * generiques de WPForms Lite (texte, nombre, liste) dont la finalite n'est
+ * portee que par l'intitule. La table associe, par identifiant de
+ * formulaire puis de champ, la valeur autocomplete HTML attendue. Un champ
+ * Nombre associe a 'tel' ou 'tel-national' est de plus rendu en
+ * type="tel" (voir ditl_a11y_wpforms_tel_fin). Les champs types de WPForms
+ * (email, name, phone) sont couverts par leur type, sans passer par la table.
+ *
+ * @return array Tableau formulaire => ( champ => valeur autocomplete ).
+ */
+function ditl_a11y_wpforms_champs_autocomplete() {
+	$champs = array(
+		6 => array(
+			7  => 'given-name',
+			1  => 'family-name',
+			3  => 'email',
+			2  => 'tel-national',
+			8  => 'organization',
+			10 => 'country-name',
+		),
+	);
+
+	/**
+	 * Permet d'ajouter un formulaire (par exemple la version francaise
+	 * dupliquee) sans toucher au theme.
+	 *
+	 * @param array $champs Tableau formulaire => ( champ => valeur autocomplete ).
+	 */
+	return (array) apply_filters( 'ditl_a11y_wpforms_champs_autocomplete', $champs );
+}
+
+/**
+ * Valeur autocomplete d'un champ WPForms, ou chaine vide.
+ *
+ * @param array $field     Reglages du champ.
+ * @param array $form_data Reglages du formulaire.
+ * @return string
+ */
+function ditl_a11y_wpforms_autocomplete_champ( $field, $form_data ) {
+	if ( ! is_array( $field ) || ! is_array( $form_data ) ) {
+		return '';
+	}
+
+	$form_id  = isset( $form_data['id'] ) ? (int) $form_data['id'] : 0;
+	$field_id = isset( $field['id'] ) ? (int) $field['id'] : -1;
+	$champs   = ditl_a11y_wpforms_champs_autocomplete();
+
+	if ( isset( $champs[ $form_id ][ $field_id ] ) && is_string( $champs[ $form_id ][ $field_id ] ) ) {
+		return $champs[ $form_id ][ $field_id ];
+	}
+
+	$type = isset( $field['type'] ) ? (string) $field['type'] : '';
+	if ( 'email' === $type ) {
+		return 'email';
+	}
+	if ( 'phone' === $type ) {
+		return 'tel';
+	}
+
+	return '';
+}
+
+/**
+ * Indique si une valeur autocomplete designe un numero de telephone.
+ *
+ * @param string $autocomplete Valeur autocomplete.
+ * @return bool
+ */
+function ditl_a11y_wpforms_est_telephone( $autocomplete ) {
+	return in_array( $autocomplete, array( 'tel', 'tel-national' ), true );
+}
+
+/**
+ * Pose l'attribut autocomplete sur les champs du formulaire.
+ *
+ * Priorite 20 : apres les proprietes propres a chaque type de champ
+ * (filtre wpforms_field_properties_{type}, puis Number::field_properties qui
+ * ajoute step="any"), avant le rendu.
+ *
+ * @param array $properties Proprietes du champ (attributs des inputs).
+ * @param array $field      Reglages du champ.
+ * @param array $form_data  Reglages du formulaire.
+ * @return array
+ */
+function ditl_a11y_wpforms_autocomplete( $properties, $field, $form_data ) {
+	if ( ! is_array( $properties ) || ! is_array( $field ) || ! is_array( $form_data ) ) {
+		return $properties;
+	}
+
+	$type = isset( $field['type'] ) ? (string) $field['type'] : '';
+
+	// Champ Nom de WPForms : un sous-champ par partie du nom.
+	if ( 'name' === $type ) {
+		$parties = array(
+			'primary' => 'name',
+			'first'   => 'given-name',
+			'middle'  => 'additional-name',
+			'last'    => 'family-name',
+		);
+		foreach ( $parties as $cle => $valeur ) {
+			if ( isset( $properties['inputs'][ $cle ] ) && is_array( $properties['inputs'][ $cle ] ) ) {
+				$properties['inputs'][ $cle ]['attr']['autocomplete'] = $valeur;
+			}
+		}
+
+		return $properties;
+	}
+
+	$autocomplete = ditl_a11y_wpforms_autocomplete_champ( $field, $form_data );
+	if ( '' === $autocomplete ) {
+		return $properties;
+	}
+
+	// Liste deroulante : les attributs du <select> sont ceux du conteneur.
+	if ( 'select' === $type ) {
+		if ( isset( $properties['input_container'] ) && is_array( $properties['input_container'] ) ) {
+			$properties['input_container']['attr']['autocomplete'] = $autocomplete;
+		}
+
+		return $properties;
+	}
+
+	if ( ! isset( $properties['inputs']['primary'] ) || ! is_array( $properties['inputs']['primary'] ) ) {
+		return $properties;
+	}
+
+	$properties['inputs']['primary']['attr']['autocomplete'] = $autocomplete;
+
+	// Champ Nombre rendu en telephone : step="any" ferait lever une exception
+	// a jQuery Validate sur un type="tel" ("Step attribute on input type tel
+	// is not supported"), et n'a pas de sens pour un numero.
+	if ( 'number' === $type && ditl_a11y_wpforms_est_telephone( $autocomplete ) ) {
+		// jQuery Validate applique la regle "step" au champ rendu en tel et
+		// la fait echouer (valeur non numerique) : l'attribut est retire.
+		unset( $properties['inputs']['primary']['attr']['step'] );
+
+		// WPForms ne borne pas la longueur d'un champ Nombre : un numero de
+		// telephone tient largement dans 20 caracteres.
+		$properties['inputs']['primary']['attr']['maxlength'] = 20;
+	}
+
+	return $properties;
+}
+add_filter( 'wpforms_field_properties', 'ditl_a11y_wpforms_autocomplete', 20, 3 );
+
+/**
+ * Indique si le champ est un champ Nombre de WPForms employe comme telephone.
+ *
+ * @param array $field     Reglages du champ.
+ * @param array $form_data Reglages du formulaire.
+ * @return bool
+ */
+function ditl_a11y_wpforms_champ_nombre_telephone( $field, $form_data ) {
+	return is_array( $field )
+		&& isset( $field['type'] )
+		&& 'number' === $field['type']
+		&& ditl_a11y_wpforms_est_telephone( ditl_a11y_wpforms_autocomplete_champ( $field, $form_data ) );
+}
+
+/**
+ * Champ Nombre employe comme telephone : ouvre la capture de son rendu.
+ *
+ * RGAA 11.13 : WPForms Lite n'a pas de champ Telephone et le champ Nombre
+ * ecrit type="number" en dur (class-number.php, field_display), sans filtre
+ * sur son markup et sans pouvoir le surcharger par les proprietes (un second
+ * attribut type serait ignore par le navigateur). Le rendu du champ est donc
+ * capture entre les deux actions qui l'encadrent, puis type="number" devient
+ * type="tel". Priorite 99 : apres l'intitule et la description (20).
+ *
+ * @param array $field     Reglages du champ.
+ * @param array $form_data Reglages du formulaire.
+ */
+function ditl_a11y_wpforms_tel_debut( $field, $form_data ) {
+	if ( ditl_a11y_wpforms_champ_nombre_telephone( $field, $form_data ) ) {
+		ditl_a11y_wpforms_tel_capture( true );
+		ob_start();
+	}
+}
+
+/**
+ * Drapeau de capture du rendu du champ telephone.
+ *
+ * Seule la fermeture d'une capture reellement ouverte est autorisee : le
+ * tampon d'un tiers ne peut pas etre vide par erreur si la condition
+ * d'ouverture et celle de fermeture divergeaient.
+ *
+ * @param bool|null $etat True pour lever le drapeau, false pour le baisser,
+ *                        null pour le lire.
+ * @return bool
+ */
+function ditl_a11y_wpforms_tel_capture( $etat = null ) {
+	static $ouverte = false;
+
+	if ( null !== $etat ) {
+		$ouverte = (bool) $etat;
+	}
+
+	return $ouverte;
+}
+add_action( 'wpforms_display_field_before', 'ditl_a11y_wpforms_tel_debut', 99, 2 );
+
+/**
+ * Champ Nombre employe comme telephone : restitue le rendu en type="tel".
+ *
+ * Priorite 1 : avant le message d'erreur (3) et la fermeture du conteneur.
+ * Meme CSS des deux cotes (Astra et WPForms stylent number et tel dans les
+ * memes regles ; les fleches du champ Nombre n'apparaissent qu'au survol).
+ * Cote serveur, le champ reste un champ Nombre : WPForms retire tout
+ * caractere hors chiffres, du point et du signe moins, puis exige un
+ * nombre. Un numero saisi avec espaces, parentheses ou indicatif est donc
+ * accepte (et stocke sans mise en forme), mais un numero saisi avec des
+ * points (01.23.45.67.89) est refuse a l'envoi : le message de refus est
+ * traduit ci-dessous. Correction de fond a arbitrer avec le client :
+ * passer ce champ en type Texte dans le formulaire, ce qui rendrait cette
+ * capture inutile.
+ *
+ * @param array $field     Reglages du champ.
+ * @param array $form_data Reglages du formulaire.
+ */
+function ditl_a11y_wpforms_tel_fin( $field, $form_data ) {
+	if ( ! ditl_a11y_wpforms_champ_nombre_telephone( $field, $form_data ) ) {
+		return;
+	}
+
+	if ( ! ditl_a11y_wpforms_tel_capture() ) {
+		return;
+	}
+
+	ditl_a11y_wpforms_tel_capture( false );
+
+	$html = ob_get_clean();
+	if ( false === $html ) {
+		return;
+	}
+
+	// Markup produit et echappe par WPForms, seul le type change.
+	echo str_replace( '<input type="number" ', '<input type="tel" ', $html ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}
+add_action( 'wpforms_display_field_after', 'ditl_a11y_wpforms_tel_fin', 1, 2 );
+
+/**
+ * Champ telephone : message de refus du serveur en francais.
+ *
+ * Le champ reste un champ Nombre cote serveur : une saisie que sa
+ * validation rejette (points de separation, par exemple) produit le
+ * message anglais du plugin quand la traduction fr_FR n'est pas installee
+ * (wp-content/languages n'est pas versionne). Le message est traduit ici
+ * et rendu explicite sur le format attendu.
+ *
+ * @param string $label Message du plugin.
+ * @return string
+ */
+function ditl_a11y_wpforms_tel_message_serveur( $label ) {
+	if ( is_admin() || ! ditl_page_est_francaise() ) {
+		return $label;
+	}
+
+	return 'Veuillez saisir un numéro sans point de séparation, par exemple 01 23 45 67 89.';
+}
+add_filter( 'wpforms_valid_number_label', 'ditl_a11y_wpforms_tel_message_serveur' );
+
+/**
+ * Asterisque des champs obligatoires : explicite pour les lecteurs d'ecran.
+ *
+ * RGAA 11.10 : WPForms rend <span class="wpforms-required-label">*</span>
+ * sans explication. L'etoile reste affichee a l'identique mais est masquee
+ * aux technologies d'assistance, remplacee par " (obligatoire)" en
+ * screen-reader-text (classe d'Astra et du coeur : aucun pixel). Priorite 11
+ * pour passer apres le moteur "moderne" de WPForms, qui pose sa propre
+ * version a 10. Front uniquement.
+ *
+ * @param string $label_html Markup de l'asterisque.
+ * @return string
+ */
+function ditl_a11y_wpforms_asterisque( $label_html ) {
+	if ( is_admin() ) {
+		return $label_html;
+	}
+
+	$mention = ditl_page_est_francaise() ? 'obligatoire' : __( 'required', 'ditl' );
+
+	return ' <span class="wpforms-required-label" aria-hidden="true">*</span><span class="screen-reader-text"> (' . esc_html( $mention ) . ')</span>';
+}
+add_filter( 'wpforms_get_field_required_label', 'ditl_a11y_wpforms_asterisque', 11 );
+
+/**
+ * Messages de validation du formulaire : francais et exemple de saisie.
+ *
+ * RGAA 11.11 / 11.10 : les messages de jQuery Validate sont transmis par
+ * WPForms dans wpforms_settings (wp_localize_script). Sur les pages
+ * francaises, ils sont poses ici en francais quelle que soit la traduction
+ * installee (wp-content/languages/ n'est pas versionne : la traduction fr_FR
+ * de WPForms presente en local n'est pas garantie sur les autres
+ * environnements) ; le message de l'e-mail donne un exemple de format. Sur
+ * les pages anglaises, seul le message de l'e-mail change (exemple ajoute).
+ * Aucun texte n'est visible tant qu'aucune erreur n'est commise. Seules les
+ * cles deja presentes sont remplacees.
+ *
+ * @param array $strings Chaines transmises au script front de WPForms.
+ * @return array
+ */
+function ditl_a11y_wpforms_messages( $strings ) {
+	if ( ! is_array( $strings ) ) {
+		return $strings;
+	}
+
+	if ( ditl_page_est_francaise() ) {
+		$francais = array(
+			'val_required'               => 'Ce champ est obligatoire.',
+			'val_email'                  => 'Veuillez saisir une adresse e-mail valide, par exemple prenom.nom@exemple.fr',
+			'val_email_suggestion'       => 'Vouliez-vous dire {suggestion} ?',
+			'val_email_suggestion_title' => 'Cliquez pour accepter cette suggestion.',
+			'val_email_restricted'       => 'Cette adresse e-mail n’est pas autorisée.',
+			'val_number'                 => 'Veuillez saisir un nombre valide.',
+			'val_number_positive'        => 'Veuillez saisir un nombre positif valide.',
+			'val_minimum_price'          => 'Le montant saisi est inférieur au minimum requis.',
+			'val_confirm'                => 'Les valeurs des deux champs ne correspondent pas.',
+			'val_checklimit'             => 'Vous avez dépassé le nombre de sélections autorisées : {#}.',
+			'val_limit_characters'       => '{count} caractères sur {limit} maximum.',
+			'val_limit_words'            => '{count} mots sur {limit} maximum.',
+			'val_min'                    => 'Veuillez saisir une valeur supérieure ou égale à {0}.',
+			'val_max'                    => 'Veuillez saisir une valeur inférieure ou égale à {0}.',
+			// Cles des champs de la version Pro : sans effet ici (WPForms
+			// Lite ne les emet pas), posees pour rester couvert si le
+			// client passe un jour a la version payante.
+			'val_phone'                  => 'Veuillez saisir un numéro de téléphone valide, par exemple 01 23 45 67 89.',
+			'val_url'                    => 'Veuillez saisir une adresse web valide, par exemple https://www.exemple.fr',
+			'val_fileextension'          => 'Ce type de fichier n’est pas autorisé.',
+			'val_filesize'               => 'Ce fichier dépasse la taille maximale autorisée.',
+			'val_time12h'                => 'Veuillez saisir une heure au format 12 heures, par exemple 09:30 am.',
+			'val_time24h'                => 'Veuillez saisir une heure au format 24 heures, par exemple 21:30.',
+			'val_time_limit'             => 'Veuillez saisir une heure comprise entre {minTime} et {maxTime}.',
+			'val_password_strength'      => 'Veuillez saisir un mot de passe plus robuste.',
+			'val_recaptcha_fail_msg'     => 'La vérification Google reCAPTCHA a échoué, veuillez réessayer plus tard.',
+			'val_turnstile_fail_msg'     => 'La vérification Cloudflare Turnstile a échoué, veuillez réessayer plus tard.',
+			'val_inputmask_incomplete'   => 'Veuillez remplir le champ au format attendu.',
+			'val_requiredpayment'        => 'Le paiement est obligatoire.',
+			'val_creditcard'             => 'Veuillez saisir un numéro de carte bancaire valide.',
+		);
+		foreach ( $francais as $cle => $message ) {
+			if ( isset( $strings[ $cle ] ) ) {
+				$strings[ $cle ] = $message;
+			}
+		}
+
+		return $strings;
+	}
+
+	if ( ditl_page_est_anglaise() && isset( $strings['val_email'] ) ) {
+		$strings['val_email'] = 'Please enter a valid email address, for example first.last@example.com';
+	}
+
+	return $strings;
+}
+add_filter( 'wpforms_frontend_strings', 'ditl_a11y_wpforms_messages', 20 );
+
+/**
+ * Bandeau Complianz : retire l'attribut de presentation size="40".
+ *
+ * RGAA 10.1 : le gabarit du bandeau (cookiebanner/templates/cookiebanner.php)
+ * pose size="40" sur les quatre cases a cocher des categories, attribut de
+ * presentation sans effet sur une case a cocher (sa taille vient du CSS du
+ * bandeau). Retire au rendu, blancs compris, sur le HTML complet du bandeau.
+ *
+ * @param mixed $html Markup du bandeau.
+ * @return mixed
+ */
+function ditl_a11y_complianz_sans_size( $html ) {
+	if ( ! is_string( $html ) ) {
+		return $html;
+	}
+
+	$resultat = preg_replace( '#\s+size="40"#', '', $html );
+
+	return null === $resultat ? $html : $resultat;
+}
+add_filter( 'cmplz_banner_html', 'ditl_a11y_complianz_sans_size' );
