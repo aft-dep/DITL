@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.16.0' );
+define( 'DITL_THEME_VERSION', '0.17.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).

@@ -1,0 +1,102 @@
+/**
+ * Corrections d'accessibilite : styles d'accompagnement des hooks de inc/a11y.php.
+ *
+ * Charge sur toutes les pages (le menu principal est partout). Aucune de ces
+ * regles ne change un pixel a l'etat de repos : elles rendent focusable un
+ * bouton deja present dans le DOM et neutralisent la mise en forme par defaut
+ * des listes introduites a la place de blocs (navigation d'article, pagination).
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Menu principal (desktop) : bouton de sous-menu
+ *
+ * Astra masque le <button class="ast-menu-toggle"> en desktop et n'y attache
+ * aucun comportement ; la fleche visible est un span decoratif dans le lien.
+ * Le bouton est rendu focusable, superpose exactement au span (padding droit
+ * du lien = 1em, fleche = svg .6em + marge 10px), transparent et sans glyphe
+ * propre : rien ne change visuellement, la souris continue de traverser vers
+ * le lien (pointer-events), seul le clavier / les technologies d'assistance
+ * l'atteignent. L'anneau de focus d'Astra (outline) reste visible autour de
+ * la fleche. Comportement : assets/js/ditl-menu.js.
+ * ------------------------------------------------------------------------ */
+
+#ast-desktop-header .main-header-menu > .menu-item-has-children > .ast-menu-toggle {
+	display: block;
+	position: absolute;
+	top: 0;
+	right: 1em;
+	bottom: 0;
+	width: calc(.6em + 10px);
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	font-size: inherit;
+	line-height: inherit;
+	pointer-events: none;
+}
+
+#ast-desktop-header .main-header-menu > .menu-item-has-children > .ast-menu-toggle > .ast-icon {
+	display: none;
+}
+
+/* Sous-menu ouvert au clavier : memes proprietes que l'etat .focus / :hover
+ * d'Astra (main.min.css + animation slide-up). */
+#ast-desktop-header .main-header-menu > .menu-item.ditl-sous-menu-ouvert > .sub-menu {
+	left: 0;
+	right: auto;
+	visibility: visible;
+	opacity: 1;
+	transform: translateY(0);
+	transition: opacity .2s ease, visibility .2s ease, transform .2s ease;
+}
+
+/* Les liens du sous-menu deviennent focusables sans attendre la fin d'une
+ * transition : Astra leur applique "transition: all", qui anime aussi la
+ * visibilite heritee du <ul> ; la valeur est posee ici explicitement et la
+ * transition limitee aux couleurs (meme duree, meme courbe). */
+#ast-desktop-header .main-header-menu > .menu-item.ditl-sous-menu-ouvert > .sub-menu .menu-link {
+	visibility: visible;
+	transition-property: color, background-color, border-color;
+}
+
+/* ---------------------------------------------------------------------------
+ * Navigation article precedent / suivant en liste (RGAA 9.3)
+ * Memes classes nav-links / nav-previous / nav-next : le CSS d'Astra s'applique
+ * a l'identique ; seuls les styles de liste par defaut sont neutralises.
+ * ------------------------------------------------------------------------ */
+
+.post-navigation ul.nav-links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.post-navigation .nav-links > li {
+	list-style: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Pagination en liste (RGAA 9.3)
+ * Les <li> sont en ligne pour conserver le flux inline-block des .page-numbers
+ * (les blancs entre elements comptent, comme dans le markup d'origine). Le
+ * lien "Suivant" heritait display:inline-block du conteneur : valeur reposee.
+ * ------------------------------------------------------------------------ */
+
+.ast-pagination ul.nav-links {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.ast-pagination .nav-links > li {
+	display: inline;
+	margin: 0;
+	padding: 0;
+}
+
+.ast-pagination .nav-links > li > .next.page-numbers {
+	display: inline-block;
+}
