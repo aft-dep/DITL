@@ -84,7 +84,7 @@ class Map {
          * Trying to pass a URL will be ignored, e.g. ?map=http://malicious.com/malicious.js
          */
         if ( isset( $atts['demo'] ) && isset( $_GET['map'] ) ) {
-            $map_param = sanitize_text_field( $_GET['map'] );
+            $map_param = sanitize_text_field( wp_unslash( $_GET['map'] ) );
             if ( !filter_var( $map_param, FILTER_VALIDATE_URL ) ) {
                 $main_meta['map'] = $map_param;
             }

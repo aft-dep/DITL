@@ -33,6 +33,22 @@ class AIOWPSecurity_Feature_Item_Manager {
 
 	private $feature_partial = "partial";
 
+	private $general_feature = 'general';
+
+	private $user_security_feature = 'user_security';
+
+	private $brute_force_feature = 'brute_force';
+
+	private $database_feature = 'database';
+
+	private $filesystem_feature = 'filesystem';
+
+	private $firewall_feature = 'firewall';
+
+	private $spam_feature = 'spam_prevention';
+
+	private $scanner_feature = 'scanner';
+
 	/**
 	 * Constructor sets up the feature item manager
 	 */
@@ -47,6 +63,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 	 * @return void
 	 */
 	private function setup_feature_list() {
+
 		$feature_list = array(
 			// Settings menu features
 			'wp-generator-meta-tag' => array(
@@ -55,7 +72,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_remove_wp_generator_meta_info'
-				)
+				),
+				'category' => $this->general_feature
 			),
 			// User Accounts menu features
 			'user-accounts-change-admin-user' => array(
@@ -65,7 +83,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					''
 				),
-				'callback' => array($this, 'check_user_accounts_change_admin_user_feature')
+				'callback' => array($this, 'check_user_accounts_change_admin_user_feature'),
+				'category' => $this->user_security_feature
 			),
 			'user-accounts-display-name' => array(
 				'name' => __('Change display name', 'all-in-one-wp-security-and-firewall'),
@@ -74,7 +93,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					''
 				),
-				'callback' => array($this, 'check_user_accounts_display_name_feature')
+				'callback' => array($this, 'check_user_accounts_display_name_feature'),
+				'category' => $this->user_security_feature
 			),
 			// User Login menu features
 			'user-login-login-lockdown' => array(
@@ -83,7 +103,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_login_lockdown'
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			'user-login-force-logout' => array(
 				'name' => __('Force logout', 'all-in-one-wp-security-and-firewall'),
@@ -91,7 +112,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_forced_logout'
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			'hibp' => array(
 				'name' => __('HIBP', 'all-in-one-wp-security-and-firewall'),
@@ -100,7 +122,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					'aiowps_hibp_user_profile_update',
 					'aiowps_http_password_reset',
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			'disable-application-password' => array(
 				'name' => __('Disable application password', 'all-in-one-wp-security-and-firewall'),
@@ -108,7 +131,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_disable_application_password'
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			'user-login-lockout-ip-whitelisting' => array(
 				'name' => __('Login Lockout IP whitelisting', 'all-in-one-wp-security-and-firewall'),
@@ -116,7 +140,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_lockdown_enable_whitelisting'
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			// User Registration menu features
 			'manually-approve-registrations' => array(
@@ -125,7 +150,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_manual_registration_approval'
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			'user-registration-captcha' => array(
 				'name' => __('Registration CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -133,7 +159,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_registration_page_captcha'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'registration-honeypot' => array(
 				'name' => __('Enable registration honeypot', 'all-in-one-wp-security-and-firewall'),
@@ -141,7 +168,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_enable_registration_honeypot'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'http-authentication-admin-frontend' => array(
 				'name' => __('HTTP authentication for admin and frontend', 'all-in-one-wp-security-and-firewall'),
@@ -150,7 +178,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					'aiowps_http_authentication_admin',
 					'aiowps_http_authentication_frontend',
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			// Database Security menu features
 			'db-security-db-prefix' => array(
@@ -160,7 +189,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					''
 				),
-				'callback' => array($this, 'check_db_security_db_prefix_feature')
+				'callback' => array($this, 'check_db_security_db_prefix_feature'),
+				'category' => $this->database_feature
 			),
 			// Filesystem Security menu features
 			'filesystem-file-permissions' => array(
@@ -170,7 +200,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					''
 				),
-				'callback' => array($this, 'check_filesystem_permissions_feature')
+				'callback' => array($this, 'check_filesystem_permissions_feature'),
+				'category' => $this->filesystem_feature
 			),
 			'filesystem-file-editing' => array(
 				'name' => __('File editing', 'all-in-one-wp-security-and-firewall'),
@@ -178,7 +209,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_disable_file_editing'
-				)
+				),
+				'category' => $this->filesystem_feature
 			),
 			'auto-delete-wp-files' => array(
 				'name' => __('WordPress files access', 'all-in-one-wp-security-and-firewall'),
@@ -186,7 +218,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_auto_delete_default_wp_files'
-				)
+				),
+				'category' => $this->filesystem_feature
 			),
 			// Blacklist Manager menu features
 			'blacklist-manager-ip-user-agent-blacklisting' => array(
@@ -195,7 +228,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_advanced,
 				'options' => array(
 					'aiowps_enable_blacklisting'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			// Firewall menu features
 			'firewall-basic-rules' => array(
@@ -205,7 +239,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					'aiowps_enable_basic_firewall'
 				),
-				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'allow_to_write_to_htaccess')
+				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'allow_to_write_to_htaccess'),
+				'category' => $this->firewall_feature
 			),
 			'firewall-pingback-rules' => array(
 				'name' => __('Enable pingback vulnerability protection', 'all-in-one-wp-security-and-firewall'),
@@ -213,7 +248,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_pingback_firewall'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'firewall-block-debug-file-access' => array(
 				'name' => __('Block access to debug log file', 'all-in-one-wp-security-and-firewall'),
@@ -222,7 +258,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					'aiowps_block_debug_log_file_access'
 				),
-				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'allow_to_write_to_htaccess')
+				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'allow_to_write_to_htaccess'),
+				'category' => $this->firewall_feature
 			),
 			'firewall-disable-index-views' => array(
 				'name' => __('Disable index views', 'all-in-one-wp-security-and-firewall'),
@@ -231,7 +268,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					'aiowps_disable_index_views'
 				),
-				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'allow_to_write_to_htaccess')
+				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'allow_to_write_to_htaccess'),
+				'category' => $this->firewall_feature
 			),
 			'firewall-disable-trace-track' => array(
 				'name' => __('Disable trace and track', 'all-in-one-wp-security-and-firewall'),
@@ -240,7 +278,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					'aiowps_disable_trace_and_track'
 				),
-				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'allow_to_write_to_htaccess')
+				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'allow_to_write_to_htaccess'),
+				'category' => $this->firewall_feature
 			),
 			'firewall-forbid-proxy-comments' => array(
 				'name' => __('Forbid proxy comments', 'all-in-one-wp-security-and-firewall'),
@@ -248,7 +287,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_advanced,
 				'options' => array(
 					'aiowps_forbid_proxy_comments'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'firewall-deny-bad-queries' => array(
 				'name' => __('Deny bad queries', 'all-in-one-wp-security-and-firewall'),
@@ -256,7 +296,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_advanced,
 				'options' => array(
 					'aiowps_deny_bad_query_strings'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'firewall-advanced-character-string-filter' => array(
 				'name' => __('Advanced character string filter', 'all-in-one-wp-security-and-firewall'),
@@ -264,7 +305,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_advanced,
 				'options' => array(
 					'aiowps_advanced_char_string_filter'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'firewall-enable-6g' => array(
 				'name' => __('6G firewall', 'all-in-one-wp-security-and-firewall'),
@@ -272,7 +314,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_advanced,
 				'options' => array(
 					'aiowps_enable_6g_firewall',
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'firewall-block-fake-googlebots' => array(
 				'name' => __('Block fake Googlebots', 'all-in-one-wp-security-and-firewall'),
@@ -280,7 +323,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_advanced,
 				'options' => array(
 					'aiowps_block_fake_googlebots'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'prevent-hotlinking' => array(
 				'name' => __('Prevent image hotlinking', 'all-in-one-wp-security-and-firewall'),
@@ -288,7 +332,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_prevent_hotlinking'
-				)
+				),
+				'category' => $this->filesystem_feature
 			),
 			'firewall-enable-404-blocking' => array(
 				'name' => __('Enable IP blocking for 404 detection', 'all-in-one-wp-security-and-firewall'),
@@ -296,7 +341,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_enable_404_IP_lockout'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'firewall-disable-rss-and-atom' => array(
 				'name' => __('Disable RSS and ATOM feeds', 'all-in-one-wp-security-and-firewall'),
@@ -304,7 +350,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_disable_rss_and_atom_feeds'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'upgrade-unsafe-http-calls' => array(
 				'name' => __('Upgrade unsafe HTTP calls', 'all-in-one-wp-security-and-firewall'),
@@ -312,7 +359,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_upgrade_unsafe_http_calls'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			// Brute Force menu features
 			'bf-rename-login-page' => array(
@@ -321,7 +369,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_enable_rename_login_page'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'firewall-enable-brute-force-attack-prevention' => array(
 				'name' => __('Enable brute force attack prevention', 'all-in-one-wp-security-and-firewall'),
@@ -329,7 +378,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_advanced,
 				'options' => array(
 					'aiowps_enable_brute_force_attack_prevention'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'user-login-captcha' => array(
 				'name' => __('Login CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -337,7 +387,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_login_captcha'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'lost-password-captcha' => array(
 				'name' => __('Lost password CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -345,7 +396,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_lost_password_captcha'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'custom-login-captcha' => array(
 				'name' => __('Custom login CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -353,7 +405,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_custom_login_captcha'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'password_protected-captcha' => array(
 				'name' => __('Password-protected CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -361,7 +414,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_password_protected_captcha'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'whitelist-manager-ip-login-whitelisting' => array(
 				'name' => __('Login IP whitelisting', 'all-in-one-wp-security-and-firewall'),
@@ -369,7 +423,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_enable_whitelisting'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			'login-honeypot' => array(
 				'name' => __('Enable login honeypot', 'all-in-one-wp-security-and-firewall'),
@@ -377,7 +432,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_enable_login_honeypot'
-				)
+				),
+				'category' => $this->brute_force_feature
 			),
 			// Spam Prevention menu features
 			'comment-form-captcha' => array(
@@ -386,7 +442,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_comment_captcha'
-				)
+				),
+				'category' => $this->spam_feature
 			),
 			'detect-spambots' => array(
 				'name' => __('Detect spambots', 'all-in-one-wp-security-and-firewall'),
@@ -394,7 +451,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_spambot_detecting'
-				)
+				),
+				'category' => $this->spam_feature
 			),
 			'auto-block-spam-ips' => array(
 				'name' => __('Auto block spam ips', 'all-in-one-wp-security-and-firewall'),
@@ -402,7 +460,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_enable_autoblock_spam_ip'
-				)
+				),
+				'category' => $this->spam_feature
 			),
 			// Scanner menu features
 			'scan-file-change-detection' => array(
@@ -411,7 +470,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_enable_automated_fcd_scan'
-				)
+				),
+				'category' => $this->scanner_feature
 			),
 			// Miscellaneous menu features
 			'enable-copy-protection' => array(
@@ -420,7 +480,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_copy_protection'
-				)
+				),
+				'category' => $this->filesystem_feature
 			),
 			'enable-frame-protection' => array(
 				'name' => __('Enable iFrame protection', 'all-in-one-wp-security-and-firewall'),
@@ -428,7 +489,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_prevent_site_display_inside_frame'
-				)
+				),
+				'category' => $this->filesystem_feature
 			),
 			'disable-users-enumeration' => array(
 				'name' => __('Disable users enumeration', 'all-in-one-wp-security-and-firewall'),
@@ -436,7 +498,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_prevent_users_enumeration'
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			'disallow-unauthorised-requests' => array(
 				'name' => __('Disallow unauthorized REST requests', 'all-in-one-wp-security-and-firewall'),
@@ -444,7 +507,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_basic,
 				'options' => array(
 					'aiowps_disallow_unauthorized_rest_requests'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'enable-salt-postfix' => array(
 				'name' => __('Enable salt postfix', 'all-in-one-wp-security-and-firewall'),
@@ -452,7 +516,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_advanced,
 				'options' => array(
 					'aiowps_enable_salt_postfix'
-				)
+				),
+				'category' => $this->user_security_feature
 			),
 			// conditional features
 			'bp-register-captcha' => array(
@@ -463,6 +528,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_enable_bp_register_captcha'
 				),
 				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'is_buddypress_plugin_active'),
+				'category' => $this->brute_force_feature
 			),
 			'bbp-new-topic-captcha' => array(
 				'name' => __('bbPress new topic CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -472,6 +538,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_enable_bbp_new_topic_captcha'
 				),
 				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'is_bbpress_plugin_active'),
+				'category' => $this->brute_force_feature
 			),
 			'woo-login-captcha' => array(
 				'name' => __('Woo login CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -481,6 +548,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_enable_woo_login_captcha'
 				),
 				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'is_woocommerce_plugin_active'),
+				'category' => $this->brute_force_feature
 			),
 			'woo-lostpassword-captcha' => array(
 				'name' => __('Woo lost password CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -490,6 +558,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_enable_woo_lostpassword_captcha'
 				),
 				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'is_woocommerce_plugin_active'),
+				'category' => $this->brute_force_feature
 			),
 			'woo-register-captcha' => array(
 				'name' => __('Woo register CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -499,6 +568,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_enable_woo_register_captcha'
 				),
 				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'is_woocommerce_plugin_active'),
+				'category' => $this->brute_force_feature
 			),
 			'woo-checkout-captcha' => array(
 				'name' => __('Woo Checkout CAPTCHA', 'all-in-one-wp-security-and-firewall'),
@@ -508,6 +578,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_enable_woo_checkout_captcha'
 				),
 				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'is_woocommerce_plugin_active'),
+				'category' => $this->brute_force_feature
 			),
 			// Ban POST requests with blank user-agent and referer
 			'firewall-ban-post-blank-headers' => array(
@@ -516,7 +587,8 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'level' => $this->sec_level_inter,
 				'options' => array(
 					'aiowps_ban_post_blank_headers'
-				)
+				),
+				'category' => $this->firewall_feature
 			),
 			'contact-form-7-captcha' => array(
 				/* translators: %s: Plugin name */
@@ -527,6 +599,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 					'aiowps_enable_contact_form_7_captcha'
 				),
 				'feature_condition_callback' => array('AIOWPSecurity_Utility', 'is_contact_form_7_plugin_active'),
+				'category' => $this->brute_force_feature
 			),
 			'enforce-strong-password' => array(
 				'name' => __('Enforce use of strong passwords by users', 'all-in-one-wp-security-and-firewall'),
@@ -535,6 +608,7 @@ class AIOWPSecurity_Feature_Item_Manager {
 				'options' => array(
 					'aiowps_enforce_strong_password'
 				),
+				'category' => $this->user_security_feature
 			)
 		);
 
@@ -549,8 +623,9 @@ class AIOWPSecurity_Feature_Item_Manager {
 	 */
 	private function initialize_features() {
 		foreach ($this->feature_list as $id => $data) {
+			if (!isset($data['category'])) continue;
 			$callback = isset($data['callback']) ? $data['callback'] : array($this, 'is_feature_enabled');
-			$this->feature_items[$id] = new AIOWPSecurity_Feature_Item($id, $data['name'], $data['points'], $data['level'], $data['options'], $callback);
+			$this->feature_items[$id] = new AIOWPSecurity_Feature_Item($id, $data['name'], $data['points'], $data['level'], $data['options'], $callback, $data['category']);
 		}
 	}
 
@@ -798,6 +873,88 @@ class AIOWPSecurity_Feature_Item_Manager {
 		}
 	}
 
+	/**
+	 * Retrieve the feature category types and their respective points.
+	 *
+	 * This method initializes and returns an array of feature categories with the following attributes:
+	 * - 'name': The translated name of the feature category.
+	 * - 'achievable_points': The total points that can be achieved in this category.
+	 * - 'achieved_points': The points currently achieved within this category.
+	 * - 'show_locked_icon' (optional): A boolean flag indicating whether to show a locked icon for the category.
+	 *
+	 * @return array An associative array of feature categories and their corresponding details.
+	 */
+	private function get_feature_category_types() {
+		$show_locked_icon = !AIOWPSecurity_Utility_Permissions::is_premium_installed();
+
+		$categories = array(
+			$this->general_feature => array(
+				'name' => __('General', 'all-in-one-wp-security-and-firewall'),
+				'url' => AIOWPSEC_SETTINGS_MENU_SLUG
+			),
+			$this->user_security_feature => array(
+				'name' => __('User security', 'all-in-one-wp-security-and-firewall'),
+				'url' => AIOWPSEC_USER_SECURITY_MENU_SLUG
+			),
+			$this->brute_force_feature => array(
+				'name' => __('Brute force', 'all-in-one-wp-security-and-firewall'),
+				'show_locked_icon' => $show_locked_icon,
+				'url' => AIOWPSEC_BRUTE_FORCE_MENU_SLUG
+			),
+			$this->database_feature => array(
+				'name' => __('Database', 'all-in-one-wp-security-and-firewall'),
+				'url' => AIOWPSEC_DB_SEC_MENU_SLUG
+			),
+			$this->filesystem_feature => array(
+				'name' => __('Filesystem', 'all-in-one-wp-security-and-firewall'),
+				'url' => AIOWPSEC_FILESYSTEM_MENU_SLUG
+			),
+			$this->firewall_feature => array(
+				'name' => __('Firewall', 'all-in-one-wp-security-and-firewall'),
+				'show_locked_icon' => $show_locked_icon,
+				'url' => AIOWPSEC_FIREWALL_MENU_SLUG
+			),
+			$this->spam_feature => array(
+				'name' => __('Spam prevention', 'all-in-one-wp-security-and-firewall'),
+				'url' => AIOWPSEC_SPAM_MENU_SLUG
+			),
+			$this->scanner_feature => array(
+				'name' => __('Scanner', 'all-in-one-wp-security-and-firewall'),
+				'url' => AIOWPSEC_FILESCAN_MENU_SLUG
+			),
+		);
+
+		return $categories;
+	}
+
+	/**
+	 * Get feature category list with points and achievements.
+	 *
+	 * This function calculates the total achievable and achieved points for each feature category.
+	 * It returns a list of formatted categories, including the name, achieved points and total achievable points.
+	 *
+	 * @return array[] A list of feature categories
+	 */
+	public function get_feature_category_points_breakdown() {
+		$feature_categories = $this->get_feature_category_types();
+		foreach ($this->feature_items as $feature) {
+			if (!$feature->category) continue; // If feature does not have a category skip
+
+			if (!isset($feature_categories[$feature->category]['achievable_points'])) $feature_categories[$feature->category]['achievable_points'] = 0;
+			if (!isset($feature_categories[$feature->category]['achieved_points'])) $feature_categories[$feature->category]['achieved_points'] = 0;
+
+			// Add points to category totals
+			$feature_categories[$feature->category]['achievable_points'] += $feature->item_points;
+
+			// Add achieved points if feature is active
+			if ($feature->is_active()) {
+				$feature_categories[$feature->category]['achieved_points'] += $feature->item_points;
+			}
+		}
+
+		return $feature_categories;
+	}
+	
 	/**
 	 * Get the critical features.
 	 *

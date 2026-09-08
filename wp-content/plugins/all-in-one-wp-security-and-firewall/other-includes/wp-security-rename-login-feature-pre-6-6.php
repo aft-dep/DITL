@@ -353,7 +353,7 @@ function login_footer($input_id = '') {
 
 					<?php // phpcs:disable WordPress.Security.NonceVerification.Recommended -- PCP warning. No nonce. ?>
 					<?php if (isset($_GET['redirect_to']) && '' !== $_GET['redirect_to']) { ?>
-						<input type="hidden" name="redirect_to" value="<?php echo esc_attr(sanitize_url(wp_unslash($_GET['redirect_to']))); ?>" />
+						<input type="hidden" name="redirect_to" value="<?php echo esc_attr(esc_url_raw(wp_unslash($_GET['redirect_to']))); ?>" />
 					<?php } ?>
 
 					<?php if (isset($_GET['action']) && '' !== $_GET['action']) { ?>
@@ -528,7 +528,7 @@ switch ($action) {
 		}
 
 		if (! empty($_REQUEST['redirect_to'])) {
-			$redirect_to = sanitize_url(wp_unslash($_REQUEST['redirect_to']));
+			$redirect_to = esc_url_raw(wp_unslash($_REQUEST['redirect_to']));
 		} else {
 			$redirect_to = admin_url();
 		}
@@ -721,7 +721,7 @@ switch ($action) {
 		wp_logout();
 
 		if (! empty($_REQUEST['redirect_to'])) {
-			$redirect_to           = sanitize_url(wp_unslash($_REQUEST['redirect_to']));
+			$redirect_to           = esc_url_raw(wp_unslash($_REQUEST['redirect_to']));
 			$requested_redirect_to = $redirect_to;
 		} else {
 			$redirect_to = add_query_arg(
@@ -755,7 +755,7 @@ switch ($action) {
 			$errors = retrieve_password();
 
 			if (! is_wp_error($errors)) {
-				$redirect_to = ! empty($_REQUEST['redirect_to']) ? sanitize_url(wp_unslash($_REQUEST['redirect_to'])) : 'wp-login.php?checkemail=confirm';
+				$redirect_to = ! empty($_REQUEST['redirect_to']) ? esc_url_raw(wp_unslash($_REQUEST['redirect_to'])) : 'wp-login.php?checkemail=confirm';
 				wp_safe_redirect($redirect_to);
 				exit;
 			}
@@ -771,7 +771,7 @@ switch ($action) {
 			}
 		}
 
-		$lostpassword_redirect = ! empty($_REQUEST['redirect_to']) ? sanitize_url(wp_unslash($_REQUEST['redirect_to'])) : '';
+		$lostpassword_redirect = ! empty($_REQUEST['redirect_to']) ? esc_url_raw(wp_unslash($_REQUEST['redirect_to'])) : '';
 		/**
 		 * Filters the URL redirected to after submitting the lostpassword/retrievepassword form.
 		 *
@@ -1038,13 +1038,13 @@ switch ($action) {
 			$errors = register_new_user($user_login, $user_email);
 
 			if (! is_wp_error($errors)) {
-				$redirect_to = ! empty($_POST['redirect_to']) ? sanitize_url(wp_unslash($_POST['redirect_to'])) : 'wp-login.php?checkemail=registered';
+				$redirect_to = ! empty($_POST['redirect_to']) ? esc_url_raw(wp_unslash($_POST['redirect_to'])) : 'wp-login.php?checkemail=registered';
 				wp_safe_redirect($redirect_to);
 				exit;
 			}
 		}
 
-		$registration_redirect = ! empty($_REQUEST['redirect_to']) ? sanitize_url(wp_unslash($_REQUEST['redirect_to'])) : '';
+		$registration_redirect = ! empty($_REQUEST['redirect_to']) ? esc_url_raw(wp_unslash($_REQUEST['redirect_to'])) : '';
 
 		/**
 		 * Filters the registration redirect URL.
@@ -1194,7 +1194,7 @@ switch ($action) {
 		}
 
 		if (isset($_REQUEST['redirect_to'])) {
-			$redirect_to = sanitize_url(wp_unslash($_REQUEST['redirect_to']));
+			$redirect_to = esc_url_raw(wp_unslash($_REQUEST['redirect_to']));
 			// Redirect to HTTPS if user wants SSL.
 			if ($secure_cookie && false !== strpos($redirect_to, 'wp-admin')) {
 				$redirect_to = preg_replace('|^http://|', 'https://', $redirect_to);
@@ -1233,7 +1233,7 @@ switch ($action) {
 			}
 		}
 
-		$requested_redirect_to = isset($_REQUEST['redirect_to']) ? sanitize_url(wp_unslash($_REQUEST['redirect_to'])) : '';
+		$requested_redirect_to = isset($_REQUEST['redirect_to']) ? esc_url_raw(wp_unslash($_REQUEST['redirect_to'])) : '';
 		/**
 		 * Filters the login redirect URL.
 		 *
@@ -1332,8 +1332,8 @@ switch ($action) {
 				$errors->add('updated', __('<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.'), 'message');
 			} elseif (WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action) {
 				$errors->add('enter_recovery_mode', __('Recovery Mode Initialized. Please log in to continue.'), 'message'); // phpcs:ignore UpdraftPlus.Translation.MultipleSentence.MultipleSentenceInsideTranslationFunction -- ignore this to use WordPress translation
-			} elseif (isset($_GET['redirect_to']) && false !== strpos(sanitize_url(wp_unslash($_GET['redirect_to'])), 'wp-admin/authorize-application.php')) {
-				$query_component = wp_parse_url(sanitize_url(wp_unslash($_GET['redirect_to'])), PHP_URL_QUERY);
+			} elseif (isset($_GET['redirect_to']) && false !== strpos(esc_url_raw(wp_unslash($_GET['redirect_to'])), 'wp-admin/authorize-application.php')) {
+				$query_component = wp_parse_url(esc_url_raw(wp_unslash($_GET['redirect_to'])), PHP_URL_QUERY);
 				parse_str($query_component, $query);
 
 				if (! empty($query['app_name'])) {

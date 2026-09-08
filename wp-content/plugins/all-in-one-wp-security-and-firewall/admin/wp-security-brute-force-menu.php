@@ -51,7 +51,6 @@ class AIOWPSecurity_Brute_Force_Menu extends AIOWPSecurity_Admin_Menu {
 			'404-detection' => array(
 				'title' => __('404 detection', 'all-in-one-wp-security-and-firewall'),
 				'render_callback' => array($this, 'render_404_detection'),
-				'display_condition_callback' => array('AIOWPSecurity_Utility_Permissions', 'is_main_site_and_super_admin'),
 			),
 			'honeypot' => array(
 				'title' => __('Honeypot', 'all-in-one-wp-security-and-firewall'),

@@ -91,6 +91,7 @@ class AIOWPSecurity_Blocking {
 				$aio_wp_security->debug_logger->log_debug("AIOWPSecurity_Blocking::add_ip_to_block_list - Error inserting record into AIOWPSEC_TBL_PERM_BLOCK table for IP ".$ip_address);
 				return false;
 			}
+			do_action('aiowpsecurity_update_country_blocking_data', $country_origin, $reason);
 			return true;
 		}
 		return true;
@@ -125,7 +126,7 @@ class AIOWPSecurity_Blocking {
 			return; //Visitor IP is not blocked - allow page to load
 		} else {
 			//block this visitor!!
-			$redirect_url = sanitize_url(apply_filters('aios_blocked_request_redirect_url', 'http://127.0.0.1'));
+			$redirect_url = esc_url_raw(apply_filters('aios_blocked_request_redirect_url', 'http://127.0.0.1'));
 			AIOWPSecurity_Utility::redirect_to_url($redirect_url);
 		}
 		return;

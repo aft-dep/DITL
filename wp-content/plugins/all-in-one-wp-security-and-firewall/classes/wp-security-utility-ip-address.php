@@ -115,19 +115,25 @@ class AIOWPSecurity_Utility_IP {
 		}
 		return $checked_ip;
 	}
-	
+
 	/**
-	 * Validates IP or IP range
+	 * Validates a list of IP addresses or IP ranges.
 	 *
-	 * @param array  $ip_list_array
-	 * @param string $list_type
-	 * @return array|WP_Error
+	 * Skips commented lines (lines starting with "#"), ensures the format is valid,
+	 * and prevents blacklisting the current user's IP address.
+	 *
+	 * @param array  $ip_list_array List of IPs or IP ranges to validate.
+	 * @param string $list_type     Type of list ('blacklist' or 'whitelist') used for special checks.
+	 *
+	 * @return array|WP_Error An array of valid IPs (and optionally errors) or a WP_Error if invalid.
+	 *
+	 * @throws Exception If the IP library fails to load.
 	 */
 	public static function validate_ip_list($ip_list_array, $list_type = '') {
 		$errors = '';
-		
+
 		$current_user_ip = AIOWPSecurity_Utility_IP::get_user_ip_address();
-		
+
 		//validate list
 		$submitted_ips = $ip_list_array;
 		$list = array();
@@ -152,11 +158,11 @@ class AIOWPSecurity_Utility_IP {
 						/* translators: %s: IP Address */
 						$errors .= "\n" . sprintf(__('%s is not a valid IP address format.', 'all-in-one-wp-security-and-firewall'), $item);
 					}
-					
+
 					if (strlen($item) > 4 && !in_array($item, $list)) {
 						if ($item == $current_user_ip && 'blacklist' == $list_type) {
-							//You can't ban your own IP
-							$errors .= "\n".__('You cannot ban your own IP address:', 'all-in-one-wp-security-and-firewall') . ' ' . $item;
+							// You can't blacklist your own IP
+							$errors .= "\n".__('You cannot blacklist your own IP address:', 'all-in-one-wp-security-and-firewall') . ' ' . $item;
 						} else {
 							$list[] = trim($item);
 						}
@@ -167,11 +173,14 @@ class AIOWPSecurity_Utility_IP {
 			//This function was called with an empty IP address array list
 		}
 
+
 		if (strlen($errors) > 0) {
 			return new WP_Error('invalid_ips', trim($errors));
 		}
 
-		if (sizeof($list) >= 1) return array_unique($list, SORT_STRING);
+		if (sizeof($list) >= 1) {
+			return array_unique($list, SORT_STRING);
+		}
 
 		return array();
 	}

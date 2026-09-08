@@ -68,7 +68,7 @@ iMapsBuilder.listenToClicks = function (mapID) {
   console.log(iMapsData.data[0].container);
   document
     .getElementById(iMapsData.data[0].container)
-    .addEventListener('mapEntryClicked', function (ev) {
+    .addEventListener('mapEntryClicked', function () {
       let data = iMapsManager.maps[mapID].map.lastClickedEntry.dataItem.dataContext;
       iMapsBuilder.populateClickInfo(data);
     });
@@ -230,7 +230,7 @@ iMapsBuilder.clickActionWarnings = function () {
   var clickActionMarkerBts = document.getElementsByName('map_info[markerDefaults][action]')[0];
   var mainContainer = document.getElementById('map_info');
 
-  clickActionBts.addEventListener('change', function (ev) {
+  clickActionBts.addEventListener('change', function () {
     if (this.value !== 'none') {
       mainContainer.classList.add('igm_region_click_check');
     } else {
@@ -238,7 +238,7 @@ iMapsBuilder.clickActionWarnings = function () {
     }
   });
 
-  clickActionMarkerBts.addEventListener('change', function (ev) {
+  clickActionMarkerBts.addEventListener('change', function () {
     if (this.value !== 'none') {
       mainContainer.classList.add('igm_marker_click_check');
     } else {
@@ -262,7 +262,7 @@ iMapsBuilder.clickActionWarnings = function () {
 iMapsBuilder.autoLabelsReset = function () {
   var clearLink = document.getElementById('igm-reset-auto-labels');
   if (clearLink) {
-    clearLink.addEventListener('click', function (ev) {
+    clearLink.addEventListener('click', function () {
       if (confirm(iMapsOptions.messages.resetAutoLabels)) {
         var regionLabelsCustomCoordinates = document.getElementsByName(
           'map_info[regionLabels][regionLabelCustomCoordinates]'
@@ -312,7 +312,7 @@ iMapsBuilder.sortableOverlay = function () {
   if (overlayParent) {
     overlaySortable.sortable({
       placeholder: 'ui-state-highlight',
-      stop: function (event, ui) {
+      stop: function () {
         iMapsBuilder.previewBlocked = true;
         iMapsBuilder.blockPreview();
         iMapsBuilder.updateOrderOverlay();
@@ -422,19 +422,15 @@ iMapsBuilder.initAvailableRegions = function () {
 };
 
 iMapsBuilder.populateAvailableRegions = function (regionCodes) {
-  var data = iMapsData.data[0],
-    regionDataContainer = document.getElementsByName('map_regions_info[regionData]')[0],
+  var regionDataContainer = document.getElementsByName('map_regions_info[regionData]')[0],
     container = document.getElementById('map_region_data'),
     currentMap = document.getElementsByName('map_info[map]')[0].selectedOptions[0].text,
     jsonContainer,
     containerContent,
-    tree,
     regionData = {},
-    populateButton,
     regionDataArray = [],
     mainContainer = document.getElementById('map_info'),
-    html = document.createElement('div'),
-    used = iMapsBuilder.regionsUsed;
+    html = document.createElement('div');
 
   if (typeof regionCodes === 'undefined') {
     regionCodes = iMapsBuilder.regionCodes;
@@ -532,7 +528,7 @@ iMapsBuilder.populateAvailableRegions = function (regionCodes) {
     container.appendChild(jsonContainer);
 
     // Create json-tree
-    tree = jsonTree.create(
+    jsonTree.create(
       {
         full: regionCodes,
       },
@@ -653,7 +649,6 @@ iMapsBuilder.buildPreview = function () {
     form = iMapsBuilder.form,
     mapId,
     mapContainer,
-    mapData,
     onChangeFunction,
     inputsSelector,
     inputs,
@@ -661,7 +656,7 @@ iMapsBuilder.buildPreview = function () {
 
   window.addEventListener(
     'scroll',
-    function (e) {
+    function () {
       if (iMapsBuilder.isInViewport(previewContainer)) {
         if (iMapsBuilder.needsUpdate) {
           iMapsBuilder.updatePreview(form, false);
@@ -695,7 +690,7 @@ iMapsBuilder.buildPreview = function () {
 
   // when a clone button is clicked, we remove event listener from form and add it again to include new inputs
   document.querySelectorAll('.csf-cloneable-add').forEach(function (button) {
-    button.addEventListener('click', function (e) {
+    button.addEventListener('click', function () {
       inputs.forEach(function (input) {
         input.onchange = null;
       });
@@ -710,7 +705,7 @@ iMapsBuilder.buildPreview = function () {
 
   // onclick events to trigger change on some fields
   switchInputs = document.querySelectorAll('#map_info .csf--switcher');
-  switchInputs.forEach(function (inp) {
+  switchInputs.forEach(function () {
     // inp.addEventListener("click", onChangeFunction);
   });
 
@@ -751,7 +746,6 @@ iMapsBuilder.restartMap = function () {
 iMapsBuilder.updatePreview = function (form, ev) {
   var formData = new FormData(form),
     mapContainer,
-    mapData,
     mapWrapper,
     paddingTop,
     maxWidth,
@@ -776,7 +770,6 @@ iMapsBuilder.updatePreview = function (form, ev) {
 
   if (iMaps.maps) {
     Object.keys(iMaps.maps).forEach(function (id) {
-      mapData = iMaps.maps[id];
       map = iMaps.maps[id].map;
       baseRegionSeries = iMaps.maps[id].baseRegionSeries;
     });
@@ -1042,7 +1035,7 @@ iMapsBuilder.eventGeocoding = function (e) {
     });
 
     // blur (remove focus) event
-    iMapsBuilder.searchInput.addEventListener('blur', function (e) {
+    iMapsBuilder.searchInput.addEventListener('blur', function () {
       iMapsBuilder.geocodeAddress();
     });
   }
@@ -1086,7 +1079,7 @@ iMapsBuilder.initGoogleAutocomplete = function () {
   return;
 };
 
-iMapsBuilder.fillInAddress = function (i) {
+iMapsBuilder.fillInAddress = function () {
   var autocomplete = iMapsBuilder.autocomplete;
   var input = iMapsBuilder.searchInput;
   var parent = iMapsBuilder.getClosest(input, '.csf-fieldset-content');
@@ -1156,7 +1149,9 @@ iMapsBuilder.getClosest = function (elem, selector) {
 
   // Get the closest matching element
   for (; elem && elem !== document; elem = elem.parentNode) {
-    if (elem.matches(selector)) return elem;
+    if (elem.matches(selector)) {
+      return elem;
+    }
   }
   return null;
 };

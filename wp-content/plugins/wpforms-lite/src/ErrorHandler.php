@@ -110,6 +110,7 @@ class ErrorHandler {
 			WP_PLUGIN_DIR . '/wpforms-lead-forms/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-mailchimp/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-mailerlite/vendor/',
+			WP_PLUGIN_DIR . '/wpforms-mercado-pago/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-offline-forms/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-paypal-commerce/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-paypal-standard/vendor/',
@@ -172,7 +173,7 @@ class ErrorHandler {
 		}
 
 		// Suppress the _load_textdomain_just_in_time() notices related the WPForms for WP 6.7+.
-		if ( version_compare( $GLOBALS['wp_version'], '6.7', '>=' ) ) {
+		if ( wpforms_is_wp_version_at_least( '6.7' ) ) {
 			add_action( 'doing_it_wrong_run', [ $this,'action_doing_it_wrong_run' ], 0, 3 );
 			add_action( 'doing_it_wrong_run', [ $this,'action_doing_it_wrong_run' ], 20, 3 );
 			add_filter( 'doing_it_wrong_trigger_error', [ $this, 'filter_doing_it_wrong_trigger_error' ], 10, 4 );

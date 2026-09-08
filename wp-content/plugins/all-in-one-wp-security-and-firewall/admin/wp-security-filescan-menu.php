@@ -55,9 +55,7 @@ class AIOWPSecurity_Filescan_Menu extends AIOWPSecurity_Admin_Menu {
 	protected function render_file_change_detect() {
 		global $aio_wp_security;
 
-		$aios_commands = new AIOWPSecurity_Commands();
-
-		$scanner_data = $aios_commands->get_scanner_data();
+		$scanner_data = AIOWPSecurity_Utility_File::get_scanner_data();
 
 		$aio_wp_security->include_template('wp-admin/scanner/file-change-detect.php', false, $scanner_data);
 	}

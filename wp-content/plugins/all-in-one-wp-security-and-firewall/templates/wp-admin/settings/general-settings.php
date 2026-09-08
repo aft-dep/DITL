@@ -1,7 +1,6 @@
 <?php if (!defined('ABSPATH')) die('No direct access.'); ?>
 <div class="aio_grey_box">
-	<p><?php esc_html_e('For information, updates and documentation, please visit', 'all-in-one-wp-security-and-firewall'); ?> <a href="https://teamupdraft.com/all-in-one-security/?utm_source=aios-plugin&utm_medium=referral&utm_campaign=paac&utm_content=documentation-from-settings&utm_creative_format=notice" target="_blank"><?php echo esc_html('All-In-One Security'); ?></a> <?php esc_html_e('Page', 'all-in-one-wp-security-and-firewall'); ?>.</p>
-</div>
+	<p><?php esc_html_e('For information, updates and documentation, please visit', 'all-in-one-wp-security-and-firewall'); ?> <a href="https://teamupdraft.com/all-in-one-security/?utm_source=aios-plugin&utm_medium=referral&utm_campaign=paac&utm_content=documentation-from-settings&utm_creative_format=notice" target="_blank"><?php echo esc_html('All-In-One Security'); ?></a>
 <?php
 if (!is_super_admin()) {
 	// Hide config settings if multisite and not super admin.
@@ -15,7 +14,6 @@ if (!is_super_admin()) {
 			<?php
 			esc_html_e('Thank you for using the All-In-One Security plugin.', 'all-in-one-wp-security-and-firewall');
 			?>
-			&nbsp;
 			<?php
 			esc_html_e('There are a lot of security features in this plugin.', 'all-in-one-wp-security-and-firewall');
 			?>
@@ -24,7 +22,6 @@ if (!is_super_admin()) {
 			<?php
 			esc_html_e('To start, go through each security option and enable the "basic" options.', 'all-in-one-wp-security-and-firewall');
 			?>
-			&nbsp;
 			<?php
 			esc_html_e('The more features you enable, the more security points you will achieve.', 'all-in-one-wp-security-and-firewall');
 			?>

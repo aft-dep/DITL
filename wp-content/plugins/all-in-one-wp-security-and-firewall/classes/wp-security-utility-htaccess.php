@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 
 class AIOWPSecurity_Utility_Htaccess {
 
-	// The following variables will store the comment markers for each of features added to the .htacces file
+	// The following variables will store the comment markers for each of features added to the .htaccess file
 	// This will make it easy to locate the blocks of code for deletion if someone disables a feature
 	public static $ip_blacklist_marker_start = '#AIOWPS_IP_BLACKLIST_START';
 
@@ -481,7 +481,7 @@ class AIOWPSecurity_Utility_Htaccess {
 								RedirectMatch 403 (\=\\\\\\\'|\=\\\%27|/\\\\\\\'/?|\)\.css\()$
 								RedirectMatch 403 (\,|\)\+|/\,/|\{0\}|\(/\(|\.\.\.|\+\+\+|\||\\\\\"\\\\\")
 								RedirectMatch 403 \.(cgi|asp|aspx|cfg|dll|exe|jsp|mdb|sql|ini|rar)$
-								RedirectMatch 403 /(contac|fpw|install|pingserver|register)\.php$
+								RedirectMatch 403 /(contact|fpw|install|pingserver|register)\.php$
 								RedirectMatch 403 (base64|crossdomain|localhost|wwwroot|e107\_)
 								RedirectMatch 403 (eval\(|\_vti\_|\(null\)|echo.*kae|config\.xml)
 								RedirectMatch 403 \.well\-known/host\-meta

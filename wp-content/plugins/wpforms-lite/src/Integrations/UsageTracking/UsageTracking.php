@@ -2,10 +2,17 @@
 
 namespace WPForms\Integrations\UsageTracking;
 
+use WPForms\Admin\Builder\Settings\QrCode;
 use WPForms\Admin\Builder\Templates;
 use WPForms\Integrations\AI\Helpers as AIHelpers;
 use WPForms\Integrations\IntegrationInterface;
 use WPForms\Integrations\LiteConnect\Integration;
+use WPForms\SetupChecklist\Checklist;
+use WPForms\SetupChecklist\CompletionDetector;
+use WPForms\SetupChecklist\Config;
+use WPForms\SetupChecklist\State;
+use WPForms\SetupWizard\Service\PluginCatalog;
+use WPForms\SetupWizard\Service\PluginDetector;
 
 /**
  * Usage Tracker functionality to understand what's going on client's sites.
@@ -64,7 +71,17 @@ class UsageTracking implements IntegrationInterface {
 	 *
 	 * @since 1.6.1
 	 */
-	public function load() { // phpcs:ignore WPForms.PHP.HooksMethod.InvalidPlaceForAddingHooks
+	public function load() {
+
+		$this->hooks();
+	}
+
+	/**
+	 * Register hooks.
+	 *
+	 * @since 1.10.0
+	 */
+	private function hooks() {
 
 		add_filter( 'wpforms_settings_defaults', [ $this, 'settings_misc_option' ], 4 );
 
@@ -177,6 +194,7 @@ class UsageTracking implements IntegrationInterface {
 			'wpforms_license_status'         => $this->get_license_status(),
 			'wpforms_is_pro'                 => wpforms()->is_pro(),
 			'wpforms_entries_avg'            => $this->get_entries_avg( $forms_total, $entries_total ),
+			'wpforms_entries_median'         => $this->get_entries_median( $forms ),
 			'wpforms_entries_total'          => $entries_total,
 			'wpforms_entries_last_7days'     => $this->get_entries_total( '7days' ),
 			'wpforms_entries_last_30days'    => $this->get_entries_total( '30days' ),
@@ -184,6 +202,7 @@ class UsageTracking implements IntegrationInterface {
 			'wpforms_form_fields_count'      => $form_fields_count,
 			'wpforms_form_templates_total'   => $form_templates_total,
 			'wpforms_form_antispam_stat'     => $this->get_form_antispam_stat( $forms ),
+			'wpforms_qr_code_stat'           => $this->get_qr_code_stat( $forms ),
 			'wpforms_challenge_stats'        => get_option( 'wpforms_challenge', [] ),
 			'wpforms_lite_installed_date'    => $this->get_installed( $activated_dates, 'lite' ),
 			'wpforms_pro_installed_date'     => $this->get_installed( $activated_dates, 'pro' ),
@@ -198,12 +217,16 @@ class UsageTracking implements IntegrationInterface {
 			'wpforms_order_summaries'        => $this->count_fields_with_setting( $forms, 'payment-total', 'summary' ),
 			'wpforms_multiple_confirmations' => count( $this->get_forms_with_multiple_confirmations( $forms ) ),
 			'wpforms_multiple_notifications' => count( $this->get_forms_with_multiple_notifications( $forms ) ),
+			'wpforms_conditional_logic'      => count( $this->get_forms_with_conditional_logic( $forms ) ),
 			'wpforms_ajax_form_submissions'  => count( $this->get_ajax_form_submissions( $forms ) ),
 			'wpforms_notification_count'     => wpforms()->obj( 'notifications' )->get_count(),
 			'wpforms_stats'                  => $this->get_additional_stats(),
 			'wpforms_ai'                     => AIHelpers::is_used(),
 			'wpforms_ai_killswitch'          => AIHelpers::is_disabled(),
 			'wpforms_disabled_entries_count' => count( $this->get_forms_with_disabled_entries( $forms ) ),
+			'wpforms_addons_dates'           => $this->get_addons_dates_data(),
+			'wpforms_adoption_tooltips'      => $this->get_adoption_tooltips_data(),
+			'wpforms_setup_checklist'        => $this->get_setup_checklist_data(),
 		];
 
 		$data = $this->add_promotion_plugin_data( $data );
@@ -217,6 +240,47 @@ class UsageTracking implements IntegrationInterface {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Setup Checklist engagement metrics, for the Lite-only onboarding checklist.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return array
+	 */
+	private function get_setup_checklist_data(): array {
+
+		if ( wpforms()->is_pro() ) {
+			return [];
+		}
+
+		$plugin_detector = new PluginDetector();
+
+		$state     = new State();
+		$checklist = new Checklist(
+			new Config(),
+			new CompletionDetector( $state, $plugin_detector ),
+			$plugin_detector,
+			new PluginCatalog()
+		);
+
+		$completed_items = [];
+
+		foreach ( $checklist->get_sections() as $section ) {
+			foreach ( $section['items'] as $item ) {
+				if ( ! empty( $item['complete'] ) ) {
+					$completed_items[] = $item['id'];
+				}
+			}
+		}
+
+		return [
+			'is_dismissed'          => $state->is_dismissed(),
+			'progress_percent'      => $checklist->get_progress()['percent'],
+			'progress_at_dismissal' => $state->get_progress_at_dismissal(),
+			'completed_items'       => $completed_items,
+		];
 	}
 
 	/**
@@ -235,6 +299,8 @@ class UsageTracking implements IntegrationInterface {
 			'sugar-calendar',
 			'duplicator',
 			'uncannyautomator',
+			'activelayer',
+			'wpvibe',
 		];
 
 		foreach ( $plugins as $plugin ) {
@@ -336,6 +402,10 @@ class UsageTracking implements IntegrationInterface {
 					'authorize_net-test-transaction-key',
 					'authorize_net-live-api-login-id',
 					'authorize_net-live-transaction-key',
+					'mercado_pago-test-access-token',
+					'mercado_pago-test-public-key',
+					'mercado_pago-live-access-token',
+					'mercado_pago-live-public-key',
 					'square-location-id-sandbox',
 					'square-location-id-production',
 					'geolocation-google-places-api-key',
@@ -530,7 +600,11 @@ class UsageTracking implements IntegrationInterface {
 				$enabled = [];
 
 				foreach ( $form->post_content['payments'] as $key => $value ) {
-					if ( ! empty( $value['enable'] ) ) {
+					if (
+						! empty( $value['enable'] )              // Authorize.Net and PayPal Standard always, plus legacy Stripe forms.
+						|| ! empty( $value['enable_one_time'] )  // Modern one-time payments.
+						|| ! empty( $value['enable_recurring'] ) // Modern recurring payments.
+					) {
 						$enabled[] = $key;
 					}
 				}
@@ -587,6 +661,69 @@ class UsageTracking implements IntegrationInterface {
 				return ! empty( $form->post_content['settings']['confirmations'] ) && count( $form->post_content['settings']['confirmations'] ) > 1;
 			}
 		);
+	}
+
+	/**
+	 * Forms with field-level conditional logic.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param array $forms List of forms to check.
+	 *
+	 * @return array List of forms with at least one field using conditional logic.
+	 */
+	private function get_forms_with_conditional_logic( array $forms ): array {
+
+		return array_filter(
+			$forms,
+			function ( $form ) {
+
+				$fields = $form->post_content['fields'] ?? [];
+
+				foreach ( (array) $fields as $field ) {
+					if ( $this->field_has_configured_conditional_logic( (array) $field ) ) {
+						return true;
+					}
+				}
+
+				return false;
+			}
+		);
+	}
+
+	/**
+	 * Whether a field has Conditional Logic enabled with at least one complete rule.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param array $field Field data.
+	 *
+	 * @return bool
+	 */
+	private function field_has_configured_conditional_logic( array $field ): bool {
+
+		if ( empty( $field['conditional_logic'] ) || empty( $field['conditionals'] ) ) {
+			return false;
+		}
+
+		foreach ( (array) $field['conditionals'] as $group ) {
+			foreach ( (array) $group as $rule ) {
+				$rule = (array) $rule;
+
+				if ( empty( $rule['operator'] ) || ! isset( $rule['field'] ) || trim( (string) $rule['field'] ) === '' ) {
+					continue;
+				}
+
+				if (
+					in_array( $rule['operator'], [ 'e', '!e' ], true ) ||
+					( isset( $rule['value'] ) && trim( (string) $rule['value'] ) !== '' )
+				) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -789,6 +926,156 @@ class UsageTracking implements IntegrationInterface {
 	private function get_entries_avg( int $forms, int $entries ): int {
 
 		return $forms ? round( $entries / $forms ) : 0;
+	}
+
+	/**
+	 * Median entries count.
+	 *
+	 * Provides a more accurate representation of typical form usage by reducing
+	 * the impact of outliers compared to the average.
+	 *
+	 * @since 1.10.0
+	 *
+	 * @param array $forms List of forms.
+	 *
+	 * @return int
+	 */
+	private function get_entries_median( array $forms ): int {
+
+		// Bail early if no forms exist.
+		if ( empty( $forms ) ) {
+			return 0;
+		}
+
+		$form_ids = wp_list_pluck( $forms, 'ID' );
+
+		if ( empty( $form_ids ) ) {
+			return 0;
+		}
+
+		// For Pro, count entries from the entries table for each form.
+		if ( wpforms()->is_pro() ) {
+			return $this->get_entries_median_pro( $form_ids );
+		}
+
+		// For Lite, use entries count from postmeta.
+		return $this->get_entries_median_lite( $form_ids );
+	}
+
+	/**
+	 * Get median entries count for forms using a custom query.
+	 *
+	 * @since 1.10.0
+	 *
+	 * @param array  $form_ids List of form IDs.
+	 * @param string $query    SQL query to get entry counts. Must use wpforms_wpdb_prepare_in().
+	 *
+	 * @return int
+	 */
+	private function get_entries_median_from_query( array $form_ids, string $query ): int {
+
+		global $wpdb;
+
+		// phpcs:disable
+		$entry_counts = $wpdb->get_col( $query );
+		$entry_counts = array_map( 'intval', $entry_counts );
+		// phpcs:enable
+
+		$forms_with_data = count( $entry_counts );
+		$total_forms     = count( $form_ids );
+
+		// Add 0 for forms without entries.
+		if ( $forms_with_data < $total_forms ) {
+			$entry_counts = array_merge(
+				$entry_counts,
+				array_fill( 0, $total_forms - $forms_with_data, 0 )
+			);
+		}
+
+		return $this->calculate_median( $entry_counts );
+	}
+
+	/**
+	 * Get median entries count for Pro version.
+	 *
+	 * @since 1.10.0
+	 *
+	 * @param array $form_ids List of form IDs.
+	 *
+	 * @return int
+	 */
+	private function get_entries_median_pro( array $form_ids ): int {
+
+		global $wpdb;
+
+		/**
+		 * Note: We use a direct database query instead of get_entries() in a loop
+		 * for performance reasons. With 100+ forms, looping would create N queries.
+		 * A single SQL query with GROUP BY is much more efficient.
+		 * We also exclude spam entries from the count.
+		 */
+		$query = "SELECT COUNT(entry_id)
+			FROM {$wpdb->prefix}wpforms_entries
+			WHERE form_id IN (" . wpforms_wpdb_prepare_in( $form_ids, '%d' ) . ")
+			AND status NOT IN ( 'spam', 'trash' )
+			GROUP BY form_id";
+
+		return $this->get_entries_median_from_query( $form_ids, $query );
+	}
+
+	/**
+	 * Get median entries count for Lite version.
+	 *
+	 * @since 1.10.0
+	 *
+	 * @param array $form_ids List of form IDs.
+	 *
+	 * @return int
+	 */
+	private function get_entries_median_lite( array $form_ids ): int {
+
+		global $wpdb;
+
+		/**
+		 * Note: We use a direct database query instead of get_post_meta() in a loop
+		 * for performance reasons. With many forms (e.g., 100+ forms), looping through
+		 * get_post_meta() would create N separate database queries. A single SQL query
+		 * with an IN clause is much more efficient for bulk operations.
+		 */
+		$query = "SELECT CAST(meta_value AS UNSIGNED) as count
+			FROM $wpdb->postmeta
+			WHERE post_id IN (" . wpforms_wpdb_prepare_in( $form_ids, '%d' ) . ")
+			AND meta_key = 'wpforms_entries_count'";
+
+		return $this->get_entries_median_from_query( $form_ids, $query );
+	}
+
+	/**
+	 * Calculate median from an array of numbers.
+	 *
+	 * @since 1.10.0
+	 *
+	 * @param array $numbers Array of numeric values.
+	 *
+	 * @return int
+	 */
+	private function calculate_median( array $numbers ): int {
+
+		if ( empty( $numbers ) ) {
+			return 0;
+		}
+
+		sort( $numbers );
+		$count = count( $numbers );
+		$mid   = (int) floor( $count / 2 );
+
+		// If odd number of elements, return the middle one.
+		if ( $count % 2 !== 0 ) {
+			return (int) $numbers[ $mid ];
+		}
+
+		// If even number of elements, return average of two middle elements.
+		return (int) round( ( $numbers[ $mid - 1 ] + $numbers[ $mid ] ) / 2 );
 	}
 
 	/**
@@ -997,9 +1284,64 @@ class UsageTracking implements IntegrationInterface {
 		}
 
 		// Count the list of keywords for the keyword filter.
-		$keyword_filter   = wpforms()->obj( 'antispam_keyword_filter' );
-		$keywords         = method_exists( $keyword_filter, 'get_keywords' ) ? $keyword_filter->get_keywords() : [];
+		$keyword_filter = wpforms()->obj( 'antispam_keyword_filter' );
+
+		$keywords = [];
+
+		if ( $keyword_filter && method_exists( $keyword_filter, 'get_keywords' ) ) {
+			$keywords = $keyword_filter->get_keywords();
+		}
+
 		$stat['keywords'] = count( $keywords );
+
+		return $stat;
+	}
+
+	/**
+	 * Get the QR Code setting adoption stat: counts only, no URLs or page IDs leave the site.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param array $forms Published forms.
+	 *
+	 * @return array
+	 */
+	private function get_qr_code_stat( array $forms ): array {
+
+		$stat = [
+			'forms_with_qr'    => 0,
+			'forms_generated'  => 0,
+			'destination_page' => 0,
+			'destination_url'  => 0,
+			'logo_none'        => 0,
+			'logo_wpforms'     => 0,
+			'logo_custom'      => 0,
+		];
+
+		foreach ( $forms as $form ) {
+			$settings    = $form->post_content['settings'] ?? [];
+			$destination = $settings['qr_code'] ?? 'none';
+
+			// Skip forms with the QR Code setting off.
+			if ( ! in_array( $destination, [ 'page', 'url' ], true ) ) {
+				continue;
+			}
+
+			$logo = $settings['qr_code_logo'] ?? 'wpforms';
+
+			// Guard the dynamic stat key against values saved in bypass of the builder sanitization.
+			if ( ! in_array( $logo, QrCode::LOGOS, true ) ) {
+				$logo = 'wpforms';
+			}
+
+			++$stat['forms_with_qr'];
+
+			$stat['forms_generated']              += empty( $settings['qr_code_generated'] ) ? 0 : 1;
+			$stat[ 'destination_' . $destination ] = ( $stat[ 'destination_' . $destination ] ?? 0 ) + 1;
+			$stat[ 'logo_' . $logo ]               = ( $stat[ 'logo_' . $logo ] ?? 0 ) + 1;
+		}
+
+		$stat['logo_upsell'] = QrCode::get_logo_upsell_events();
 
 		return $stat;
 	}
@@ -1043,5 +1385,43 @@ class UsageTracking implements IntegrationInterface {
 		}
 
 		return $counter;
+	}
+
+	/**
+	 * Get addons dates data.
+	 *
+	 * @since 1.10.0
+	 *
+	 * @return array
+	 */
+	private function get_addons_dates_data(): array {
+
+		/**
+		 * Filter addons dates data for usage tracking.
+		 *
+		 * @since 1.10.0
+		 *
+		 * @param array $addons_dates Addons dates data.
+		 */
+		return (array) apply_filters( 'wpforms_integrations_usage_tracking_usage_tracking_get_addons_dates', [] );
+	}
+
+	/**
+	 * Get adoption tooltips data.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @return array
+	 */
+	private function get_adoption_tooltips_data(): array {
+
+		/**
+		 * Filter adoption tooltips data for usage tracking.
+		 *
+		 * @since 2.0.1
+		 *
+		 * @param array $events Adoption tooltip event counters.
+		 */
+		return (array) apply_filters( 'wpforms_integrations_usage_tracking_usage_tracking_get_adoption_tooltips_data', [] );
 	}
 }

@@ -18,6 +18,7 @@
 				$output .= '<thead class="aiowps_scan_result_table_header">';
 				$output .= '<tr>';
 				$output .= '<th>' . esc_html__('File', 'all-in-one-wp-security-and-firewall') . '</th>';
+				if ('files_changed' == $type) $output .= '<th>' . esc_html__('Reason', 'all-in-one-wp-security-and-firewall') . '</th>';
 				$output .= '<th>' . esc_html__('File size', 'all-in-one-wp-security-and-firewall') . '</th>';
 				$output .= '<th>' . esc_html__('File modified', 'all-in-one-wp-security-and-firewall') . '</th>';
 				$output .= '</tr>';
@@ -25,6 +26,13 @@
 				foreach ($last_scan_results[$type] as $key => $value) {
 					$output .= '<tr>';
 					$output .= '<td>' . esc_html($key) . '</td>';
+					if ('files_changed' == $type) {
+						if ('checksum_mismatch' == $value['reason']) {
+							$output .= '<td>' . esc_html__('File contents has changed.', 'all-in-one-wp-security-and-firewall') . '<br>' .  esc_html__('Known checksum(s):', 'all-in-one-wp-security-and-firewall') . ' ' . esc_html(implode(',', $value['checksums']['known_checksums'])) . '<br>' . esc_html__('File checksum(s):', 'all-in-one-wp-security-and-firewall') . ' ' . esc_html(implode(',', $value['checksums']['file_checksums'])) . '</td>';
+						} else {
+							$output .= '<td>' . esc_html__('File metadata has changed.', 'all-in-one-wp-security-and-firewall') . '</td>';
+						}
+					}
 					$file_size = AIOWPSecurity_Utility::convert_numeric_size_to_text($value['filesize']);
 					$output .= '<td>' . esc_html($file_size) . '</td>';
 					$last_modified = AIOWPSecurity_Utility::convert_timestamp($value['last_modified']);

@@ -379,6 +379,8 @@
 	border-top-right-radius: 4px;
 	border-bottom-right-radius: 4px;
 	margin-left: -3px;
+	height: 34px;
+	box-sizing: border-box;
 }
 
 .aiowps_feature_protection_none {
@@ -701,6 +703,7 @@ svg > g > g.google-visualization-tooltip {
 
 .button-link.aios-toggle-advanced-options {
 	text-decoration: none;
+	border: none;
 }
 
 .button-link.aios-toggle-advanced-options:hover {
@@ -739,15 +742,15 @@ button.button-link.aios-toggle-advanced-options.advanced-options-disabled, butto
 .aios-toggle-advanced-options span.dashicons {
 	text-decoration: none;
 	font-size: 16px;
-	height: 16px;
+	height: 32px;
 	vertical-align: middle;
 	transition: .2s all;
 	color: #444;
+	line-height: 2 !important;
 }
 
 .aios-toggle-advanced-options.opened::before {
 	content: '';
-	border-top: 1px solid #CCC;
 	width: calc(100% + 13px);
 	position: absolute;
 	top: 16px;
@@ -947,6 +950,7 @@ button.button-link.aios-toggle-advanced-options.advanced-options-disabled, butto
 	margin-left: -5px;
 	padding: 0;
 	transform: translatey(5px);
+	line-height: 0.99; /* Set to 0.99 to solve high resolution screen issue for x near Close */
 }
 
 .aios_saving_popup img {
@@ -1192,6 +1196,205 @@ button.button-link.aios-toggle-advanced-options.advanced-options-disabled, butto
 	background: #FFF;
 }
 
+.aios-loading-bar {
+	position: relative;
+	width: 100%;
+	height: 20px;
+	background-color: #B7B7B7;
+	overflow: hidden;
+}
+
+.aios-loading-progress {
+	width: 10%;
+	height: 100%;
+	background-color: #328EC2;
+	transition: width 0.5s ease-in-out;
+}
+
+.aios-progress-text {
+	color: #FFF;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.aiowps-feature-category-progress-row {
+	display: grid;
+	grid-template-columns: 235px 160px;
+	align-items: center;
+	margin: 14px 0;
+}
+
+.aiowps-feature-category-name-wrapper {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;  /* Allows text truncation if needed */
+}
+
+.aiowps-feature-category-name {
+	font-size: 18px;
+	font-weight: 400;
+	letter-spacing: -0.3px;
+	line-height: 1.4;
+	white-space: nowrap;
+}
+
+.aiowps-feature-category-name a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.aiowps-feature-category-percentage {
+	font-size: 12px;
+	color: #1D2327;
+	font-weight: 200;
+	white-space: nowrap;
+	letter-spacing: -0.1px;
+	padding-top: 1px; /* Slight adjustment to align with name */
+}
+
+.aiowps-feature-category-circles-container {
+	display: flex;
+	gap: 8px;
+	padding-left: 4px;
+	overflow: hidden;
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.aiowps-feature-category-circle {
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background-color: #E8E8E8;
+	position: relative;
+	overflow: hidden;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.aiowps-feature-category-circle-fill {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: #4B4DB1;
+	transform-origin: left;
+	transition: transform 0.15s ease-out;
+}
+
+.aiowps-feature-category-circle-fill.full {
+	transform: scalex(1);
+}
+
+.aiowps-feature-category-circle-fill.empty {
+	transform: scalex(0);
+}
+
+.aiowps-feature-category-circle-fill.half {
+	transform: scalex(0.5);
+}
+
+.aiowps-feature-category-achievement-container {
+	max-width: 100%;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 1115px) {
+
+	.aiowps-feature-category-progress-row {
+		display: block;
+		margin: 20px 0;
+	}
+	
+	.aiowps-feature-category-circles-container {
+		padding-left: 0;
+		margin-top: 4px;
+	}
+	
+	.aiowps-feature-category-name {
+		font-size: 20px;
+	}
+
+	.aiowps-feature-category-percentage {
+		font-size: 16px;
+	}
+	
+}
+
+.aiowps-feature-category-circle.aiowps-feature-category-premium-lock {
+	background-color: #F0F0F0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.aiowps-feature-category-premium-lock .dashicons-lock {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	color: #808080;
+}
+
+.aiowps-feature-category-premium-lock.explainer-lock {
+	width: 32px;
+	height: 32px;
+}
+
+.aiowps-feature-category-premium-lock.explainer-lock .dashicons-lock {
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+}
+
+.aiowps-feature-category-premium-lock:hover {
+	background-color: #E8E8E8;
+}
+
+.aiowps-feature-category-premium-lock:hover .dashicons-lock {
+	color: #666;
+}
+
+/* Premium Explainer Row Styles */
+.aiowps-feature-category-premium-explainer-row {
+	margin-top: 24px;
+	padding-top: 24px;
+	border-top: 1px solid #E8E8E8;
+}
+
+.aiowps-feature-category-premium-explainer-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin-left: 6px;
+}
+
+.aiowps-feature-category-premium-explainer-title {
+	color: #1D2327;
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: -0.3px;
+	line-height: 1.4;
+}
+
+.aiowps-feature-category-premium-explainer-description {
+	color: #666;
+	font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 480px) {
+
+	.aiowps-feature-category-premium-explainer-title {
+		font-size: 20px;
+	}
+
+	.aiowps-feature-category-premium-explainer-description {
+		font-size: 13px;
+	}
+
+}
+
 .aios-data-table {
 	border-collapse: collapse;
 	width: 100%;
@@ -1209,3 +1412,39 @@ button.button-link.aios-toggle-advanced-options.advanced-options-disabled, butto
 .aios-data-table tr:hover {
 	background-color: #DDD;
 }
+
+@media only screen and (max-width: 782px) {
+
+	.tablenav.top .actions {
+		display: block;
+	}
+
+	.tablenav.top .actions > * {
+		margin-bottom: 8px;
+	}
+
+}
+
+/* Start Fix the WordPress 7.0 compatibility issues  */
+
+.wp-core-ui .button, .wp-core-ui .button-primary, .wp-core-ui .button-secondary {
+	line-height: 2.14285714;
+	min-height: 32px;
+}
+
+input[type=date], input[type=datetime-local], input[type=datetime], input[type=email], input[type=month], input[type=number], input[type=password], input[type=search], input[type=tel], input[type=text], input[type=time], input[type=url], input[type=week] {
+	line-height: 2.14285714;
+	min-height: 32px;
+}
+
+.wp-core-ui .button-link:focus, .wp-core-ui .button.button-link:focus {
+	box-shadow: none;
+	outline: none;
+}
+
+.wp-core-ui select {
+	line-height: 2.14285714;
+	min-height: 32px;
+}
+
+/* End Fix WordPress 7.0 compatibility issues */

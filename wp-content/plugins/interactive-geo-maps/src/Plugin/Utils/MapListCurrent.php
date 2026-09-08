@@ -41,7 +41,7 @@ class MapListCurrent {
     }
 
     public function get_current() {
-        $value       = isset( $_GET['map'] ) ? sanitize_text_field( $_GET['map'] ) : '';
+        $value       = isset( $_GET['map'] ) ? sanitize_text_field( wp_unslash( $_GET['map'] ) ) : '';
         $this->value = $value;
 
         $map_list = new MapList();

@@ -36,9 +36,8 @@ class MapBlock {
         );
 
         $args = [
-            'posts_per_page'   => -1,
-            'post_type'        => 'igmap',
-            'suppress_filters' => true,
+            'posts_per_page' => -1,
+            'post_type'      => 'igmap',
         ];
 
         $maps = get_posts( $args );

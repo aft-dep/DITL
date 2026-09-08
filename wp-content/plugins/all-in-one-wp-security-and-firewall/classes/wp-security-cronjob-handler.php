@@ -21,6 +21,8 @@ class AIOWPSecurity_Cronjob_Handler {
 		add_action('aiowps_purge_old_debug_logs', array($this, 'purge_old_debug_logs'));
 		add_action('aiowps_send_lockout_email', array($this, 'send_lockout_email'));
 		add_action('aios_update_googlebot_ip_ranges', array($this, 'aios_update_googlebot_ip_ranges'));
+		add_action('aios_update_bingbot_ip_ranges', array($this, 'aios_update_bingbot_ip_ranges'));
+		add_action('aiowps_perform_fcd_scan_tasks', array($this, 'aiowps_scheduled_fcd_scan_handler'));
 	}
 
 	/**
@@ -87,6 +89,8 @@ class AIOWPSecurity_Cronjob_Handler {
 		do_action('aiowps_send_lockout_email');
 		do_action('aios_perform_update_antibot_keys');
 		do_action('aios_update_googlebot_ip_ranges');
+		do_action('aios_update_bingbot_ip_ranges');
+		do_action('aiowps_clean_up_old_tasks');
 	}
 
 	/**
@@ -130,8 +134,7 @@ class AIOWPSecurity_Cronjob_Handler {
 	 * Update Googlebot IP ranges for the firewall configuration.
 	 *
 	 * This function updates the Googlebot IP ranges in the firewall configuration.
-	 * It checks if the 'Block fake Googlebots' feature is enabled and then retrieves
-	 * the validated Googlebot IP ranges. If the IP ranges are retrieved successfully,
+	 * It retrieves the Googlebot IP ranges and validates.
 	 * they are saved to the firewall configuration. If there is an error in retrieving
 	 * the IP ranges, a debug message is logged.
 	 *
@@ -143,15 +146,71 @@ class AIOWPSecurity_Cronjob_Handler {
 	public function aios_update_googlebot_ip_ranges() {
 		global $aio_wp_security;
 		$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG);
+		$validated_ip_list_array = AIOWPSecurity_Utility::get_googlebot_ip_ranges();
 
-		if ($aiowps_firewall_config->get_value('aiowps_block_fake_googlebots')) {
-			$validated_ip_list_array = AIOWPSecurity_Utility::get_googlebot_ip_ranges();
+		if (is_wp_error($validated_ip_list_array)) {
+			$aio_wp_security->debug_logger->log_debug('The attempt to save the IP addresses failed, because it was not possible to validate the Googlebot IP addresses: ' . $validated_ip_list_array->get_error_message(), 4);
+		}
 
-			if (is_wp_error($validated_ip_list_array)) {
-				$aio_wp_security->debug_logger->log_debug('The attempt to save the IP addresses failed, because it was not possible to validate the Googlebot IP addresses: ' . $validated_ip_list_array->get_error_message(), 4);
+		$aiowps_firewall_config->set_value('aiowps_googlebot_ip_ranges', $validated_ip_list_array);
+	}
+	
+	/**
+	 * Update Bingbot IP ranges for the firewall configuration.
+	 *
+	 * This function updates the Bingbot IP ranges in the firewall configuration.
+	 * It retrieves the Bingbot IP ranges and validates.
+	 * They are saved to the firewall configuration.
+	 * If there is an error in retrieving, a debug message is logged.
+	 *
+	 * @global object $aio_wp_security The AIO WP Security object.
+	 * @global object $aiowps_firewall_config The AIO WP Security firewall configuration object.
+	 *
+	 * @return void
+	 */
+	public function aios_update_bingbot_ip_ranges() {
+		global $aio_wp_security;
+		$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG);
+		
+		$validated_ip_list_array = AIOWPSecurity_Utility::get_bingbot_ip_ranges();
+
+		if (is_wp_error($validated_ip_list_array)) {
+			$aio_wp_security->debug_logger->log_debug('The attempt to save the IP addresses failed, because it was not possible to validate the Bingbot IP addresses: ' . $validated_ip_list_array->get_error_message(), 4);
+		}
+
+		$aiowps_firewall_config->set_value('aiowps_bingbot_ip_ranges', $validated_ip_list_array);
+	}
+
+	/**
+	 * This function is called via the following filter 'aiowps_perform_fcd_scan_tasks' and will start the file scan
+	 *
+	 * @return void
+	 */
+	public function aiowps_scheduled_fcd_scan_handler() {
+		global $aio_wp_security;
+		$task_manager = AIOWPSecurity_Task_Manager::get_instance();
+
+		if ('1' != $aio_wp_security->configs->get_value('aiowps_enable_automated_fcd_scan') || $task_manager->fetch_active_task('file_scan')) return;
+
+		$aio_wp_security->debug_logger->log_debug_cron(__METHOD__ . " - Scheduled fcd_scan is enabled. Checking now to see if scan needs to be done...");
+
+		$current_time = time();
+		$next_fcd_scan_time = AIOWPSecurity_File_Scanner::get_next_scheduled_scan();
+
+		if ($next_fcd_scan_time <= $current_time) {
+			$task_name = 'aiowps_file_scan_' . $task_manager->generate_unique_task_name();
+			$task = AIOWPSecurity_File_Scan_Task::create_task('file_scan', $task_name, array('anonymous_user_allowed' => true));
+
+			if (!$task) {
+				$aio_wp_security->debug_logger->log_debug(__METHOD__ . ' - Scheduled filescan operation failed.', 4);
+				return;
 			}
 
-			$aiowps_firewall_config->set_value('aiowps_googlebot_ip_ranges', $validated_ip_list_array);
+			if (!wp_next_scheduled('aiowps_process_file_scan_tasks')) {
+				wp_schedule_single_event(time() + 3, 'aiowps_process_file_scan_tasks');
+			}
+
+			$aio_wp_security->configs->set_value('aiowps_last_fcd_scan_time', $current_time, true);
 		}
 	}
 }

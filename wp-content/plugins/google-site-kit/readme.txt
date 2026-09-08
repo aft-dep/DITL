@@ -2,9 +2,9 @@
 
 Contributors:      google
 Requires at least: 5.2
-Tested up to:      7.0
+Tested up to:      7.1
 Requires PHP:      7.4
-Stable tag:        1.183.0
+Stable tag:        1.187.0
 License:           Apache License 2.0
 License URI:       https://www.apache.org/licenses/LICENSE-2.0
 Tags:              google, search-console, analytics, adsense, pagespeed-insights
@@ -112,75 +112,30 @@ Please create a new topic on our [WordPress.org support forum](https://wordpress
 
 == Changelog ==
 
-= 1.183.0 =
+= 1.187.0 =
 
 **Enhanced**
 
-* Add GA event tracking for the notices displayed when the Key Metrics and Audience Segmentation widgets are re-shown. See [#12972](https://github.com/google/site-kit-wp/issues/12972).
-* Launch the Setup Flow Refresh feature by force-enabling the feature flag in the plugin. See [#12966](https://github.com/google/site-kit-wp/issues/12966).
-* Update PDF scaling to be consistent throughout plugin. See [#12954](https://github.com/google/site-kit-wp/issues/12954).
-* Update targets for "Learn more" links in the new setup flow. See [#12930](https://github.com/google/site-kit-wp/issues/12930).
-* Re-show hidden Audience Segmentation widgets, with an explanatory notice. See [#12917](https://github.com/google/site-kit-wp/issues/12917).
-* Add survey triggers for enhanced conversions notifications. See [#12914](https://github.com/google/site-kit-wp/issues/12914).
-* Fix Analytics account creation errors to redirect back to the Settings screen when initiated from there. See [#12876](https://github.com/google/site-kit-wp/issues/12876).
-* Ensure that tooltips in the dashboard tour are fully visible in all viewports. See [#12873](https://github.com/google/site-kit-wp/issues/12873).
-* Re-show hidden Key Metrics widgets, with an explanatory notice. See [#12872](https://github.com/google/site-kit-wp/issues/12872).
-* Update the copy on the splash screen for secondary admins in the new setup flow. See [#12871](https://github.com/google/site-kit-wp/issues/12871).
-* Remove feature flag for the email reporting feature, now that it is fully-deployed to all users. See [#12863](https://github.com/google/site-kit-wp/issues/12863).
-* Ask the site purpose question in the new Search Console-only setup flow. See [#12817](https://github.com/google/site-kit-wp/issues/12817).
-* Add opt-in tracking events to Site Goals interactions. See [#12602](https://github.com/google/site-kit-wp/issues/12602).
-* Implement PDF Widgets for "Speed" section. See [#12549](https://github.com/google/site-kit-wp/issues/12549).
-* Implement the `Top search queries for your site` PDF widget. See [#12547](https://github.com/google/site-kit-wp/issues/12547).
-* Add support for "Search traffic over time" in PDF reports. See [#12545](https://github.com/google/site-kit-wp/issues/12545).
-* Implementing the "Your site traffic over time" PDF widget. See [#12544](https://github.com/google/site-kit-wp/issues/12544).
-* Add the Audience Segmentation setup error widget to Storybook. See [#12380](https://github.com/google/site-kit-wp/issues/12380).
-* Add the splash screen setup error notification to Storybook. See [#12374](https://github.com/google/site-kit-wp/issues/12374).
-* Handle Analytics activation errors on the new splash screen. See [#12373](https://github.com/google/site-kit-wp/issues/12373).
-* Extract inline Sign in with Google frontend JS to external script. See [#11950](https://github.com/google/site-kit-wp/issues/11950).
-* Allow per-instance width for Sign In with Google buttons, and update the width of the button shown on the WordPress login form to match the rest of the form below it. See [#11949](https://github.com/google/site-kit-wp/issues/11949).
+* Remove "Site Goals" feature flag (feature is fully-available). See [#13420](https://github.com/google/site-kit-wp/issues/13420).
+* Add Site Health debug data for the Content_Events provider. See [#13292](https://github.com/google/site-kit-wp/issues/13292).
+* Add the `pagination_click` event tracking. See [#13289](https://github.com/google/site-kit-wp/issues/13289).
+* Add embedded video events tracking. See [#13288](https://github.com/google/site-kit-wp/issues/13288).
+* Add the "Add Features" admin menu item, and a placeholder screen for the Feature Discovery Hub. See [#13244](https://github.com/google/site-kit-wp/issues/13244).
+* Fix bugs with overlapping notifications. See [#13219](https://github.com/google/site-kit-wp/issues/13219).
+* Update the email report notice UI. See [#13086](https://github.com/google/site-kit-wp/issues/13086).
+* Implement the Reader Revenue Manager express setup step to connect an existing publication. See [#13021](https://github.com/google/site-kit-wp/issues/13021).
+* Add the "Subscribed users" tab to the email reporting settings. See [#13011](https://github.com/google/site-kit-wp/issues/13011).
+* Add Reader Revenue Manager Organization ID and Configured CTAs fields to Site Health debug information. See [#13000](https://github.com/google/site-kit-wp/issues/13000).
+* Improve page performance by decreasing preloaded subscriber content. See [#12857](https://github.com/google/site-kit-wp/issues/12857).
+* Add a warning notice to the Site Goals widget when event provider plugin is deactivated. See [#12773](https://github.com/google/site-kit-wp/issues/12773).
+* Fix error displaying issues for email reports. See [#12356](https://github.com/google/site-kit-wp/issues/12356).
+* Don't show the RRM introductory overlay if the selected publication has an extreme policy violation. See [#12291](https://github.com/google/site-kit-wp/issues/12291).
+* Improve UX/UI on Email subscription panel. See [#12188](https://github.com/google/site-kit-wp/issues/12188).
 
 **Fixed**
 
-* When metrics in Site Goals haven't changed, show a "No change" badge instead of a "0%" badge. See [#13002](https://github.com/google/site-kit-wp/issues/13002).
-* Update casing of Site Goals heading. See [#12981](https://github.com/google/site-kit-wp/issues/12981).
-* Fix bug that could cause report calls to be issued twice for the same arguments. See [#12806](https://github.com/google/site-kit-wp/issues/12806).
-
-= 1.182.0 =
-
-**Added**
-
-* Allow existing users to link their Google accounts with their WordPress user profile using Sign in with Google. See [#9994](https://github.com/google/site-kit-wp/issues/9994).
-
-**Enhanced**
-
-* Show error notices inline on the Key Metrics setup screen when the footer buttons are not sticky, preventing the notice from obscuring the CTA. See [#12874](https://github.com/google/site-kit-wp/issues/12874).
-* Track a GA event when the "Learn more" link for plugin conversion tracking is clicked on the Analytics settings screen. See [#12868](https://github.com/google/site-kit-wp/issues/12868).
-* Site Goals widget status are now site-wide with other settings being user-specific. See [#12859](https://github.com/google/site-kit-wp/issues/12859).
-* Update Site Goals data to render partial data badge and full breakdown data when insufficient breakdown data is available. See [#12803](https://github.com/google/site-kit-wp/issues/12803).
-* Add "Gathering data" badges to Site Goals widgets. See [#12802](https://github.com/google/site-kit-wp/issues/12802).
-* Allow creation of custom Site Goals dimensions from notices. See [#12801](https://github.com/google/site-kit-wp/issues/12801).
-* Update the view-only users splash screen to match the refreshed setup flow design. See [#12791](https://github.com/google/site-kit-wp/issues/12791).
-* Display a list of shared services on the splash screen for view-only users and secondary admins with dashboard sharing access. See [#12789](https://github.com/google/site-kit-wp/issues/12789).
-* Add thumbs up/down survey to Site Goals feature. See [#12722](https://github.com/google/site-kit-wp/issues/12722).
-* Fix a mobile overlay bug for proactive user engagment. See [#12710](https://github.com/google/site-kit-wp/issues/12710).
-* Add support for chart images in generated PDF reports. See [#12629](https://github.com/google/site-kit-wp/issues/12629).
-* Add Site Goals debug data. See [#12601](https://github.com/google/site-kit-wp/issues/12601).
-* Add Analytics events to PDF Generation. See [#12563](https://github.com/google/site-kit-wp/issues/12563).
-* Implement PDF report footer. See [#12557](https://github.com/google/site-kit-wp/issues/12557).
-* Add email reporting notice to PDF report. See [#12556](https://github.com/google/site-kit-wp/issues/12556).
-* Implement the PDF document header elements. See [#12552](https://github.com/google/site-kit-wp/issues/12552).
-* Implement the `Top content over time` widget for the PDF report. See [#12548](https://github.com/google/site-kit-wp/issues/12548).
-* Add custom font to PDF reports. See [#12538](https://github.com/google/site-kit-wp/issues/12538).
-* Handle Analytics setup CTA errors in the Search Funnel widget, WordPress Dashboard and Admin Bar app. See [#12378](https://github.com/google/site-kit-wp/issues/12378).
-
-**Fixed**
-
-* Ensure advanced data breakdowns state is reflected when changing property in Analytics. See [#12892](https://github.com/google/site-kit-wp/issues/12892).
-* Don't load the Site Goals feature tour until the page content is consistent for the tour. See [#12885](https://github.com/google/site-kit-wp/issues/12885).
-* Fix the Back button on the Analytics setup screen not working after an account creation error occurs. See [#12875](https://github.com/google/site-kit-wp/issues/12875).
-* Prevent the "activate Analytics" notification from appearing for view-only users. See [#12870](https://github.com/google/site-kit-wp/issues/12870).
-* Fix widget/notification display issues for users with no access permissions. See [#12869](https://github.com/google/site-kit-wp/issues/12869).
-* Fix the site goals intro modal issue when the user has insufficient permissions. See [#12856](https://github.com/google/site-kit-wp/issues/12856).
-* Update site goal tiles not to display the change badge if the previous value is zero. See [#12689](https://github.com/google/site-kit-wp/issues/12689).
+* Hide the "Tell us more" link in Site Goals Thumbs up / down feedback. See [#13448](https://github.com/google/site-kit-wp/issues/13448).
+* Fix bug that could cause the UI to remain in a loading state instead of showing an error when a request failed. See [#13293](https://github.com/google/site-kit-wp/issues/13293).
+* Ensure that the `useRefocus()` hook's callback fires consistently in all cases. See [#8297](https://github.com/google/site-kit-wp/issues/8297).
 
 [See changelog for all versions](https://raw.githubusercontent.com/google/site-kit-wp/main/changelog.txt).

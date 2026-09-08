@@ -1,3 +1,7 @@
+/* eslint-disable camelcase, no-unused-vars -- public API: invoked by name from
+   PHP-rendered map click-action config (see src/Plugin/Pro/ProActions.php);
+   renaming would break existing maps' saved click actions. */
+
 /**
  * Display content below the map
  */
@@ -59,6 +63,7 @@ function igm_lightbox_image(id, data) {
 function igm_lightbox_iframe(id, data) {
   iMapsActions.lightboxAction(id, data, 'external');
 }
+/* eslint-enable camelcase, no-unused-vars */
 
 iMapsActions = {};
 
@@ -177,7 +182,7 @@ iMapsActions.buildLists = function (el) {
         iMapsManager.highlight(mapID, entryCode);
       }
     });
-    liEl.addEventListener('mouseout', function (event) {
+    liEl.addEventListener('mouseout', function () {
       if (typeof iMapsManager !== 'undefined') {
         iMapsManager.clearHighlighted(mapID);
       }
@@ -321,7 +326,7 @@ iMapsActions.lightboxAction = function (id, data, type) {
     // check if there's multiple images (divided by comma)
     if (data.content !== '' && data.content.includes(',')) {
       let images = data.content.split(',');
-      images.forEach(function (url, ix) {
+      images.forEach(function (url) {
         elements.push({
           href: url,
           type: type,
@@ -1134,7 +1139,7 @@ iMapsActions.loadScripts = function (urls, callback) {
     }
   };
 
-  urls.forEach(function (url, index) {
+  urls.forEach(function (url) {
     iMapsActions.loadScript(url, multiCallback);
   });
 };

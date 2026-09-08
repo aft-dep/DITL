@@ -8,11 +8,15 @@
 namespace WPForms\Integrations\AI;
 
 use WPForms\Integrations\IntegrationInterface;
+use WPForms\Integrations\AI\Admin\Ajax\Chat\Chat as ChatAjax;
 use WPForms\Integrations\AI\Admin\Ajax\Choices as ChoicesAjax;
 use WPForms\Integrations\AI\Admin\Ajax\Forms as FormsAjax;
 use WPForms\Integrations\AI\Admin\Builder\Enqueues;
 use WPForms\Integrations\AI\Admin\Builder\FieldOption;
+use WPForms\Integrations\AI\Admin\Builder\FormEditor as FormEditorBuilder;
 use WPForms\Integrations\AI\Admin\Builder\Forms as FormsEnqueues;
+use WPForms\Integrations\AI\Admin\Ajax\FormEditor as FormEditorAjax;
+use WPForms\Integrations\AI\Admin\Chat\Chat as ChatPage;
 use WPForms\Integrations\AI\Admin\Pages\Templates as TemplatesPage;
 
 /**
@@ -43,6 +47,8 @@ class AI implements IntegrationInterface {
 	 * Load the integration classes.
 	 *
 	 * @since 1.9.1
+	 *
+	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
 	public function load() {
 
@@ -50,10 +56,18 @@ class AI implements IntegrationInterface {
 			( new Enqueues() )->init();
 			( new FieldOption() )->init();
 			( new FormsEnqueues() )->init();
+			( new FormEditorBuilder() )->init();
 		}
 
 		if ( wpforms_is_admin_page( 'templates' ) ) {
 			( new TemplatesPage() )->init();
+		}
+
+		// Chat::init() registers default-scope/surface filter callbacks. The singleton registries
+		// auto-init on first access from the AJAX handler, so Chat must also run on AJAX requests
+		// to attach those callbacks before the handler triggers the boot.
+		if ( wpforms_is_admin_page() || wpforms_is_admin_ajax() ) {
+			( new ChatPage() )->init();
 		}
 
 		if ( wpforms_is_admin_ajax() ) {
@@ -66,10 +80,12 @@ class AI implements IntegrationInterface {
 	 *
 	 * @since 1.9.1
 	 */
-	protected function load_ajax_classes() {
+	protected function load_ajax_classes(): void {
 
 		( new FieldOption() )->init();
 		( new ChoicesAjax() )->init();
 		( new FormsAjax() )->init();
+		( new FormEditorAjax() )->init();
+		( new ChatAjax() )->init();
 	}
 }

@@ -19,6 +19,13 @@ class Rule_User_Agent_Blacklist extends Rule {
 	private $blocked_user_agents;
 
 	/**
+	 * Enabled state.
+	 *
+	 * @var bool
+	 */
+	private $enabled;
+
+	/**
 	 * Construct our rule
 	 */
 	public function __construct() {
@@ -29,6 +36,7 @@ class Rule_User_Agent_Blacklist extends Rule {
 		$this->family   = 'Blacklist';
 		$this->priority = 0;
 		$this->blocked_user_agents = $aiowps_firewall_config->get_value('aiowps_blacklist_user_agents');
+		$this->enabled = (bool) $aiowps_firewall_config->get_value('aiowps_enable_blacklisting');
 	}
 
 	/**
@@ -37,7 +45,7 @@ class Rule_User_Agent_Blacklist extends Rule {
 	 * @return boolean
 	 */
 	public function is_active() {
-		return !empty($this->blocked_user_agents) && isset($_SERVER['HTTP_USER_AGENT']);
+		return $this->enabled && !empty($this->blocked_user_agents) && isset($_SERVER['HTTP_USER_AGENT']);
 	}
 
 	/**

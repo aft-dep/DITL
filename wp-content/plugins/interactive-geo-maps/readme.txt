@@ -1,10 +1,10 @@
 === MapGeo - Interactive Geo Maps ===
-Contributors: interactivegeomaps, freemius
+Contributors: interactivegeomaps
 Tags: map, interactive map, world map, travel map, us map
 Requires at least: 5.0
-Tested up to: 6.9
-Requires PHP: 7.0
-Stable tag: 1.6.27
+Tested up to: 7.0
+Requires PHP: 7.4
+Stable tag: 1.6.30
 Donate link: https://interactivegeomaps.com
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -98,6 +98,15 @@ You can visit this [article on how to use the plugin together with WP Rocket](ht
 10. Administration 04
 
 == Changelog ==
+
+= 1.6.30 =
+Update the in-plugin pricing page with the new MapGeo logo and branding.
+
+= 1.6.29 =
+WordPress 7.0 compatibility, tested up to 7.0
+Update Freemius SDK to v2.13.4
+Raise minimum PHP version to 7.4, matching WordPress 7.0 requirements
+Code quality and security hardening (output escaping, input unslashing, license header)
 
 = 1.6.28 =
 Security Improvements

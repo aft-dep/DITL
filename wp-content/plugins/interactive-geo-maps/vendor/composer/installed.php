@@ -3,7 +3,7 @@
         'name' => 'interactivegeomaps/interactive-geo-maps',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '00cd7116468df5e1de8c6d4d15d3565a91f39bf8',
+        'reference' => 'dbb710e5647d72db0f201e1f76df8d19ccb39366',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../build',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'freemius/wordpress-sdk' => array(
-            'pretty_version' => '2.12.0',
-            'version' => '2.12.0.0',
-            'reference' => 'db6f35a2b3d318a53330409dbeab49156ee76dd8',
+            'pretty_version' => '2.13.4',
+            'version' => '2.13.4.0',
+            'reference' => 'fa43eb92ae9dffa0d9f5ae11b5a1739bd7222308',
             'type' => 'library',
             'install_path' => __DIR__ . '/../freemius/wordpress-sdk',
             'aliases' => array(),
@@ -31,7 +31,7 @@
         'interactivegeomaps/interactive-geo-maps' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '00cd7116468df5e1de8c6d4d15d3565a91f39bf8',
+            'reference' => 'dbb710e5647d72db0f201e1f76df8d19ccb39366',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../build',
             'aliases' => array(),

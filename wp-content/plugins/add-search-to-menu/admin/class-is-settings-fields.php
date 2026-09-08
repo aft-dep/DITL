@@ -137,6 +137,7 @@ class IS_Settings_Fields {
                     $allowed_options['ivory_search'][0] = 'is_menu_search';
                     return $allowed_options;
                 } );
+                add_filter( "sanitize_option_is_menu_search", array($this, 'is_validate_menu_search') );
             } else {
                 if ( isset( $_POST['is_analytics'] ) ) {
                     add_filter( $temp_oname, function ( $allowed_options ) {
@@ -341,6 +342,28 @@ class IS_Settings_Fields {
                 'error'
             );
             $args['synonyms'] = $this->opt['synonyms'];
+        }
+        return $args;
+    }
+
+    function is_validate_menu_search( $args ) {
+        if ( isset( $args['menu_magnifier_color'] ) && 0 !== strcmp( $args['menu_magnifier_color'], sanitize_hex_color( $args['menu_magnifier_color'] ) ) ) {
+            add_settings_error(
+                'is_menu_search',
+                'invalid_is_menu_color',
+                __( 'Invalid Magnifier Icon Color', 'add-search-to-menu' ),
+                'error'
+            );
+            $args['menu_magnifier_color'] = $this->opt['menu_magnifier_color'];
+        }
+        if ( isset( $args['menu_title'] ) && 0 !== strcmp( $args['menu_title'], sanitize_text_field( $args['menu_title'] ) ) ) {
+            add_settings_error(
+                'is_menu_search',
+                'invalid_is_menu_title',
+                __( 'Invalid Menu Title', 'add-search-to-menu' ),
+                'error'
+            );
+            $args['menu_title'] = $this->opt['menu_title'];
         }
         return $args;
     }

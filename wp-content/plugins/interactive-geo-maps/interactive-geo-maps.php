@@ -7,10 +7,12 @@
  * Plugin Name:       MapGeo - Interactive Geo Maps
  * Plugin URI:        https://interactivegeomaps.com/
  * Description:       Create interactive geographic vector maps of the world, continents or any country in the world. Color full regions or create markers on specific locations that will have information on hover and can also have actions on click. This plugin uses the online amcharts library to generate the maps.
- * Version:           1.6.28
- * Requires PHP:      7.0
+ * Version:           1.6.30
+ * Requires PHP:      7.4
  * Author:            MapGeo
  * Author URI:        https://interactivegeomaps.com
+ * License:           GPLv2 or later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       interactive-geo-maps
  * Domain Path:       /languages
  *
@@ -21,8 +23,8 @@ namespace Saltus\WP\Plugin\Saltus\InteractiveMaps;
 if ( !defined( 'WPINC' ) ) {
     exit;
 }
-// Only run plugin code if PHP version bigger than 7.0 for now
-if ( version_compare( PHP_VERSION, '7.0', '<' ) ) {
+// Only run plugin code if PHP version bigger than 7.4 for now
+if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
     return;
 }
 // Freemius logic
@@ -121,7 +123,7 @@ if ( function_exists( __NAMESPACE__ . '\\igmfreemiusinit' ) ) {
         add_action( 'plugins_loaded', function () use($framework) {
             $plugin = new Core(
                 'interactive-geo-maps',
-                '1.6.28',
+                '1.6.30',
                 __FILE__,
                 $framework
             );

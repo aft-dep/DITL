@@ -324,6 +324,7 @@ class AIOWPSecurity_User_Login {
 		$lock_minutes = $this->get_dynamic_lockout_time_length();
 		$ip = AIOWPSecurity_Utility_IP::get_user_ip_address(); //Get the IP address of user
 		if (empty($ip)) return;
+		$username = sanitize_user($username, true); // Sanitize as a username
 		$ip_range = AIOWPSecurity_Utility_IP::get_sanitized_ip_range($ip); //Get the IP range of the current user
 		$user = is_email($username) ? get_user_by('email', $username) : get_user_by('login', $username); //Returns WP_User object if exists
 		$ip_range = apply_filters('aiowps_before_lockdown', $ip_range);
@@ -399,8 +400,11 @@ class AIOWPSecurity_User_Login {
 				$email_msg = __('User login lockout events had occurred due to too many failed login attempts or invalid username:', 'all-in-one-wp-security-and-firewall')."\n\n";
 			
 				foreach ($lockout_ips_list as $lockout_ip) {
+					// Prevent email clients from auto-linking URLs in the username.
+					$lockout_ip_username = str_replace(array('.', '@'), array('[.]', '[at]'), $lockout_ip['username']);
+					
 					/* translators: %s: User name. */
-					$email_msg .= sprintf(__('Username: %s', 'all-in-one-wp-security-and-firewall'), $lockout_ip['username']) . "\n";
+					$email_msg .= sprintf(__('Username: %s', 'all-in-one-wp-security-and-firewall'), $lockout_ip_username) . "\n";
 
 					/* translators: %s: IP Address. */
 					$email_msg .= sprintf(__('IP address: %s', 'all-in-one-wp-security-and-firewall'), $lockout_ip['ip']) . "\n";
@@ -427,8 +431,17 @@ class AIOWPSecurity_User_Login {
 				$email_msg .= __("Log into your site WordPress administration panel to see the duration of the lockout or to unlock the user.", 'all-in-one-wp-security-and-firewall') . "\n";
 
 				$email_header = '';
-				$send_mail = wp_mail($to_email_address, $subject, $email_msg, $email_header, $backtrace_filepath);
-			
+
+				$mail_data = array(
+					'to' => $to_email_address,
+					'subject' => $subject,
+					'message' => $email_msg,
+					'headers' => $email_header,
+					'attachments' => $backtrace_filepath
+				);
+
+				$send_mail = AIOWPSecurity_Reporting::notification($mail_data);
+
 				if (false === $send_mail) {
 					$ips_list = implode(', ', wp_list_pluck($lockout_ips_list, 'ip'));
 					$aio_wp_security->debug_logger->log_debug("Lockout notification email failed to send to " . implode(', ', $to_email_address) . " for IPs ".$ips_list, 4);
@@ -544,9 +557,16 @@ class AIOWPSecurity_User_Login {
 		$subject = '['.network_site_url().'] '. __('Unlock request notification', 'all-in-one-wp-security-and-firewall');
 		/* translators: 1: Email 2: Link */
 		$email_msg = sprintf(__('You have requested for the account with email address %s to be unlocked.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Please press the link below to unlock your account:', 'all-in-one-wp-security-and-firewall'), $email) . "\n" . sprintf(__('Unlock link: %s', 'all-in-one-wp-security-and-firewall'), $unlock_link) . "\n\n" . __('After pressing the above link you will be able to login to the WordPress administration panel.', 'all-in-one-wp-security-and-firewall') . "\n";
-		
-		$sendMail = wp_mail($email, $subject, $email_msg);
-		if (false === $sendMail) {
+
+		$mail_data = array(
+			'to' => $email,
+			'subject' => $subject,
+			'message' => $email_msg,
+		);
+
+		$send_mail = AIOWPSecurity_Reporting::notification($mail_data);
+
+		if (false === $send_mail) {
 			$aio_wp_security->debug_logger->log_debug("Unlock Request Notification email failed to send to " . $email, 4);
 		}
 	}

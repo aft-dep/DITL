@@ -109,7 +109,7 @@ function cmplz_menu() {
 						array(
 							'id'                    => 'cookie-scan',
 							'title'                 => __( 'Website Scan', 'complianz-gdpr' ),
-							'intro'                 => __( 'Complianz will scan several pages of your website for first-party cookies and known third-party scripts. The scan will be recurring monthly to keep you up-to-date!', 'complianz-gdpr' ).' '. cmplz_sprintf( __( 'For more information, %sread our 5 tips%s about the site scan.', 'complianz-gdpr'), '<a href="https://complianz.io/cookie-scan-results/" target="_blank">','</a>'),
+							'intro'                 => __( 'Complianz will scan several pages of your website for first-party cookies and known third-party scripts. The scan will be recurring monthly to keep you up-to-date!', 'complianz-gdpr' ) . ' ' . cmplz_sprintf( __( 'For more information, %1$sread our 5 tips%2$s about the site scan.', 'complianz-gdpr' ), '<a href="https://complianz.io/cookie-scan-results/" target="_blank">', '</a>' ),
 							'helpLink'              => 'https://complianz.io/cookie-scan-results/',
 							'save_buttons_required' => false,
 						),
@@ -292,13 +292,14 @@ function cmplz_menu() {
 								'<strong>' . __( 'For the most reliable support', 'complianz-gdpr' ) . '</strong>, ' .
 								cmplz_sprintf(
 									/* translators: 1: URL, 2: aria-label text */
-									__( 'we recommend using our <a href="%s" target="_blank" rel="noopener noreferrer" aria-label="%s">online support form</a> instead.', 'complianz-gdpr' ),
+									__( 'we recommend using our <a href="%1$s" target="_blank" rel="noopener noreferrer" aria-label="%2$s">online support form</a> instead.', 'complianz-gdpr' ),
 									'https://complianz.io/support',
 									esc_attr__( 'Online support form (opens in new tab)', 'complianz-gdpr' )
-								),
+								) . '<br><br>' .
+								'<strong>' . __( 'Please note:', 'complianz-gdpr' ) . '</strong> ' . __( 'Your support request may be processed by Emma, an automated AI assistant. The information you provide will be used solely for the purpose of handling and resolving your support inquiry.', 'complianz-gdpr' ),
 							'premium'      => true,
 							'upgrade'      => 'https://complianz.io/pricing/',
-							'premium_text' => __( 'Get premium support with %sComplianz GDPR Premium%s', 'complianz-gdpr' ),
+							'premium_text' => __( 'Get premium support with %1$sComplianz GDPR Premium%2$s', 'complianz-gdpr' ),
 						),
 						array(
 							'id'    => 'debugging',
@@ -371,7 +372,7 @@ function cmplz_menu() {
 							'intro'        => __( 'Here you can create and upload processing agreements. These are necessary when you allow other third parties to process your data.', 'complianz-gdpr' ),
 							'premium'      => true,
 							'upgrade'      => 'https://complianz.io/pricing/',
-							'premium_text' => __( 'Create Processing Agreements with %sComplianz GDPR Premium%s', 'complianz-gdpr' ),
+							'premium_text' => __( 'Create Processing Agreements with %1$sComplianz GDPR Premium%2$s', 'complianz-gdpr' ),
 						),
 						array(
 							'id'           => 'processing-agreements',
@@ -379,7 +380,7 @@ function cmplz_menu() {
 							'helpLink'     => 'https://complianz.io/definition/what-is-a-processing-agreement/',
 							'premium'      => true,
 							'upgrade'      => 'https://complianz.io/pricing/',
-							'premium_text' => __( 'View and manage Processing Agreements with %sComplianz GDPR Premium%s', 'complianz-gdpr' ),
+							'premium_text' => __( 'View and manage Processing Agreements with %1$sComplianz GDPR Premium%2$s', 'complianz-gdpr' ),
 						),
 					),
 				),
@@ -396,14 +397,14 @@ function cmplz_menu() {
 							'intro'        => __( 'Do you think your data might have been compromised? Did you experience a security incident or are not sure who had access to personal data for a period of time? Create a data breach report below to see what you need to do.', 'complianz-gdpr' ),
 							'premium'      => true,
 							'upgrade'      => 'https://complianz.io/pricing/',
-							'premium_text' => __( 'Create Data Breach Reports with %sComplianz GDPR Premium%s', 'complianz-gdpr' ),
+							'premium_text' => __( 'Create Data Breach Reports with %1$sComplianz GDPR Premium%2$s', 'complianz-gdpr' ),
 						),
 						array(
 							'id'           => 'data-breach-reports',
 							'title'        => __( 'Data Breach Reports', 'complianz-gdpr' ),
 							'premium'      => true,
 							'upgrade'      => 'https://complianz.io/pricing/',
-							'premium_text' => __( 'View and manage Data Breach Reports with %sComplianz GDPR Premium%s', 'complianz-gdpr' ),
+							'premium_text' => __( 'View and manage Data Breach Reports with %1$sComplianz GDPR Premium%2$s', 'complianz-gdpr' ),
 						),
 					),
 				),
@@ -437,14 +438,14 @@ function cmplz_menu() {
 							'helpLink'     => 'https://complianz.io/records-of-consent/',
 							'premium'      => true,
 							'upgrade'      => 'https://complianz.io/pricing/',
-							'premium_text' => __( 'View and manage Records of Consent with %sComplianz GDPR Premium%s', 'complianz-gdpr' ),
+							'premium_text' => __( 'View and manage Records of Consent with %1$sComplianz GDPR Premium%2$s', 'complianz-gdpr' ),
 						),
 						array(
 							'id'           => 'records-of-consent',
 							'title'        => __( 'Records of Consent', 'complianz-gdpr' ),
 							'premium'      => true,
 							'upgrade'      => 'https://complianz.io/pricing/',
-							'premium_text' => __( 'View and manage Records of Consent with %sComplianz GDPR Premium%s', 'complianz-gdpr' ),
+							'premium_text' => __( 'View and manage Records of Consent with %1$sComplianz GDPR Premium%2$s', 'complianz-gdpr' ),
 						),
 					),
 				),
@@ -464,7 +465,7 @@ function cmplz_menu() {
 							'title'        => __( 'Statistics', 'complianz-gdpr' ),
 							'premium'      => true,
 							'upgrade'      => 'https://complianz.io/pricing/',
-							'premium_text' => __( 'View and manage Records of Consent with %sComplianz GDPR Premium%s', 'complianz-gdpr' ),
+							'premium_text' => __( 'View and manage Records of Consent with %1$sComplianz GDPR Premium%2$s', 'complianz-gdpr' ),
 						),
 					),
 				),

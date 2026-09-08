@@ -15,7 +15,10 @@ if (!trait_exists('AIOWPSecurity_Firewall_Commands_Trait')) require_once(AIO_WP_
 if (!trait_exists('AIOWPSecurity_Tools_Commands_Trait')) require_once(AIO_WP_SECURITY_PATH.'/classes/commands/wp-security-tools-commands.php');
 if (!trait_exists('AIOWPSecurity_File_Scan_Commands_Trait')) require_once(AIO_WP_SECURITY_PATH.'/classes/commands/wp-security-file-scan-commands.php');
 if (!trait_exists('AIOWPSecurity_Tfa_Commands_Trait')) require_once(AIO_WP_SECURITY_PATH.'/classes/commands/wp-security-tfa-commands.php');
-class AIOWPSecurity_Commands {
+
+if (!class_exists('Updraft_Task_Manager_Commands_1_0')) require_once(AIO_WP_SECURITY_PATH . '/vendor/team-updraft/common-libs/src/updraft-tasks/class-updraft-task-manager-commands.php');
+
+class AIOWPSecurity_Commands extends Updraft_Task_Manager_Commands_1_0 {
 
 	use AIOWPSecurity_Log_Commands_Trait;
 	use AIOWPSecurity_Ip_Commands_Trait;
@@ -30,11 +33,74 @@ class AIOWPSecurity_Commands {
 	use AIOWPSecurity_Tfa_Commands_Trait;
 
 	/**
+	 * Retrieves a list of allowed heartbeat commands.
+	 *
+	 * Defines heartbeat commands specifically allowed for scanner-related actions. The list
+	 * can be extended using the 'aios_allowed_heartbeat_commands' filter.
+	 *
+	 * @return array Filtered list of allowed heartbeat commands.
+	 */
+	public static function get_allowed_heartbeat_commands() {
+		$commands = array(
+			'get_file_scan_update'
+		);
+
+		return apply_filters('aios_allowed_heartbeat_commands', $commands);
+	}
+
+	/**
 	 * This variable holds an instance of AIOWPSecurity_Feature_Item_Manager.
 	 *
 	 * @var AIOWPSecurity_Feature_Item_Manager $aiowps_feature_mgr
 	 */
 	private $aiowps_feature_mgr;
+
+
+	/**
+	 * The commands constructor
+	 */
+	public function __construct() {
+		parent::__construct(AIOWPSecurity_Task_Manager::get_instance());
+	}
+
+	/**
+	 * Retrieves a list of allowed task types.
+	 *
+	 * Defines and filters the types of tasks that the scanner can handle, such as file scans.
+	 * The list is extendable via the 'aios_allowed_task_types' filter.
+	 *
+	 * @return array Filtered list of allowed task types.
+	 */
+	protected static function get_allowed_task_types() {
+		$types = array(
+			'file_scan'
+		);
+
+		return apply_filters('aios_allowed_task_types', $types);
+	}
+
+	/**
+	 * Checks for a currently running task of a specified type.
+	 *
+	 * Validates if the provided task type is within the allowed task types and checks if there
+	 * are any active tasks of this type. If a running task is found, it returns its data; otherwise,
+	 * it returns a failed response.
+	 *
+	 * @param array $data Contains the 'type' key indicating the task type to check.
+	 *
+	 * @return array Response object with task details if a task is running; otherwise, an unsuccessful response.
+	 */
+	public function check_running_task($data) {
+		$type = isset($data['type']) ? $data['type'] : '';
+
+		if (!in_array($type, self::get_allowed_task_types())) return $this->handle_response(false);
+
+		$tasks = $this->get_active_tasks($data);
+
+		if (empty($tasks)) return $this->handle_response(false);
+
+		return $this->handle_response(true, false, array('extra_args' => array('task_id' => $tasks[0])));
+	}
 
 	/**
 	 * The initializes the AIOWPS Feature Manager
@@ -99,6 +165,7 @@ class AIOWPSecurity_Commands {
 	 */
 	public function dismiss_notice($data) {
 		global $aio_wp_security;
+		global $aiowps_firewall_config;
 
 		$time_now = $aio_wp_security->notices->get_time_now();
 		
@@ -126,6 +193,7 @@ class AIOWPSecurity_Commands {
 		} elseif ('dismiss_ip_blacklist_notice' == $data['notice']) {
 			if (isset($data['turn_it_back_on']) && '1' == $data['turn_it_back_on']) {
 				$aio_wp_security->configs->set_value('aiowps_enable_blacklisting', '1');
+				$aiowps_firewall_config->set_value('aiowps_enable_blacklisting', '1');
 				AIOWPSecurity_Configure_Settings::set_blacklist_ip_firewall_configs();
 				AIOWPSecurity_Configure_Settings::set_user_agent_firewall_configs();
 			}
@@ -147,8 +215,8 @@ class AIOWPSecurity_Commands {
 				}
 
 				$aio_wp_security->configs->delete_value('aiowps_firewall_active_upgrade');
-		} elseif ('php_56_eol_dismiss_forever' == $data['notice']) {
-			$aio_wp_security->configs->set_value('php_56_eol_dismiss_forever', $time_now + (100 * 365.25 * 86400));
+		} elseif ('php_73_eol_dismiss_forever' == $data['notice']) {
+			$aio_wp_security->configs->set_value('php_73_eol_dismiss_forever', $time_now + (100 * 365.25 * 86400));
 		}
 		
 
@@ -463,7 +531,7 @@ class AIOWPSecurity_Commands {
 			)
 		);
 
-		$file_change_detection_data = AIOWPSecurity_Scan::get_fcd_data();
+		$file_change_detection_data = AIOWPSecurity_File_Scanner::get_fcd_data();
 
 		$critical_features = AIOWPSecurity_Feature_Item_Manager::get_critical_features();
 		$aiowps_feature_mgr = $this->get_feature_mgr_object();

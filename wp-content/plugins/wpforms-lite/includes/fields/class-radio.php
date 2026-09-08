@@ -177,7 +177,8 @@ class WPForms_Field_Radio extends WPForms_Field {
 			// Used for dynamic choices.
 			$depth = isset( $choice['depth'] ) ? absint( $choice['depth'] ) : 1;
 
-			$value = ! empty( $field['show_values'] ) ? $choice['value'] : $choice['label'];
+			$label = isset( $choice['label'] ) ? $choice['label'] : '';
+			$value = ! empty( $field['show_values'] ) ? $choice['value'] : $label;
 			/* translators: %s - choice number. */
 			$value = ( $value === '' ) ? sprintf( esc_html__( 'Choice %s', 'wpforms-lite' ), $key ) : $value;
 
@@ -198,7 +199,7 @@ class WPForms_Field_Radio extends WPForms_Field {
 					'class' => [ 'wpforms-field-label-inline' ],
 					'data'  => [],
 					'id'    => '',
-					'text'  => $choice['label'],
+					'text'  => $label,
 				],
 				'attr'       => [
 					'name'  => "wpforms[fields][{$field_id}]",
@@ -492,7 +493,7 @@ class WPForms_Field_Radio extends WPForms_Field {
 				if ( wpforms_is_amp() && ( $using_image_choices || $using_icon_choices ) ) {
 					$choice['container']['attr']['[class]'] = sprintf(
 						'%s + ( %s == %s ? " wpforms-selected" : "")',
-						wp_json_encode( implode( ' ', $choice['container']['class'] ) ),
+						wp_json_encode( wpforms_sanitize_classes( $choice['container']['class'], is_array( $choice['container']['class'] ) ) ),
 						$amp_state_id,
 						wp_json_encode( $choice['attr']['value'] )
 					);
@@ -672,6 +673,8 @@ class WPForms_Field_Radio extends WPForms_Field {
 		}
 
 		parent::validate( $field_id, $field_submit, $form_data );
+
+		$this->validate_choices_allowlist( $field_id, $field_submit, $form_data );
 	}
 
 	/**
@@ -686,10 +689,11 @@ class WPForms_Field_Radio extends WPForms_Field {
 	 */
 	public function format( $field_id, $field_submit, $form_data ) {
 
-		$field     = $form_data['fields'][ $field_id ];
-		$dynamic   = ! empty( $field['dynamic_choices'] ) ? $field['dynamic_choices'] : false;
-		$name      = sanitize_text_field( $field['label'] );
-		$value_raw = sanitize_text_field( $field_submit );
+		$field        = $form_data['fields'][ $field_id ];
+		$field_submit = $this->sanitize_choices_submission( $field_submit, $field, $form_data );
+		$dynamic      = ! empty( $field['dynamic_choices'] ) ? $field['dynamic_choices'] : false;
+		$name         = sanitize_text_field( $field['label'] );
+		$value_raw    = is_array( $field_submit ) ? '' : sanitize_text_field( $field_submit );
 
 		$data = [
 			'name'      => $name,
@@ -732,7 +736,7 @@ class WPForms_Field_Radio extends WPForms_Field {
 			if ( ! empty( $field['show_values'] ) ) {
 				foreach ( $field['choices'] as $key => $choice ) {
 					if ( ! empty( $field_submit ) && $choice['value'] === $field_submit ) {
-						$data['value'] = sanitize_text_field( $choice['label'] );
+						$data['value'] = sanitize_text_field( isset( $choice['label'] ) ? $choice['label'] : '' );
 						$choice_key    = $key;
 						break;
 					}
@@ -744,7 +748,10 @@ class WPForms_Field_Radio extends WPForms_Field {
 				// Determine choice key, this is needed for image choices.
 				foreach ( $field['choices'] as $key => $choice ) {
 					/* translators: %s - choice number. */
-					if ( $field_submit === $choice['label'] || $value_raw === sprintf( esc_html__( 'Choice %s', 'wpforms-lite' ), $key ) ) {
+					$label = isset( $choice['label'] ) ? $choice['label'] : '';
+
+					/* translators: %s is the choice number. */
+					if ( $field_submit === $label || $value_raw === sprintf( esc_html__( 'Choice %s', 'wpforms-lite' ), $key ) ) {
 						$choice_key = $key;
 
 						break;
@@ -768,7 +775,7 @@ class WPForms_Field_Radio extends WPForms_Field {
 			foreach ( $field['choices'] as $choice ) {
 
 				if ( isset( $choice['other'] ) ) {
-					$data['value_raw'] = $choice['label'];
+					$data['value_raw'] = isset( $choice['label'] ) ? $choice['label'] : '';
 					$data['image']     = ! empty( $field['choices_images'] ) && ! empty( $choice['image'] ) ? esc_url_raw( $choice['image'] ) : '';
 
 					break;
@@ -842,7 +849,7 @@ class WPForms_Field_Radio extends WPForms_Field {
 		}
 
 		$other_value = $this->get_other_choice_value( $field );
-		$field_value = $other_value ?? $field['value'] ?? '';
+		$field_value = $other_value ?? $value ?? '';
 
 		return parent::field_html_value(
 			$field_value,

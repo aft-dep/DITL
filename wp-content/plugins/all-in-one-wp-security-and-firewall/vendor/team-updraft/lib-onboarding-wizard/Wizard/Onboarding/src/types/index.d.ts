@@ -42,6 +42,7 @@ export interface Step {
         showConfirmButton?: boolean;
         hidden?: boolean;
         controllerFieldId?: string;
+        resetOnOpen?: boolean;
     }>;
     icon?: string;
     title: string;

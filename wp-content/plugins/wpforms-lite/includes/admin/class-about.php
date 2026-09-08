@@ -573,7 +573,7 @@ class WPForms_About {
 									<?php
 									printf( /* translators: %s - number of templates. */
 										esc_html__( '%s customizable form templates', 'wpforms-lite' ),
-										'2000+'
+										'2100+'
 									);
 									?>
 								</li>
@@ -611,7 +611,7 @@ class WPForms_About {
 								</li>
 								<li>
 									<i class="fa fa-check" aria-hidden="true"></i>
-									<?php esc_html_e( 'Take payments with Stripe, PayPal, Square, & Authorize.Net', 'wpforms-lite' ); ?>
+									<?php esc_html_e( 'Take payments with Stripe, PayPal, Square, Authorize.Net, & Mercado Pago', 'wpforms-lite' ); ?>
 								</li>
 								<li>
 									<i class="fa fa-check" aria-hidden="true"></i>
@@ -1165,18 +1165,21 @@ class WPForms_About {
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Complete Entry Management inside WordPress', 'wpforms-lite' ) . '</strong>',
+						esc_html__( 'View, Edit, Import, and Export', 'wpforms-lite' ),
 					],
 				],
 				'plus'  => [
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Complete Entry Management inside WordPress', 'wpforms-lite' ) . '</strong>',
+						esc_html__( 'View, Edit, Import, and Export', 'wpforms-lite' ),
 					],
 				],
 				'pro'   => [
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Complete Entry Management inside WordPress', 'wpforms-lite' ) . '</strong>',
+						esc_html__( 'View, Edit, Import, and Export', 'wpforms-lite' ),
 					],
 				],
 			],
@@ -1261,7 +1264,7 @@ class WPForms_About {
 						'<strong>' .
 						sprintf( /* translators: %s - number of templates. */
 							esc_html__( 'All Form Templates including Bonus %s pre-made form templates', 'wpforms-lite' ),
-							'2000+'
+							'2100+'
 						) .
 						'</strong>',
 					],
@@ -1328,6 +1331,8 @@ class WPForms_About {
 								'MailerLite',
 								'MailPoet',
 								'Kit',
+								'Klaviyo',
+								'SendGrid',
 								'Slack',
 								'Twilio',
 							]
@@ -1350,6 +1355,8 @@ class WPForms_About {
 								'MailerLite',
 								'MailPoet',
 								'Kit',
+								'Klaviyo',
+								'SendGrid',
 								'Slack',
 								'Twilio',
 								'Make',
@@ -1384,6 +1391,8 @@ class WPForms_About {
 								'MailerLite',
 								'MailPoet',
 								'Kit',
+								'Klaviyo',
+								'SendGrid',
 								'Slack',
 								'Twilio',
 								'Pipedrive',
@@ -1420,6 +1429,8 @@ class WPForms_About {
 								'MailerLite',
 								'MailPoet',
 								'Kit',
+								'Klaviyo',
+								'SendGrid',
 								'Slack',
 								'Twilio',
 								'Pipedrive',
@@ -1456,6 +1467,8 @@ class WPForms_About {
 								'MailerLite',
 								'MailPoet',
 								'Kit',
+								'Klaviyo',
+								'SendGrid',
 								'Slack',
 								'Twilio',
 								'Pipedrive',
@@ -1479,49 +1492,49 @@ class WPForms_About {
 					'status' => 'partial',
 					'text'   => [
 						'<strong>' . esc_html__( 'Limited Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using Stripe and Square only', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, and Square only', 'wpforms-lite' ),
 					],
 				],
 				'basic'    => [
 					'status' => 'partial',
 					'text'   => [
 						'<strong>' . esc_html__( 'Limited Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using Stripe and Square only', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, and Square only', 'wpforms-lite' ),
 					],
 				],
 				'plus'     => [
 					'status' => 'partial',
 					'text'   => [
 						'<strong>' . esc_html__( 'Limited Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using Stripe and Square only', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, and Square only', 'wpforms-lite' ),
 					],
 				],
 				'pro'      => [
 					'status' => 'partial',
 					'text'   => [
 						'<strong>' . esc_html__( 'Create Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, and PayPal Standard', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, and Mercado Pago', 'wpforms-lite' ),
 					],
 				],
 				'elite'    => [
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Create Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, and Authorize.Net', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, and Mercado Pago', 'wpforms-lite' ),
 					],
 				],
 				'agency'   => [
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Create Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, and Authorize.Net', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, and Mercado Pago', 'wpforms-lite' ),
 					],
 				],
 				'ultimate' => [
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Create Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, and Authorize.Net', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, and Mercado Pago', 'wpforms-lite' ),
 					],
 				],
 			],

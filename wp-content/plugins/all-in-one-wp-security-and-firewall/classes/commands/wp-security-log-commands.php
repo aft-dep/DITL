@@ -16,13 +16,38 @@ trait AIOWPSecurity_Log_Commands_Trait {
 	public function delete_audit_log($data) {
 
 		if (!isset($data['id'])) {
-			return $this->handle_response(false, AIOWPSecurity_Admin_Menu::show_msg_error_st(__('No audit log ID provided.', 'all-in-one-wp-security-and-firewall'), true));
+			return $this->handle_response(false, __('No audit log ID provided.', 'all-in-one-wp-security-and-firewall'));
 		}
 
 		include_once AIO_WP_SECURITY_PATH.'/admin/wp-security-list-audit.php';
 		$audit_log_list = new AIOWPSecurity_List_Audit_Log();
+		$audit_log_list->delete_audit_event_records($data['id']);
 
-		return $this->handle_response(true, $audit_log_list->delete_audit_event_records($data['id']));
+		$list_message = AIOS_Helper::get_message('aios_list_message');
+
+		return $this->handle_response('error' != $list_message['type'], $list_message['message']);
+	}
+
+	/**
+	 * Deletes a 404 log.
+	 *
+	 * @param array $data Contains the ID of the log to be deleted.
+	 *
+	 * @return array
+	 */
+	public function delete_404_log($data) {
+
+		if (!isset($data['id'])) {
+			return $this->handle_response(false, __('No 404 log ID provided.', 'all-in-one-wp-security-and-firewall'));
+		}
+
+		include_once AIO_WP_SECURITY_PATH.'/admin/wp-security-list-404.php';
+		$event_list_404 = new AIOWPSecurity_List_404();
+		$event_list_404->delete_404_event_records($data['id']);
+
+		$list_message = AIOS_Helper::get_message('aios_list_message');
+
+		return $this->handle_response('error' != $list_message['type'], $list_message['message']);
 	}
 
 	/**
@@ -68,20 +93,56 @@ trait AIOWPSecurity_Log_Commands_Trait {
 	 * This function handles the rendering of the audit log tab content based on the
 	 * provided data via AJAX request. The data is used to filter the audit log or perform actions
 	 *
-	 * @access public
+	 * @param array $data
+	 *
 	 * @return void
 	 */
-	public function render_audit_log_tab() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- PCP warning. Nonce checked in previous function.
-		if (empty($_POST['data'])) return;
+	public function render_audit_log_tab($data) {
+		$data = empty($data) ? array() : $data;
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput -- PCP warning. Nonce checked in previous function and sanitization done at later.
-		$data = wp_unslash($_POST['data']);
+		if (isset($data['items'])) $data['items'] = array_map('sanitize_text_field', $data['items']);
 
 		// Needed for rendering the audit log table
 		include_once(AIO_WP_SECURITY_PATH.'/admin/wp-security-list-audit.php');
 		$audit_log_list = new AIOWPSecurity_List_Audit_Log($data);
 		$audit_log_list->ajax_response();
+	}
+
+	/**
+	 * Renders the permanent block list tab content.
+	 *
+	 * @access public
+	 *
+	 * @param array $data Permanent blocked IP data.
+	 *
+	 * @return void
+	 */
+	public function render_permanent_block_list_tab($data) {
+		$data = empty($data) ? array() : $data;
+
+		// Needed for rendering the block list table
+		include_once(AIO_WP_SECURITY_PATH.'/admin/wp-security-list-permanent-blocked-ip.php');
+		$permanent_blocked_ip_list = new AIOWPSecurity_List_Blocked_IP($data);
+		$permanent_blocked_ip_list->ajax_response();
+	}
+
+	/**
+	 * Renders the 404 log table content.
+	 *
+	 * This function handles the rendering of the 404 log table content based on the
+	 * provided data via AJAX request. The data is used to perform actions.
+	 *
+	 * @param array $data
+	 *
+	 * @return void
+	 */
+	public function render_404_log_tab($data) {
+		$data = empty($data) ? array() : $data;
+
+		// Needed for rendering the 404 log table
+		include_once(AIO_WP_SECURITY_PATH.'/admin/wp-security-list-404.php');
+		$event_list_404 = new AIOWPSecurity_List_404($data);
+		$event_list_404->ajax_response();
 	}
 
 	/**
@@ -99,6 +160,16 @@ trait AIOWPSecurity_Log_Commands_Trait {
 		$audit_log_list = new AIOWPSecurity_List_Audit_Log();
 
 		$audit_log_list->prepare_items(true);
+
+		// Prevent empty CSV downloads when no records exist.
+		if (empty($audit_log_list->items)) {
+			return array(
+				'success' => false,
+				'status'  => 'error',
+				'message' => __('No audit logs available to export.', 'all-in-one-wp-security-and-firewall')
+			);
+		}
+
 		$export_keys = array(
 			'id' => 'ID',
 			'created' => __('Date and time', 'all-in-one-wp-security-and-firewall'),
@@ -111,6 +182,11 @@ trait AIOWPSecurity_Log_Commands_Trait {
 			'details' => __('Details', 'all-in-one-wp-security-and-firewall'),
 			'stacktrace' => __('Stack trace', 'all-in-one-wp-security-and-firewall')
 		);
+
+		// Add country column for Premium.
+		if (AIOWPSecurity_Utility_Permissions::is_premium_installed()) {
+			$export_keys['country_code'] = __('Country', 'all-in-one-wp-security-and-firewall');
+		}
 
 		$title = 'audit_event_logs.csv';
 		ob_start();

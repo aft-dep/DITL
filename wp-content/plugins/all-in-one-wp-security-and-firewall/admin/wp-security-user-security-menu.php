@@ -250,11 +250,10 @@ class AIOWPSecurity_User_Security_Menu extends AIOWPSecurity_Admin_Menu {
 				$aio_wp_security->configs->set_value('aiowps_http_authentication_username', sanitize_text_field($_POST['aiowps_http_authentication_username']));
 			}
 
-			if (empty($_POST['aiowps_http_authentication_password'])) {
-				$this->show_msg_error(__('Failed to save \'Password\'.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Please enter a value for the HTTP authentication password.', 'all-in-one-wp-security-and-firewall'));
-				$error = true;
-			} else {
-				$aio_wp_security->configs->set_value('aiowps_http_authentication_password', sanitize_text_field($_POST['aiowps_http_authentication_password']));
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+			if (!empty($_POST['aiowps_http_authentication_password'])) {
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput, WordPress.Security.NonceVerification -- wp_hash_password() handles sanitizing.
+				$aio_wp_security->configs->set_value('aiowps_http_authentication_password', wp_hash_password(wp_unslash($_POST['aiowps_http_authentication_password'])));
 			}
 
 			$aio_wp_security->configs->set_value('aiowps_http_authentication_failure_message', htmlentities(stripslashes($_POST['aiowps_http_authentication_failure_message']), ENT_COMPAT, 'UTF-8'));

@@ -5,6 +5,7 @@ import Icon from '../utils/Icon';
 import { __ } from '@wordpress/i18n';
 import { clsx } from 'clsx';
 import type { IconName } from '../utils/Icon';
+import { renderPossiblyHtml } from '../utils/html';
 
 export interface AlertProps {
     variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'loading';
@@ -119,7 +120,9 @@ const Alert = ({
                         {finalTitle}
                     </p>
                 )}
-                <p className={displayTextColor}>{message}</p>
+                <div className={displayTextColor}>
+                    {renderPossiblyHtml(message)}
+                </div>
             </div>
         </div>
     );

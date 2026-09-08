@@ -7,7 +7,8 @@
 			<div class="inside">
 				<div class="aio_blue_box">
 					<?php
-					echo '<p>'.esc_html__('A large portion of WordPress blog comment spam is produced by automated bots rather than by humans.', 'all-in-one-wp-security-and-firewall').'<br>'.esc_html__('This feature will reduce the useless and unnecessary traffic and load on your server resulting from spam comments.', 'all-in-one-wp-security-and-firewall').'<br>'.esc_html__('In other words, if the comment was not submitted by a human, the request will be discarded or marked as spam.', 'all-in-one-wp-security-and-firewall').'<br>'.esc_html__('This feature uses cookies and JavaScript.', 'all-in-one-wp-security-and-firewall').' '.esc_html__('If your visitors have either cookies or JavaScript disabled, their comments will automatically be discarded or marked as spam.', 'all-in-one-wp-security-and-firewall') . '</p>';
+					/* translators: %s: Know more URL. */
+					echo '<p>'.esc_html__('A large portion of WordPress blog comment spam is produced by automated bots rather than by humans.', 'all-in-one-wp-security-and-firewall').'<br>'.esc_html__('This feature will reduce the useless and unnecessary traffic and load on your server resulting from spam comments.', 'all-in-one-wp-security-and-firewall').'<br>'.esc_html__('In other words, if the comment was not submitted by a human, the request will be discarded or marked as spam.', 'all-in-one-wp-security-and-firewall').'<br>'.esc_html__('This feature uses cookies and JavaScript.', 'all-in-one-wp-security-and-firewall').' '.esc_html__('If your visitors have either cookies or JavaScript disabled, their comments will automatically be discarded or marked as spam.', 'all-in-one-wp-security-and-firewall') .'</p>';
 				?>
 			</div>
 				<div id="detect-spambots-badge">

@@ -55,6 +55,7 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 			if (validate_username($new_username)) {
 				if (AIOWPSecurity_Utility::check_user_exists($new_username)) {
 					$response['status'] = 'error';
+					/* translators: %s: Username */
 					$error = sprintf(__('Username: %s already exists, please enter another value.', 'all-in-one-wp-security-and-firewall'), $new_username);
 				} else {
 					// let's check if currently logged in username is 'admin'
@@ -66,8 +67,7 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 						$username_is_admin = false;
 					}
 					// Now let's change the username
-					$sql = $wpdb->prepare("UPDATE `" . $wpdb->users . "` SET user_login = '" . esc_sql($new_username) . "' WHERE user_login=%s", "admin");
-					$result = $wpdb->query($sql);
+					$result = $wpdb->query($wpdb->prepare("UPDATE `" . $wpdb->users . "` SET user_login = '" . esc_sql($new_username) . "' WHERE user_login=%s", "admin")); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- pcp check ignore this
 					if (false === $result) {
 						// There was an error updating the users table
 						$user_update_error = __('The database update operation of the user account failed.', 'all-in-one-wp-security-and-firewall');
@@ -79,9 +79,9 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 
 					// multisite considerations
 					if (is_multisite()) { // process sitemeta if we're in a multi-site situation
-						$oldAdmins = $wpdb->get_var("SELECT meta_value FROM `" . $wpdb->sitemeta . "` WHERE meta_key = 'site_admins'");
+						$oldAdmins = $wpdb->get_var("SELECT meta_value FROM `" . $wpdb->sitemeta . "` WHERE meta_key = 'site_admins'"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- pcp check ignore this
 						$newAdmins = str_replace('5:"admin"', strlen($new_username) . ':"' . esc_sql($new_username) . '"', $oldAdmins);
-						$wpdb->query("UPDATE `" . $wpdb->sitemeta . "` SET meta_value = '" . esc_sql($newAdmins) . "' WHERE meta_key = 'site_admins'");
+						$wpdb->query("UPDATE `" . $wpdb->sitemeta . "` SET meta_value = '" . esc_sql($newAdmins) . "' WHERE meta_key = 'site_admins'"); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- pcp check ignore this
 					}
 
 					// If user is logged in with username "admin" then log user out and send to login page so they can login again
@@ -207,6 +207,7 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 		if (!empty($invalid_fields)) {
 			$invalid_fields = array_unique($invalid_fields);
 			$invalid_fields = implode(", ", $invalid_fields);
+			/* translators: %s: Options having invalid values */
 			$response['info'][] = sprintf(__('The following options had invalid values and have been set to the defaults: %s', 'all-in-one-wp-security-and-firewall'), $invalid_fields);
 		}
 
@@ -464,7 +465,7 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 					'message' => __('No user ID was provided', 'all-in-one-wp-security-and-firewall')
 				);
 			}
-			$user_id = strip_tags($data['logged_in_id']);
+			$user_id = wp_strip_all_tags($data['logged_in_id']);
 			$error = '';
 
 			if (!is_numeric($user_id)) {
@@ -556,7 +557,7 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 						'message' => __('No valid user ID was provided', 'all-in-one-wp-security-and-firewall')
 					);
 				}
-				$user_id = esc_sql(strip_tags($data['user_id']));
+				$user_id = esc_sql(wp_strip_all_tags($data['user_id']));
 				$meta_key = 'aiowps_account_status';
 				$meta_value = 'approved'; // set account status
 
@@ -580,7 +581,7 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 					);
 				}
 
-				$user_id = esc_sql(strip_tags($data['user_id']));
+				$user_id = esc_sql(wp_strip_all_tags($data['user_id']));
 				// Delete single account
 				$result = wp_delete_user($user_id);
 				if (true === $result) {
@@ -599,7 +600,7 @@ trait AIOWPSecurity_User_Security_Commands_Trait {
 					);
 				}
 
-				$ip = esc_sql(strip_tags($data['ip_address']));
+				$ip = esc_sql(wp_strip_all_tags($data['ip_address']));
 
 				if (AIOWPSecurity_Utility_IP::get_user_ip_address() == $ip) {
 					$message = __('You cannot block your own IP address:', 'all-in-one-wp-security-and-firewall') . ' ' . $ip;

@@ -723,9 +723,18 @@ class Languages {
 	 * @return PLL_Language|false Default language object, `false` if no language found.
 	 */
 	public function get_default() {
-		if ( empty( $this->options['default_lang'] ) ) {
+		if ( ! empty( $this->options['default_lang'] ) ) {
+			return $this->get( $this->options['default_lang'] );
+		}
+
+		// It happens that there the default language is lost. We require one, so let's select one arbitrarily.
+		$terms = $this->get_terms();
+		if ( empty( $terms ) ) {
 			return false;
 		}
+
+		$default_term = reset( $terms );
+		$this->update_default( $default_term->slug );
 
 		return $this->get( $this->options['default_lang'] );
 	}
@@ -920,6 +929,18 @@ class Languages {
 	}
 
 	/**
+	 * Checks if a given value matches the locale format.
+	 *
+	 * @since 3.8.5
+	 *
+	 * @param string $value The value to check.
+	 * @return bool
+	 */
+	public static function is_locale( $value ): bool {
+		return is_string( $value ) && (bool) preg_match( '#' . self::LOCALE_PATTERN . '#', $value );
+	}
+
+	/**
 	 * Builds the language metas into an array and serializes it, to be stored in the term description.
 	 *
 	 * @since 3.4
@@ -1028,7 +1049,7 @@ class Languages {
 		$errors = new WP_Error();
 
 		// Validate locale with the same pattern as WP 4.3. See #28303.
-		if ( empty( $args['locale'] ) || ! preg_match( '#' . self::LOCALE_PATTERN . '#', $args['locale'], $matches ) ) {
+		if ( empty( $args['locale'] ) || ! self::is_locale( $args['locale'] ) ) {
 			$errors->add( 'pll_invalid_locale', __( 'Enter a valid WordPress locale', 'polylang' ) );
 		}
 

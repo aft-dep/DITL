@@ -29,14 +29,14 @@ trait AIOWPSecurity_Tools_Commands_Trait {
 		}
 
 		if ($invalid_domain) {
-			$result = __('Please enter a valid IP address or domain name to look up.', 'all-in-one-wp-security-and-firewall');
-			$result .= __('Nothing to show.', 'all-in-one-wp-security-and-firewall');
+			$result = esc_html__('Please enter a valid IP address or domain name to look up.', 'all-in-one-wp-security-and-firewall');
+			$result .= esc_html__('Nothing to show.', 'all-in-one-wp-security-and-firewall');
 		} else {
 			$result = $this->whois_lookup($ip_or_domain);
 
 			if (is_wp_error($result)) {
 				$result = htmlspecialchars($result->get_error_message());
-				$result .= __('Nothing to show.', 'all-in-one-wp-security-and-firewall');
+				$result .= esc_html__('Nothing to show.', 'all-in-one-wp-security-and-firewall');
 			} else {
 				$result = htmlspecialchars($result);
 			}
@@ -68,14 +68,14 @@ trait AIOWPSecurity_Tools_Commands_Trait {
 		$options = array();
 		// Save settings
 		if (isset($data["aiowps_enable_custom_rules"]) && empty($data['aiowps_custom_rules'])) {
-			$message = __('You must enter some .htaccess directives in the text box below', 'all-in-one-wp-security-and-firewall');
+			$message = esc_html__('You must enter some .htaccess directives in the text box below', 'all-in-one-wp-security-and-firewall');
 			return $this->handle_response(false, $message);
 		} else {
 			if (!empty($data['aiowps_custom_rules'])) {
-				// Sanitize textarea shoud not be used as <filesMatch "\.(js|css|html)$"> etc rules gets removed.
+				// Sanitize textarea should not be used as <filesMatch "\.(js|css|html)$"> etc rules gets removed.
 				// Escape textarea should not be used the & becomes &amp;.
 				// Here stripslashes as old version 5.3.0 not required, AIOWPSecurity_Ajax::set_data applies wp_unslash for ajax data.
-				// So the .htacces rule having index\.php backslashes removed if used stripslashes below.
+				// So the .htaccess rule having index\.php backslashes removed if used stripslashes below.
 				$options['aiowps_custom_rules'] = $data['aiowps_custom_rules'];
 			} else {
 				$options['aiowps_custom_rules'] = ''; //Clear the custom rules config value
@@ -96,7 +96,7 @@ trait AIOWPSecurity_Tools_Commands_Trait {
 				$this->save_settings($options);
 
 				$success = false;
-				$message = __('The plugin was unable to write to the .htaccess file, please edit file manually.', 'all-in-one-wp-security-and-firewall');
+				$message = esc_html__('The plugin was unable to write to the .htaccess file, please edit file manually.', 'all-in-one-wp-security-and-firewall');
 				$aio_wp_security->debug_logger->log_debug("Custom Rules feature - The plugin was unable to write to the .htaccess file.");
 			}
 		}
@@ -126,7 +126,7 @@ trait AIOWPSecurity_Tools_Commands_Trait {
 
 		return array(
 			'status' => 'success',
-			'message' => __('The settings have been successfully updated.', 'all-in-one-wp-security-and-firewall')
+			'message' => esc_html__('The settings have been successfully updated.', 'all-in-one-wp-security-and-firewall')
 		);
 	}
 
@@ -174,37 +174,44 @@ trait AIOWPSecurity_Tools_Commands_Trait {
 	 * @return String|WP_Error - returns preformatted WHOIS lookup result or WP_Error
 	 */
 	private function whois_lookup($search, $timeout = 10) {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fsockopen -- Using fsockopen for WHOIS (port 43), not a filesystem operation
 		$fp = @fsockopen('whois.iana.org', 43, $errno, $errstr, $timeout);
 
 		if (!$fp) {
 			return new WP_Error('whois_lookup_failed', 'whois.iana.org: Socket Error '.$errno.' - '.$errstr);
 		}
-
-		$queries = sprintf(__('Querying %s: %s', 'all-in-one-wp-security-and-firewall'), 'whois.iana.org', $search)."\n";
-
+		
+		/* translators: 1: WHOIS domain 2: IP address or domain */
+		$queries = sprintf(esc_html__('Querying %1$s: %2$s', 'all-in-one-wp-security-and-firewall'), 'whois.iana.org', $search)."\n";
+		
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fputs -- Using fsockopen for WHOIS (port 43), not a filesystem operation
 		fputs($fp, $search."\r\n");
 		$out = '';
 		while (!feof($fp)) {
 			$line = fgets($fp);
 			if (preg_match('/refer: +(\S+)/', $line, $matches)) {
 				$referral_server = $matches[1];
-				$queries .= sprintf(__('Redirected to %s', 'all-in-one-wp-security-and-firewall'), $referral_server)."\n";
+				/* translators: %s: Referral server */
+				$queries .= sprintf(esc_html__('Redirected to %s', 'all-in-one-wp-security-and-firewall'), $referral_server)."\n";
 				break;
 			}
 			$out .= $line;
 		}
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Using fsockopen for WHOIS (port 43), not a filesystem operation
 		fclose($fp);
 
 		if (!isset($referral_server) && filter_var($search, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) && preg_match('/whois: +(\S+)/', $out, $matches)) {
 			$referral_server = $matches[1];
-			$queries .= sprintf(__('Redirected to %s', 'all-in-one-wp-security-and-firewall'), $referral_server)."\n";
+			/* translators: %s: Referral server */
+			$queries .= sprintf(esc_html__('Redirected to %s', 'all-in-one-wp-security-and-firewall'), $referral_server)."\n";
 		}
 
 		$referrals = array();
 
 		while (isset($referral_server)) {
 			$referrals[] = $referral_server;
-
+			
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fsockopen -- Using fsockopen for WHOIS (port 43), not a filesystem operation
 			$fp = @fsockopen($referral_server, 43, $errno, $errstr, $timeout);
 
 			if (!$fp) {
@@ -222,11 +229,12 @@ trait AIOWPSecurity_Tools_Commands_Trait {
 			} else {
 				$formatted_search = $search;
 			}
-
-			$queries .= sprintf(__('Querying %s: %s', 'all-in-one-wp-security-and-firewall'), $referral_server, $formatted_search)."\n";
+			/* translators: 1: Referral server 2: IP address or domain */
+			$queries .= sprintf(esc_html__('Querying %1$s: %2$s', 'all-in-one-wp-security-and-firewall'), $referral_server, $formatted_search)."\n";
 
 			$referral_server = null;
 
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fputs -- Using fsockopen for WHOIS (port 43), not a filesystem operation
 			fputs($fp, $formatted_search."\r\n");
 			$out = '';
 			while (!feof($fp)) {
@@ -239,12 +247,14 @@ trait AIOWPSecurity_Tools_Commands_Trait {
 				) {
 					if (!in_array($matches[1], $referrals)) {
 						$referral_server = $matches[1];
-						$queries .= sprintf(__('Redirected to %s', 'all-in-one-wp-security-and-firewall'), $referral_server)."\n";
+						/* translators: %s: Referral server */
+						$queries .= sprintf(esc_html__('Redirected to %s', 'all-in-one-wp-security-and-firewall'), $referral_server)."\n";
 						break;
 					}
 				}
 				$out .= $line;
 			}
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Using fsockopen for WHOIS (port 43), not a filesystem operation
 			fclose($fp);
 		}
 

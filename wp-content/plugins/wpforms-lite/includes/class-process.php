@@ -148,6 +148,9 @@ class WPForms_Process {
 			$this->entry_confirmation_redirect( '', sanitize_text_field( wp_unslash( $_GET['wpforms_return'] ) ) );
 		}
 
+		// Runs before the form id is resolved: a submission that omits it still renders personalized markup.
+		$this->prevent_caching();
+
 		$form_id = ! empty( $_POST['wpforms']['id'] ) ? absint( $_POST['wpforms']['id'] ) : 0;
 
 		if ( ! $form_id ) {
@@ -250,6 +253,14 @@ class WPForms_Process {
 			);
 
 			$this->errors[ $form_id ]['header'] = esc_html__( 'Attempt to submit corrupted post data.', 'wpforms-lite' );
+
+			/*
+			 * The submission can never succeed while the AJAX handshake is broken, so there is no value
+			 * in echoing the submitted values back into the rendered form. Keeping them out of the markup
+			 * means a page cache that stores this response has no visitor data to replay to anyone else.
+			 */
+			// phpcs:ignore WPForms.PHP.HooksMethod.InvalidPlaceForAddingHooks
+			add_filter( 'wpforms_field_is_fallback_population_allowed', '__return_false' );
 
 			/**
 			 * Fires when corrupted form submission is detected.
@@ -887,6 +898,14 @@ class WPForms_Process {
 			return;
 		}
 
+		// Entry meta rows require a parent entry. Skip when entry_save() did not
+		// create one (e.g. the form has the `disable_entries` setting enabled),
+		// otherwise we accumulate orphaned rows with entry_id = 0 that the purge
+		// pipeline cannot reach.
+		if ( empty( $entry_id ) ) {
+			return;
+		}
+
 		$meta_data  = $this->form_data['entry_meta'];
 		$entry_meta = wpforms()->obj( 'entry_meta' );
 
@@ -1493,12 +1512,15 @@ class WPForms_Process {
 
 		if ( ! empty( $url ) ) {
 			// phpcs:ignore WPForms.Comments.PHPDocHooks.RequiredHookDocumentation
-			$url = apply_filters( 'wpforms_process_redirect_url', $url, $this->form_data['id'], $this->fields, $this->form_data, $this->entry_id );
+			$filtered_url = apply_filters( 'wpforms_process_redirect_url', $url, $this->form_data['id'], $this->fields, $this->form_data, $this->entry_id );
+
+			// An unusable filter result must not replace the configured destination.
+			$url = is_string( $filtered_url ) && $filtered_url !== '' ? $filtered_url : $url;
 
 			if ( wpforms_is_amp() ) {
 				/** This filter is documented in wp-includes/pluggable.php */
 				// phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName, WPForms.Comments.PHPDocHooks.RequiredHookDocumentation
-				$url = apply_filters( 'wp_redirect', $url, 302 );
+				$url = (string) apply_filters( 'wp_redirect', $url, 302 );
 				$url = wp_sanitize_redirect( $url );
 
 				header( sprintf( 'AMP-Redirect-To: %s', $url ) );
@@ -1808,8 +1830,10 @@ class WPForms_Process {
 			$notifications = $form_data['settings']['notifications'];
 		}
 
-		$notifications_count = count( $notifications );
-		$is_pro              = wpforms()->is_pro();
+		// Keep first notification only for Lite.
+		if ( ! wpforms()->is_pro() ) {
+			$notifications = array_slice( $notifications, 0, 1, true );
+		}
 
 		foreach ( $notifications as $notification_id => $notification ) :
 
@@ -1817,10 +1841,27 @@ class WPForms_Process {
 				continue;
 			}
 
-			// You can disable the email notification for a specific notification only if there are more than one notification.
-			// BC: The notification should be enabled even when the `enabled` key doesn't exist.
-			// The key is missed for old forms or forms created using the Lite version.
-			if ( $is_pro && $notifications_count > 1 && isset( $notification['enable'] ) && (int) $notification['enable'] === 0 ) {
+			$is_active = ! isset( $notification['enable'] ) || (int) $notification['enable'] !== 0;
+
+			/**
+			 * Filter whether a notification is considered active and should be sent.
+			 *
+			 * @since 1.10.2
+			 *
+			 * @param bool  $is_active       Whether the notification is active.
+			 * @param array $notification    Notification settings array.
+			 * @param int   $notification_id Notification ID within the form settings.
+			 * @param array $form_data       Form data.
+			 */
+			$is_active = (bool) apply_filters(
+				'wpforms_process_entry_email_notification_is_active',
+				$is_active,
+				$notification,
+				$notification_id,
+				$form_data
+			);
+
+			if ( ! $is_active ) {
 				continue;
 			}
 
@@ -2229,6 +2270,55 @@ class WPForms_Process {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Prevent caching of a page rendered in response to a form submission.
+	 *
+	 * Such a response carries visitor-specific data: repopulated field values, validation
+	 * errors or the confirmation message. Stored by a page cache or CDN and replayed, it
+	 * would expose one visitor's data to another.
+	 *
+	 * @since 2.0.1
+	 */
+	private function prevent_caching(): void {
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( empty( $_POST['wpforms'] ) || wp_doing_ajax() ) {
+			return;
+		}
+
+		/**
+		 * Allow disabling the no-cache signals sent on a form submission page render.
+		 *
+		 * A kill switch for a caching setup that these signals disrupt.
+		 *
+		 * @since 2.0.1
+		 *
+		 * @param bool $prevent Whether to prevent caching of the response.
+		 */
+		if ( ! (bool) apply_filters( 'wpforms_process_prevent_caching', true ) ) {
+			return;
+		}
+
+		// Page caches that ignore response headers still honor the constant, so set it even once headers are sent.
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			/**
+			 * Tells the page caches that do not act on response headers alone to skip this response.
+			 *
+			 * @since 2.0.1
+			 */
+			define( 'DONOTCACHEPAGE', true );
+		}
+
+		if ( headers_sent() ) {
+			return;
+		}
+
+		nocache_headers();
+
+		// WordPress omits `no-store` and `private` for logged-out visitors before 6.8.
+		header( 'Cache-Control: no-cache, no-store, must-revalidate, max-age=0, private' );
 	}
 
 	/**

@@ -14,6 +14,12 @@ interface AccordionProps {
         showConfirmButton?: boolean;
         hidden?: boolean;
         controllerFieldId?: string;
+        /**
+         * If true (or not set), when the accordion is reopened,
+         * the `<groupId>_completed` status may be reset to false.
+         * If false, reopening the group will not modify the `_completed` flag.
+         */
+        resetOnOpen?: boolean;
     }>;
     onChange: (id: string, value: any) => void;
 }
@@ -70,20 +76,25 @@ const Accordion = ({
 
     /**
      * Handles changes to the open/closed state of the accordion.
-     * If a previously open group is now closed, and that group had a 'completed' status,
-     * the 'completed' status will be reset to false to allow re-confirmation.
+     * When a group is opened for the first time and it has the `resetOnOpen` flag
+     * (default: true), the `<groupId>_completed` status is reset to false.
+     * Validation errors for that group are always cleared when it is opened.
      * @param newOpenId The ID of the newly opened accordion group (or an empty string if all are closed).
      */
     const accordionChange = (newOpenId: string) => {
         const previousOpenId = currentOpen;
-        
-        // If a new group is opened, and it was previously marked as completed, reset its status
+
         if (newOpenId && newOpenId !== previousOpenId) {
-            const completionFieldId = `${newOpenId}_completed`;
-            const isCurrentlyCompleted = !!getValue(completionFieldId);
-            if (isCurrentlyCompleted) {
-                // Reset completed status when the group is opened to allow re-confirmation
-                setValue(completionFieldId, false);
+            const openedGroup = allGroups.find(g => g.id === newOpenId);
+            const shouldResetOnOpen = openedGroup?.resetOnOpen !== false; // default: true
+
+            if (shouldResetOnOpen) {
+                const completionFieldId = `${newOpenId}_completed`;
+                const isCurrentlyCompleted = !!getValue(completionFieldId);
+                if (isCurrentlyCompleted) {
+                    // Reset completed status when the group is opened (only if allowed by flag)
+                    setValue(completionFieldId, false);
+                }
             }
             // ALSO: Clear any validation failures for this group when it's opened
             setFailed(prevFailed => {
@@ -114,8 +125,8 @@ const Accordion = ({
                     ? rawSelectedControllerValues
                     : (rawSelectedControllerValues !== null ? [rawSelectedControllerValues] : []);
 
-                const isThisGroupSelectedByItsController = selectedValuesArray.some(selectedValue => {
-                    const option = controllerField.options?.find(opt => opt.value === selectedValue);
+                const isThisGroupSelectedByItsController = selectedValuesArray.some((selectedValue: any) => {
+                    const option = controllerField.options?.find((opt: any) => opt.value === selectedValue);
                     return option && option.is_group === true && option.value === group.id;
                 });
 
@@ -243,12 +254,12 @@ const Accordion = ({
             collapsible
         >
             {allGroups.map((group) => {
-                let isGroupHidden = group.hidden === true;
+                let isGroupHiddenLocal = group.hidden === true;
 
                 const groupControllerFieldId = group.controllerFieldId;
                 if (groupControllerFieldId) {
                     const controllerField = fields.find(f => f.id === groupControllerFieldId);
-                    const isManagedByController = controllerField?.options?.some(opt => opt.value === group.id && opt.is_group === true);
+                    const isManagedByController = controllerField?.options?.some((opt: any) => opt.value === group.id && opt.is_group === true);
                     if (isManagedByController) {
                         const rawSelectedControllerValues = getValue(groupControllerFieldId) || [];
                         const selectedValuesArray = Array.isArray(rawSelectedControllerValues)
@@ -256,18 +267,18 @@ const Accordion = ({
                             : (rawSelectedControllerValues !== null ? [rawSelectedControllerValues] : []);
                         
                         if (selectedValuesArray.length === 0) {
-                            isGroupHidden = true;
+                            isGroupHiddenLocal = true;
                         } else {
-                            const selectedGroupIds = selectedValuesArray.filter(value => {
-                                const option = controllerField?.options?.find(opt => opt.value === value);
+                            const selectedGroupIds = selectedValuesArray.filter((value: any) => {
+                                const option = controllerField?.options?.find((opt: any) => opt.value === value);
                                 return option && option.is_group === true;
                             });
-                            isGroupHidden = !selectedGroupIds.includes(group.id);
+                            isGroupHiddenLocal = !selectedGroupIds.includes(group.id);
                         }
                     }
                 }
 
-                if (isGroupHidden) {
+                if (isGroupHiddenLocal) {
                     return null;
                 }
 

@@ -11,7 +11,6 @@ import {TooltipContainerProvider} from "../utils/Tooltip/TooltipContainerContext
 import { isValidEmail } from '../utils/validators';
 import Alert from './Alert';
 import useAlertStore from "../store/useAlertStore";
-import Icon from '../utils/Icon';
 import {updateAction} from "../utils/api";
 
 /**
@@ -81,14 +80,12 @@ const Onboarding = () => {
         if ( settings.length === 0 ) {
             getSettings();
         }
-    }, [settings]);
+    }, [settings, getSettings]);
 
-    // Clear any prior response message when the step changes (screen change)
     useEffect(() => {
         setResponseMessage('');
         setResponseSuccess(true);
-    }, [currentStepIndex]);
-
+    }, [currentStepIndex, setResponseMessage, setResponseSuccess]);
 
     const handleClose = () => {
         setOpen(false);
@@ -103,7 +100,25 @@ const Onboarding = () => {
     const validateAndContinue = async (e) => {
         // Always clear previous response state upon a new submission attempt
         setResponseMessage('');
-        //setResponseSuccess(true);
+
+        if (currentStep.onContinueExternalAction) {
+            const externalAction = (window as any).pluginOnboardingActions?.[currentStep.onContinueExternalAction];
+
+            if (typeof externalAction === 'function') {
+                const externalActionResult = await externalAction(
+                    currentStep,
+                    settings,
+                    setAlertState,
+                    setValue
+                );
+
+                if (!externalActionResult.success) {
+                    setResponseMessage(externalActionResult.message);
+                    setResponseSuccess(false);
+                    return;
+                }
+            }
+        }
 
         // Do a dynamic external action check at the start of validation. If it exists, use it — this lets specific plugin functions run without adding them to the library.
         if (currentStep.onContinueExternalAction) {
@@ -164,7 +179,7 @@ const Onboarding = () => {
         await handleContinue(e);
     }
 
-    const changeFieldValue = async (fieldId: string, value: string | boolean) => {
+    const changeFieldValue = async (fieldId: string, value: any) => {
         setValue(fieldId, value);
     };
 
@@ -188,11 +203,7 @@ const Onboarding = () => {
         if (currentStep?.type === 'email' || currentStep?.type === 'license') {
             const emailField = currentStep.fields?.find((f: any) => f?.type === 'email');
 
-            // If no email field is present, do not disable.
-            if (!emailField) {
-                // proceed with other checks below
-            } else {
-                // Support both object-map and array-shaped settings
+            if (emailField) {
                 const rawValue =
                     (settings && typeof settings === 'object' && !Array.isArray(settings) ? settings[emailField.id] : undefined) ??
                     (Array.isArray(settings) ? settings.find((s: any) => s?.id === emailField.id)?.value : undefined) ??
@@ -203,16 +214,21 @@ const Onboarding = () => {
                 }
             }
 
-            // Checkbox constraint (apply if a checkbox field exists)
-            const checkboxField = currentStep.fields?.find((f: any) => f?.type === 'checkbox');
-            if (checkboxField) {
-                const checkboxValue =
-                    (settings && typeof settings === 'object' && !Array.isArray(settings) ? settings[checkboxField.id] : undefined) ??
-                    (Array.isArray(settings) ? settings.find((s: any) => s?.id === checkboxField.id)?.value : undefined) ??
-                    false;
+            if (currentStep?.type === 'email') {
+                const checkboxField = currentStep.fields?.find((f: any) => f?.type === 'checkbox');
+                if (checkboxField) {
+                    const checkboxValue =
+                        (settings && typeof settings === 'object' && !Array.isArray(settings)
+                            ? (settings as any)[checkboxField.id]
+                            : undefined) ??
+                        (Array.isArray(settings)
+                            ? (settings as any[]).find((s: any) => s?.id === checkboxField.id)?.value
+                            : undefined) ??
+                        false;
 
-                if (checkboxValue !== true) {
-                    return true;
+                    if (checkboxValue !== true) {
+                        return true;
+                    }
                 }
             }
         }
@@ -242,10 +258,9 @@ const Onboarding = () => {
         }
     };
 
-    //open the modal when the component mounts
     useEffect(() => {
         setOpen(true);
-    }, []);
+    }, [setOpen]);
 
     if (!currentStep) {
         return null;
@@ -275,11 +290,8 @@ const Onboarding = () => {
                                 />
 
                                 {
-                                    // Hide ModalContent
-                                    // 1. When a license is activated or showing license success result
-                                    // 2. When all plugins are already installed
-                                    !((currentStep.type === 'license' && (licenseStatus === 'activated' || isUpdating)) || (currentStep.type === 'plugins' && onboardingData.is_all_plugins_installed)
-                                    ) && (
+                                    // Hide ModalContent when all plugins are already installed
+                                    !(currentStep.type === 'plugins' && onboardingData.is_all_plugins_installed) && (
                                         <ModalContent
                                             step={currentStep}
                                             settings={settings}

@@ -21,7 +21,7 @@ class MapListDropdown {
     public function __construct( $core ) {
         $this->core = $core;
 
-        $this->value = isset( $_GET['map'] ) ? sanitize_text_field( $_GET['map'] ) : '';
+        $this->value = isset( $_GET['map'] ) ? sanitize_text_field( wp_unslash( $_GET['map'] ) ) : '';
         $this->register_shortcode();
     }
 

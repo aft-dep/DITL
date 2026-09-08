@@ -21,6 +21,19 @@ let cmplz_cookie_data = [];
 let cmplzCleanCookieInterval;
 
 /*
+ * Debug logger. Only emits when SCRIPT_DEBUG is enabled (complianz.debug),
+ * so diagnostics stay available for developers without spamming visitors.
+ * @param args
+ */
+function cmplz_log( ...args ) {
+	if ( typeof complianz === 'undefined' || ! complianz.debug ) {
+		return;
+	}
+	// eslint-disable-next-line no-console
+	console.warn( ...args );
+}
+
+/*
  * Create an element
  * @param el
  * @param content
@@ -62,6 +75,63 @@ function cmplz_html_decode( input ) {
 }
 
 /*
+ * Sanitize placeholder HTML before injecting it into DOM.
+ * Keeps expected markup but removes scripts and risky attributes.
+ */
+function cmplz_sanitize_placeholder_html( input ) {
+	const template = document.createElement( 'template' );
+	template.innerHTML = String( input || '' );
+
+	// Remove active content elements entirely.
+	template.content.querySelectorAll( 'script, iframe, object, embed, link, style, base, meta' ).forEach( ( el ) => {
+		el.remove();
+	} );
+
+	template.content.querySelectorAll( '*' ).forEach( ( el ) => {
+		Array.from( el.attributes ).forEach( ( attr ) => {
+			const attrName = attr.name.toLowerCase();
+
+			// Remove inline event handlers like onclick.
+			if ( attrName.indexOf( 'on' ) === 0 ) {
+				el.removeAttribute( attr.name );
+				return;
+			}
+
+			// Block javascript: and data: URLs on URL-based attributes.
+			const attrValue = attr.value.trim();
+			if ( ( attrName === 'href' || attrName === 'src' || attrName === 'xlink:href' ) &&
+				/^\s*(javascript:|data:)/i.test( attrValue ) ) {
+				el.removeAttribute( attr.name );
+			}
+		} );
+	} );
+
+	return template.innerHTML;
+}
+
+/*
+ * Validate dynamic script URLs before assigning to script.src.
+ * Only allow http(s) URLs (including relative URLs resolved by URL()).
+ */
+function cmplz_is_safe_script_src( scriptUrl ) {
+	if ( typeof scriptUrl !== 'string' ) {
+		return false;
+	}
+
+	const trimmed = scriptUrl.trim();
+	if ( ! trimmed ) {
+		return false;
+	}
+
+	try {
+		const parsedUrl = new URL( trimmed, window.location.href );
+		return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+	} catch ( e ) {
+		return false;
+	}
+}
+
+/*
  * Focus trap functions for cookie banner modal
  */
 
@@ -70,19 +140,16 @@ function cmplz_trap_focus() {
 		return;
 	}
 
-	// Only apply focus trap if soft cookie wall is enabled
-	if ( ! complianz.soft_cookiewall ) {
-		return; // Exit early if soft cookie wall is disabled
-	}
-
 	// Store current active element
-	cmplz_original_active_element = document.activeElement;
+	cmplz_original_active_element = cmplz_banner.ownerDocument.activeElement;
 
 	// Add class to body for CSS targeting
-	document.body.classList.add( 'cmplz-banner-active' );
+	if ( complianz.soft_cookiewall ) {
+		document.body.classList.add( 'cmplz-banner-active' );
+	}
 
-	// Add keydown listener for tab navigation
-	cmplz_banner.addEventListener( 'keydown', cmplz_handle_tab_navigation );
+	// Add keydown listener at document level so it fires regardless of propagation
+	document.addEventListener( 'keydown', cmplz_handle_tab_navigation );
 
 	// Focus first focusable element in banner
 	const focusableElements = cmplz_banner.querySelectorAll(
@@ -94,48 +161,64 @@ function cmplz_trap_focus() {
 }
 
 function cmplz_handle_tab_navigation( e ) {
-	if ( e.key === 'Tab' ) {
-		const focusableElements = cmplz_banner.querySelectorAll(
-			'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-		);
+	if ( e.key !== 'Tab' || ! cmplz_banner ) {
+		return;
+	}
 
-		if ( focusableElements.length === 0 ) {
-			return;
+	const focusableElements = Array.from( cmplz_banner.querySelectorAll(
+		'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+	) ).filter( function( el ) {
+		return el.offsetParent !== null;
+	} );
+
+	if ( focusableElements.length === 0 ) {
+		e.preventDefault();
+		return;
+	}
+
+	const firstElement = focusableElements[ 0 ];
+	const lastElement = focusableElements[ focusableElements.length - 1 ];
+	const activeElement = cmplz_banner.ownerDocument.activeElement;
+	const focusIsInBanner = cmplz_banner.contains( activeElement );
+
+	if ( e.shiftKey ) {
+		if ( ! focusIsInBanner || activeElement === firstElement ) {
+			e.preventDefault();
+			lastElement.focus();
 		}
-
-		const firstElement = focusableElements[ 0 ];
-		const lastElement = focusableElements[ focusableElements.length - 1 ];
-
-		if ( e.shiftKey ) {
-			// Shift + Tab - go to last element if on first
-			if ( document.activeElement === firstElement ) {
-				e.preventDefault();
-				lastElement.focus();
-			}
-		} else {
-			// Tab - go to first element if on last
-			if ( document.activeElement === lastElement ) {
-				e.preventDefault();
-				firstElement.focus();
-			}
-		}
+	} else if ( ! focusIsInBanner || activeElement === lastElement ) {
+		e.preventDefault();
+		firstElement.focus();
 	}
 }
 
 function cmplz_release_focus_trap() {
-	if ( cmplz_banner ) {
-		cmplz_banner.removeEventListener( 'keydown', cmplz_handle_tab_navigation );
-	}
+	document.removeEventListener( 'keydown', cmplz_handle_tab_navigation );
 
 	// Remove class from body
 	document.body.classList.remove( 'cmplz-banner-active' );
 
-	// Restore original focus if possible (only if we had stored it)
-	if ( cmplz_original_active_element && cmplz_original_active_element.focus ) {
-		try {
-			cmplz_original_active_element.focus();
-		} catch ( e ) {
-			// If focus fails, focus body as fallback
+	const triggerSource = cmplz_banner_trigger_source;
+	cmplz_banner_trigger_source = 'page-load';
+
+	if ( triggerSource === 'manage-consent' ) {
+		// Return focus to the button that opened the dialog
+		if ( cmplz_original_active_element && cmplz_original_active_element.focus ) {
+			try {
+				cmplz_original_active_element.focus();
+			} catch ( e ) {
+				document.body.focus();
+			}
+		}
+	} else if ( cmplz_last_input_was_keyboard ) {
+		// Page-load + keyboard: move focus to the skip-navigation link so keyboard
+		// users can proceed. Skipped for mouse/touch to avoid a visible skip-link flash.
+		const skipLink = document.querySelector(
+			'a[href="#content"], a[href="#main"], a[href="#main-content"], .skip-link'
+		);
+		if ( skipLink ) {
+			skipLink.focus();
+		} else {
 			document.body.focus();
 		}
 	}
@@ -194,8 +277,8 @@ function cmplzLoadConsentAreaContent( consentedCategory, consentedService ) {
  */
 document.addEventListener( 'cmplz_manage_consent_container_loaded', function() {
 	const url = window.location.href;
-	if ( url.indexOf( '#' ) != -1 ) {
-		const end_pos = url.lastIndexOf( '?' ) != -1 ? url.lastIndexOf( '?' ) : undefined;
+	if ( url.indexOf( '#' ) !== -1 ) {
+		const end_pos = url.lastIndexOf( '?' ) !== -1 ? url.lastIndexOf( '?' ) : undefined;
 		const anchor = url.substring( url.indexOf( '#' ) + 1, end_pos );
 		const element = document.getElementById( anchor );
 		if ( element ) {
@@ -247,7 +330,19 @@ const cmplz_categories = [
 ];
 
 // Focus trap variables
-var cmplz_original_active_element = null;
+let cmplz_original_active_element = null;
+let cmplz_banner_trigger_source = 'page-load'; // 'page-load' | 'manage-consent'
+
+// Track the last input modality so we only move focus to the skip link when
+// the banner was dismissed via keyboard. Mouse/touch users keep their focus
+// where the click left it, avoiding a visible skip-link flash.
+let cmplz_last_input_was_keyboard = false;
+document.addEventListener( 'keydown', function() {
+	cmplz_last_input_was_keyboard = true;
+}, true );
+document.addEventListener( 'pointerdown', function() {
+	cmplz_last_input_was_keyboard = false;
+}, true );
 
 /*
  * Get a cookie by name
@@ -379,13 +474,13 @@ const cmplz_load_css = ( path ) => {
 
 function cmplz_run_script( script, category, service, type, sourceObj ) {
 	const targetObj = document.createElement( 'script' );
-	if ( type !== 'inline' ) {
+	if ( type !== 'inline' && cmplz_is_safe_script_src( script ) ) {
 		targetObj.src = script;
 	} else {
 		if ( typeof script !== 'string' ) {
 			script = script.innerHTML;
 		}
-		targetObj.innerHTML = [ script, 'cmplzScriptLoaded();' ].join( '\n' );
+		targetObj.textContent = [ script, 'cmplzScriptLoaded();' ].join( '\n' );
 	}
 
 	//check if already fired
@@ -485,7 +580,7 @@ function cmplz_set_blocked_content_container() {
 			obj.setAttribute( 'data-deferlazy', 1 );
 		}
 
-		if ( curIndex == null ) {
+		if ( curIndex === null ) {
 			cmplz_placeholder_class_index++;
 			blocked_image_container.classList.add( 'cmplz-placeholder-' + cmplz_placeholder_class_index, 'cmplz-blocked-content-container' );
 			blocked_image_container.setAttribute( 'data-placeholder_class_index', cmplz_placeholder_class_index );
@@ -551,13 +646,13 @@ function cmplz_insert_placeholder_text( container, category, service ) {
 		category = category || 'marketing';
 		let body;
 		if ( typeof placeholder_text !== 'undefined' ) {
-			if ( complianz.clean_cookies == 1 ) {
+			if ( Number( complianz.clean_cookies ) === 1 ) {
 				//make service human readable
 				let service_nicename = service ? service.replace( '-', ' ' ) : '';
 				service_nicename = service_nicename.charAt( 0 ).toUpperCase() + service_nicename.slice( 1 );
 				placeholder_text = placeholder_text.replace( '{service}', service_nicename );
 				body = cmplz_create_element( 'div', placeholder_text );
-				body.innerHTML = placeholder_text;
+				body.innerHTML = cmplz_sanitize_placeholder_html( placeholder_text );
 				body.classList.add( 'cmplz-blocked-content-notice' );
 				const btn = body.querySelector( 'button' );
 				btn.setAttribute( 'data-service', service );
@@ -635,27 +730,19 @@ window.addEventListener( 'resize', function() {
 /*
  * 	we run this function also on an interval, because with ajax loaded content, the placeholders would otherwise not be handled.
  */
-if ( complianz.block_ajax_content == 1 ) {
+if ( Number( complianz.block_ajax_content ) === 1 ) {
 	setInterval( function() {
 		cmplz_set_blocked_content_container();
 	}, 2000 );
 }
 
 /*
- * Check if there are any blocked scripts on the page
- * @returns {boolean}
- */
-function cmplz_has_blocked_scripts() {
-	const scriptElements = document.querySelectorAll( 'script[data-category], script[data-service]' );
-	return scriptElements.length > 0;
-}
-/*
  * Enable scripts that were blocked
  *
  * */
 
 function cmplz_enable_category( category, service ) {
-	if ( complianz.tm_categories == 1 && category !== '' ) {
+	if ( Number( complianz.tm_categories ) === 1 && category !== '' ) {
 		cmplz_run_tm_event( category );
 	}
 
@@ -684,7 +771,7 @@ function cmplz_enable_category( category, service ) {
 	if ( service !== 'do_not_match' ) {
 		selector = '.cmplz-blocked-content-notice [data-service="' + service + '"]';
 	} else {
-		selector = complianz.clean_cookies != 1 ? '.cmplz-blocked-content-notice.cmplz-accept-' + category : '.cmplz-blocked-content-notice [data-category="' + category + '"]';
+		selector = Number( complianz.clean_cookies ) !== 1 ? '.cmplz-blocked-content-notice.cmplz-accept-' + category : '.cmplz-blocked-content-notice [data-category="' + category + '"]';
 	}
 	document.querySelectorAll( selector ).forEach( ( obj ) => {
 		const blockedElementService = obj.getAttribute( 'data-service' );
@@ -1032,7 +1119,7 @@ window.conditionally_show_banner = function() {
 	document.dispatchEvent( event );
 	event = new CustomEvent( 'cmplz_before_cookiebanner' );
 	document.dispatchEvent( event );
-	if ( complianz.forceEnableStats == 1 && complianz.consenttype === 'optin' ) {
+	if ( Number( complianz.forceEnableStats ) === 1 && complianz.consenttype === 'optin' ) {
 		cmplz_set_consent( 'statistics', 'allow' );
 	}
 	const rev_cats = cmplz_categories.reverse();
@@ -1086,7 +1173,7 @@ window.conditionally_show_banner = function() {
 	if ( cmplz_get_cookie( 'saved_categories' ) === '' ) {
 		//for Non optin/optout visitors, and DNT users, we just track the no-warning option
 		if ( complianz.consenttype !== 'optin' && complianz.consenttype !== 'optout' ) {
-			cmplz_track_status( 'no_warning' );
+			cmplz_track_status();
 		} else if ( cmplz_do_not_track() ) {
 			cmplz_track_status( 'do_not_track' );
 		}
@@ -1100,18 +1187,18 @@ window.conditionally_show_banner = function() {
 			if ( complianz.forceEnableStats ) {
 				cmplz_enable_category( 'statistics' );
 			}
-			console.log( 'opt-in' );
+			cmplz_log( 'opt-in' );
 			show_cookie_banner();
 		} else if ( complianz.consenttype === 'optout' ) {
-			console.log( 'opt-out' );
+			cmplz_log( 'opt-out' );
 			show_cookie_banner();
 		} else {
-			console.log( 'other consent type, no cookie warning' );
+			cmplz_log( 'other consent type, no cookie warning' );
 			//on other consent types, all scripts are enabled by default.
 			cmplz_accept_all();
 		}
 	} else {
-		console.log( 'global privacy control or do not track detected: no banner.' );
+		cmplz_log( 'global privacy control or do not track detected: no banner.' );
 		cmplz_track_status( 'do_not_track' );
 	}
 };
@@ -1135,7 +1222,7 @@ function cmplz_get_services_on_page() {
 	document.querySelectorAll( '[data-service]' ).forEach( ( obj ) => {
 		const service = obj.getAttribute( 'data-service' );
 		const category = obj.getAttribute( 'data-category' );
-		if ( services.indexOf( service ) == -1 ) {
+		if ( services.indexOf( service ) === -1 ) {
 			services.push( {
 				category,
 				service,
@@ -1165,7 +1252,6 @@ window.show_cookie_banner = function() {
 		document.body.prepend( container );
 	}
 
-	const link = document.createElement( 'link' );
 	const pageLinks = complianz.page_links[ complianz.region ];
 	//get correct banner, based on banner_id
 	cmplz_banner = document.querySelector( '.cmplz-cookiebanner.banner-' + complianz.user_banner_id + '.' + complianz.consenttype );
@@ -1173,32 +1259,44 @@ window.show_cookie_banner = function() {
 		disableCookiebanner = true;
 	}
 	cmplz_manage_consent_button = document.querySelector( '#cmplz-manage-consent .cmplz-manage-consent.manage-consent-' + complianz.user_banner_id );
-	const css_file_url = complianz.css_file.replace( '{type}', complianz.consenttype ).replace( '{banner_id}', complianz.user_banner_id );
-	if ( complianz.css_file.indexOf( 'cookiebanner/css/defaults/banner' ) !== -1 ) {
-		console.log( 'Fallback default css file used. Please re-save banner settings, or check file writing permissions in uploads directory' );
-	}
 
-	link.href = css_file_url;
-	link.type = 'text/css';
-	link.rel = 'stylesheet';
-	link.onload = function() {
-		if ( ! disableCookiebanner ) {
-			cmplz_banner.classList.remove( 'cmplz-hidden' );
-			cmplz_manage_consent_button.classList.remove( 'cmplz-hidden' );
+	// Reveal the banner once its stylesheet is applied. Idempotent: removing an
+	// already-removed class is a no-op, so calling this more than once is safe.
+	const revealBanner = function() {
+		if ( disableCookiebanner ) {
+			return;
+		}
+		cmplz_banner.classList.remove( 'cmplz-hidden' );
+		cmplz_manage_consent_button.classList.remove( 'cmplz-hidden' );
 
-			// Activate focus trap only if banner is currently shown (not already dismissed)
-			if ( cmplz_get_banner_status() === 'show' ) {
-				cmplz_trap_focus();
+		// Activate focus trap only if banner is currently shown (not already dismissed)
+		if ( cmplz_get_banner_status() === 'show' ) {
+			cmplz_trap_focus();
 
-				// Set focus to the close button when banner is shown
-				const closeButton = cmplz_banner.querySelector( '.cmplz-close' );
-				if ( closeButton ) {
-					closeButton.focus();
-				}
+			// Set focus to the close button when banner is shown
+			const closeButton = cmplz_banner.querySelector( '.cmplz-close' );
+			if ( closeButton ) {
+				closeButton.focus();
 			}
 		}
 	};
-	document.getElementsByTagName( 'head' )[ 0 ].appendChild( link );
+
+	// Guarantee the banner stylesheet is present and enabled, then reveal.
+	// In the deterministic case the sheet was enqueued server-side and is
+	// already applied, so we reveal immediately (no FOUC). Otherwise the sheet
+	// is injected here and we reveal on load, with a timeout safety net for the
+	// race where the sheet finished loading before the listener attached.
+	const bannerLink = cmplzEnsureBannerCss();
+	if ( ! disableCookiebanner ) {
+		if ( bannerLink && bannerLink.sheet ) {
+			revealBanner();
+		} else if ( bannerLink ) {
+			bannerLink.addEventListener( 'load', revealBanner );
+			setTimeout( revealBanner, 500 );
+		} else {
+			revealBanner();
+		}
+	}
 	if ( cmplz_banner && ! disableCookiebanner ) {
 		cmplz_banner.querySelectorAll( '.cmplz-links a:not(.cmplz-external), .cmplz-buttons a:not(.cmplz-external)' ).forEach( ( obj ) => {
 			const docElement = obj;
@@ -1227,6 +1325,154 @@ window.show_cookie_banner = function() {
 	const event = new CustomEvent( 'cmplz_cookie_warning_loaded', { detail: complianz.region } );
 	document.dispatchEvent( event );
 };
+
+/*
+ * Guarantee the banner stylesheet for the current variant is present in the DOM
+ * and enabled. Idempotent — safe to call on first load and after every
+ * client-side (Interactivity API) navigation.
+ *
+ * From WP 6.9 the iAPI router disables any stylesheet absent from the fetched
+ * server HTML by setting CSSStyleSheet.disabled = true (it never removes the
+ * element). When the sheet was enqueued server-side (deterministic single
+ * variant) it survives by design; if the router disabled it we re-enable it
+ * synchronously — zero network, zero flash. When the sheet was injected by JS
+ * (A/B or multiple consent types) we re-enable it, or inject it if missing.
+ *
+ * @returns {HTMLLinkElement|null} the banner <link>, or null if none resolved.
+ */
+function cmplzEnsureBannerCss() {
+	//server-enqueued sheet carries the WordPress style handle id.
+	//Invariant: enqueue_banner_css() only enqueues server-side in the deterministic
+	//case (no A/B testing), where user_banner_id resolves to the default banner id
+	//it enqueued under — so this id matches. Under A/B testing the variant differs
+	//per user, nothing is enqueued server-side, and we fall through to the injected/
+	//inject paths below instead.
+	const handleId = 'cmplz-banner-' + complianz.user_banner_id + '-' + complianz.consenttype + '-css';
+	const enqueued = document.getElementById( handleId );
+	if ( enqueued && enqueued.rel === 'stylesheet' ) {
+		if ( enqueued.sheet && enqueued.sheet.disabled ) {
+			enqueued.sheet.disabled = false;
+		}
+		return enqueued;
+	}
+
+	const css_file_url = complianz.css_file.replace( '{type}', complianz.consenttype ).replace( '{banner_id}', complianz.user_banner_id );
+	if ( complianz.css_file.indexOf( 'cookiebanner/css/defaults/banner' ) !== -1 ) {
+		cmplz_log( 'Fallback default css file used. Please re-save banner settings, or check file writing permissions in uploads directory' );
+	}
+
+	//match an already-injected <link> by filename, ignoring cache-busting query strings
+	const filename = css_file_url.split( '?' )[ 0 ].split( '/' ).pop();
+	let injected = null;
+	document.querySelectorAll( 'link[rel="stylesheet"]' ).forEach( function( el ) {
+		if ( el.href.split( '?' )[ 0 ].split( '/' ).pop() === filename ) {
+			injected = el;
+		}
+	} );
+	if ( injected ) {
+		if ( injected.sheet && injected.sheet.disabled ) {
+			injected.sheet.disabled = false;
+		}
+		return injected;
+	}
+
+	//nothing present yet — inject it (multi-variant first load, or default-CSS fallback)
+	const link = document.createElement( 'link' );
+	link.href = css_file_url;
+	link.type = 'text/css';
+	link.rel = 'stylesheet';
+	document.getElementsByTagName( 'head' )[ 0 ].appendChild( link );
+	return link;
+}
+
+/*
+ * Re-sync consent state and de-duplicate banner instances after a client-side
+ * navigation. The banner is rendered once in the footer (outside any router
+ * region) so it normally persists untouched; this is a safety pass in case a
+ * theme/plugin wraps it in a router region, which would duplicate it with the
+ * cache-default markup on swap.
+ */
+function cmplzSyncConsentState() {
+	const banners = document.querySelectorAll( '.cmplz-cookiebanner' );
+	//drop copies brought in inside a router region; the footer original persists
+	if ( banners.length > 1 ) {
+		banners.forEach( function( banner ) {
+			if ( banner.closest( '[data-wp-router-region]' ) ) {
+				banner.remove();
+			}
+		} );
+	}
+
+	//re-apply visibility from the stored consent status
+	const dismissed = cmplz_get_banner_status() === 'dismissed';
+	document.querySelectorAll( '.cmplz-cookiebanner' ).forEach( function( banner ) {
+		banner.classList.toggle( 'cmplz-show', ! dismissed );
+		banner.classList.toggle( 'cmplz-dismissed', dismissed );
+	} );
+
+	//remove a manage-consent button duplicated inside a region, but only when an
+	//out-of-region original survives. Mirrors the banner guard above: if a theme
+	//wraps the whole page (footer included) in a single router region, the only
+	//copy lives inside it — removing it unconditionally would delete the manage-
+	//consent button with no replacement.
+	const manageBtns = document.querySelectorAll( '#cmplz-manage-consent' );
+	const hasOriginal = Array.prototype.some.call( manageBtns, function( btn ) {
+		return ! btn.closest( '[data-wp-router-region]' );
+	} );
+	if ( hasOriginal ) {
+		manageBtns.forEach( function( btn ) {
+			if ( btn.closest( '[data-wp-router-region]' ) ) {
+				btn.remove();
+			}
+		} );
+	}
+}
+
+/*
+ * Arm the client-side navigation hook. On WP 7.0+ the companion script module
+ * (complianz-router.js) drives navigation via the official watch()+state.url
+ * API and notifies us with a DOM event. On WP 6.9 we fall back to a History API
+ * patch, scoped to pages that actually have an iAPI router region. Handlers are
+ * idempotent, so duplicate/extra ticks are harmless.
+ */
+function cmplzInitNavigationHook() {
+	if ( ! document.querySelector( '[data-wp-router-region]' ) ) {
+		return; //no iAPI navigation on this page
+	}
+
+	const onNavigate = function() {
+		cmplzEnsureBannerCss();
+		cmplzSyncConsentState();
+	};
+
+	if ( complianz.iapi_nav === 'module' ) {
+		//WP 7.0+: the companion module drives navigation via watch()
+		document.addEventListener( 'cmplz_router_navigated', onNavigate );
+		return;
+	}
+
+	//WP 6.9 fallback: patch the History API + popstate.
+	//Defer onNavigate so it never runs synchronously inside the iAPI router's
+	//pushState call — a synchronous DOM mutation there triggers the iAPI
+	//MutationObserver, which re-evaluates directives that access private stores
+	//and throws "Cannot unlock a private store with an invalid lock code".
+	const onNavigateDeferred = function() {
+		requestAnimationFrame( function() {
+			onNavigate();
+			setTimeout( onNavigate, 150 );
+		} );
+	};
+	[ 'pushState', 'replaceState' ].forEach( function( method ) {
+		const original = history[ method ];
+		history[ method ] = function() {
+			const result = original.apply( this, arguments );
+			onNavigateDeferred();
+			return result;
+		};
+	} );
+	window.addEventListener( 'popstate', onNavigateDeferred );
+}
+
 /*
  * Get the status of the banner: dismissed | show
  * @returns {string}
@@ -1404,7 +1650,7 @@ function cmplz_exists_service_consent() {
 		consented_services = JSON.parse( consented_services_json );
 		for ( const key in consented_services ) {
 			if ( consented_services.hasOwnProperty( key ) ) {
-				if ( consented_services[ key ] == true ) {
+				if ( consented_services[ key ] === true ) {
 					return true;
 				}
 			}
@@ -1474,7 +1720,7 @@ function cmplz_get_cookie_path() {
  * @returns {string}
  */
 function cmplz_get_cookie_domain() {
-	if ( complianz.set_cookies_on_root == 1 && complianz.cookie_domain.length > 3 && ! complianz.cookie_domain.includes( 'localhost' ) ) {
+	if ( Number( complianz.set_cookies_on_root ) === 1 && complianz.cookie_domain.length > 3 && ! complianz.cookie_domain.includes( 'localhost' ) ) {
 		return complianz.cookie_domain;
 	}
 	return '';
@@ -1557,7 +1803,7 @@ if ( typeof ( Storage ) !== 'undefined' && sessionStorage.cmplz_user_data ) {
 }
 
 //if not stored yet, load. As features in the user object can be changed on updates, we also check for the version
-if ( complianz.geoip == 1 && ( cmplz_user_data.length == 0 || ( cmplz_user_data.version !== complianz.version ) || ( cmplz_user_data.banner_version !== complianz.banner_version ) ) ) {
+if ( Number( complianz.geoip ) === 1 && ( cmplz_user_data.length === 0 || ( cmplz_user_data.version !== complianz.version ) || ( cmplz_user_data.banner_version !== complianz.banner_version ) ) ) {
 	const request = new XMLHttpRequest();
 	let cmplzUserRegion = cmplz_get_url_parameter( window.location.href, 'cmplz_user_region' );
 	cmplzUserRegion = cmplzUserRegion ? '&cmplz_user_region=' + cmplzUserRegion : '';
@@ -1573,11 +1819,14 @@ if ( complianz.geoip == 1 && ( cmplz_user_data.length == 0 || ( cmplz_user_data.
 	conditionally_show_banner();
 }
 
+//keep the banner styled + consistent across Interactivity API client-side navigation
+cmplzInitNavigationHook();
+
 /*
  *  when ab testing, or using records of consent, we want to keep track of the unique user id
  */
 
-if ( complianz.store_consent == 1 ) {
+if ( Number( complianz.store_consent ) === 1 ) {
 	const cmplz_id_cookie = cmplz_get_cookie( 'id' );
 	let cmplz_id_session = '';
 	let cmplz_id = '';
@@ -1585,12 +1834,12 @@ if ( complianz.store_consent == 1 ) {
 		cmplz_id_session = JSON.parse( sessionStorage.cmplz_id );
 	}
 
-	if ( cmplz_id_cookie.length == 0 && cmplz_id_session.length > 0 ) {
+	if ( cmplz_id_cookie.length === 0 && cmplz_id_session.length > 0 ) {
 		cmplz_id = cmplz_id_session;
 		cmplz_set_cookie( 'id', cmplz_id );
 	}
 
-	if ( cmplz_id_cookie.length > 0 && cmplz_id_session.length == 0 ) {
+	if ( cmplz_id_cookie.length > 0 && cmplz_id_session.length === 0 ) {
 		cmplz_id = cmplz_id_cookie;
 	}
 
@@ -1647,7 +1896,7 @@ cmplz_add_event( 'click', '.cmplz-accept-category, .cmplz-accept-marketing', fun
 	const service = obj.getAttribute( 'data-service' );
 	let category = obj.getAttribute( 'data-category' );
 	category = category ? category : 'marketing';
-	if ( complianz.clean_cookies == 1 && typeof service !== 'undefined' && service ) {
+	if ( Number( complianz.clean_cookies ) === 1 && typeof service !== 'undefined' && service ) {
 		cmplz_set_service_consent( service, true );
 		cmplz_enable_category( '', 'general' );
 		cmplz_enable_category( '', service );
@@ -1770,14 +2019,31 @@ cmplz_add_event( 'click', '.cmplz-view-preferences', function( e ) {
 		cmplz_banner.querySelector( '.cmplz-view-preferences' ).style.display = 'none';
 		cmplz_banner.querySelector( '.cmplz-save-preferences' ).style.display = 'block';
 
-		// Set focus to the first category when preferences are shown
+		// Set focus to the first category toggle when preferences are shown
 		const firstCategory = cmplz_banner.querySelector( '.cmplz-categories .cmplz-category' );
 		if ( firstCategory ) {
-			const summary = firstCategory.querySelector( 'summary' );
-			if ( summary ) {
-				summary.setAttribute( 'tabindex', '0' );
-				summary.focus();
+			const toggleBtn = firstCategory.querySelector( '.cmplz-category-toggle' );
+			if ( toggleBtn ) {
+				toggleBtn.focus();
 			}
+		}
+	}
+} );
+/*
+ * Toggle category description visibility via the expand/collapse button
+ */
+cmplz_add_event( 'click', '.cmplz-category-toggle', function( e ) {
+	const btn = e.target.closest( '.cmplz-category-toggle' );
+	if ( ! btn ) {
+		return;
+	}
+	const isExpanded = btn.getAttribute( 'aria-expanded' ) === 'true';
+	btn.setAttribute( 'aria-expanded', String( ! isExpanded ) );
+	const category = btn.closest( '.cmplz-category' );
+	if ( category ) {
+		const desc = category.querySelector( '.cmplz-description' );
+		if ( desc ) {
+			desc.hidden = isExpanded;
 		}
 	}
 } );
@@ -1828,6 +2094,7 @@ cmplz_add_event( 'click', 'button.cmplz-manage-settings', function( e ) {
 
 cmplz_add_event( 'click', 'button.cmplz-manage-consent', function( e ) {
 	e.preventDefault();
+	cmplz_banner_trigger_source = 'manage-consent';
 	cmplz_set_banner_status( 'show' );
 } );
 
@@ -1842,8 +2109,8 @@ function cmplz_set_up_auto_dismiss() {
 		return;
 	}
 
-	// Handle dismiss on scroll
-	if ( complianz.dismiss_on_scroll == 1 ) {
+	// Handle dismiss on scroll – opt-out only
+	if ( complianz.consenttype === 'optout' && Number( complianz.dismiss_on_scroll ) === 1 ) {
 		const onWindowScroll = function() {
 			if ( window.pageYOffset > Math.floor( 400 ) ) {
 				window.removeEventListener( 'scroll', onWindowScroll );
@@ -1852,17 +2119,9 @@ function cmplz_set_up_auto_dismiss() {
 				if ( cmplz_get_banner_status() === 'dismissed' ) {
 					return;
 				}
-				// Set dismissed before cmplz_deny_all() to ensure the cookie is written
-				// before the page reload it triggers, preventing an infinite loop.
 				cmplz_set_banner_status( 'dismissed' );
-				if ( complianz.consenttype === 'optout' ) {
-					// Opt-out: dismissal allows cookies (do nothing, they're already active)
-					cmplz_fire_categories_event();
-					cmplz_track_status();
-				} else {
-					// Opt-in: dismissal denies all cookies
-					cmplz_deny_all();
-				}
+				cmplz_fire_categories_event();
+				cmplz_track_status();
 			}
 		};
 		window.addEventListener( 'scroll', onWindowScroll );
@@ -1870,23 +2129,15 @@ function cmplz_set_up_auto_dismiss() {
 
 	// Handle dismiss on timeout
 	const delay = parseInt( complianz.dismiss_timeout );
-	if ( delay > 0 ) {
+	if ( complianz.consenttype === 'optout' && delay > 0 ) {
 		window.setTimeout( function() {
 			// User may have explicitly accepted/denied before the timeout fired.
 			if ( cmplz_get_banner_status() === 'dismissed' ) {
 				return;
 			}
-			// Set dismissed before cmplz_deny_all() to ensure the cookie is written
-			// before the page reload it triggers, preventing an infinite loop.
 			cmplz_set_banner_status( 'dismissed' );
-			if ( complianz.consenttype === 'optout' ) {
-				// Opt-out: dismissal allows cookies (do nothing, they're already active)
-				cmplz_fire_categories_event();
-				cmplz_track_status();
-			} else {
-				// Opt-in: dismissal denies all cookies
-				cmplz_deny_all();
-			}
+			cmplz_fire_categories_event();
+			cmplz_track_status();
 		}, Math.floor( delay ) );
 	}
 }
@@ -1940,7 +2191,7 @@ function cmplz_track_status( status ) {
 		return;
 	}
 
-	if ( complianz.store_consent != 1 || cmplz_is_bot() || cmplz_is_speedbot() ) {
+	if ( Number( complianz.store_consent ) !== 1 || cmplz_is_bot() || cmplz_is_speedbot() ) {
 		return;
 	}
 
@@ -2136,8 +2387,12 @@ function cmplz_integrations_revoke() {
 	const cookiesToSet = complianz.set_cookies;
 	for ( const key in cookiesToSet ) {
 		if ( cookiesToSet.hasOwnProperty( key ) ) {
-			cmplz_set_cookie( key, cookiesToSet[ key ][ 1 ], false );
-			if ( cookiesToSet[ key ][ 1 ] == false ) {
+			const revokeValue = cookiesToSet[ key ][ 1 ];
+			cmplz_set_cookie( key, revokeValue, false );
+			// A zero/empty revoke value (e.g. integer 0 from some integrations)
+			// means "clear this cookie" — preserves the original == false behaviour.
+			// A meaningful value such as '1' (e.g. dont_track_me) is kept, not cleared.
+			if ( Number( revokeValue ) === 0 ) {
 				cmplz_clear_cookies( key );
 			}
 		}
@@ -2205,7 +2460,7 @@ function cmplz_wp_set_consent( type, value ) {
 }
 
 function cmplz_start_clean() {
-	if ( complianz.clean_cookies == 1 ) {
+	if ( Number( complianz.clean_cookies ) === 1 ) {
 		//check if it's already stored
 		if ( typeof ( Storage ) !== 'undefined' ) {
 			cmplz_cookie_data = JSON.parse( sessionStorage.getItem( 'cmplz_cookie_data' ) );
@@ -2310,8 +2565,8 @@ function cmplz_load_manage_consent_container() {
 
 cmplz_add_event( 'keypress', '.cmplz-banner-slider label', function( e ) {
 	const keycode = ( e.keyCode ? e.keyCode : e.which );
-	if ( keycode == 32 ) {
-		document.activeElement.click();
+	if ( keycode === 32 ) {
+		e.target.click();
 	}
 } );
 
@@ -2320,8 +2575,8 @@ cmplz_add_event( 'keypress', '.cmplz-banner-slider label', function( e ) {
  */
 cmplz_add_event( 'keypress', '.cmplz-cookiebanner .cmplz-header .cmplz-close', function( e ) {
 	const keycode = ( e.keyCode ? e.keyCode : e.which );
-	if ( keycode == 13 ) {
-		document.activeElement.click();
+	if ( keycode === 13 ) {
+		e.target.click();
 	}
 } );
 

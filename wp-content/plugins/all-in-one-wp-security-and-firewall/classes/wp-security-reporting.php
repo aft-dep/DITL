@@ -57,4 +57,50 @@ class AIOWPSecurity_Reporting {
 		}
 		return $output;
 	}
+
+	/**
+	 * Send notifications (email for now, webhook in premium plugin)
+	 *
+	 * @param array  $data Notification data
+	 * @param string $type Notification type (email, webhook)
+	 *
+	 * @return boolean
+	 */
+	public static function notification($data, $type = 'email') {
+		switch ($type) {
+			case 'email':
+				return self::send_email($data);
+			case 'webhook':
+				return apply_filters('aiowps_webhook_notification', false, $data);
+			default:
+				return false;
+		}
+	}
+
+	/**
+	 * Send an email
+	 *
+	 * @param array $data Email parameters including 'to', 'subject', 'message', 'headers', and 'attachments'
+	 *
+	 * @return bool Whether the email was sent successfully
+	 */
+	private static function send_email($data) {
+		global $aio_wp_security;
+
+		$to = isset($data['to']) ? $data['to'] : '';
+		$subject = isset($data['subject']) ? $data['subject'] : '';
+		$message = isset($data['message']) ? $data['message'] : '';
+		$headers = isset($data['headers']) ? $data['headers'] : array();
+		$attachments = isset($data['attachments']) ? $data['attachments'] : array();
+
+		if (!is_array($to)) {
+			$to = array($to);
+		}
+
+		if (!$aio_wp_security->sender_obj->send_email($to, $subject, $message, $headers, $attachments)) {
+			$aio_wp_security->debug_logger->log_debug('AIOWPSecurity_Reporting: Email sending failed to ' . implode(',', $to), 4);
+			return false;
+		}
+		return true;
+	}
 }

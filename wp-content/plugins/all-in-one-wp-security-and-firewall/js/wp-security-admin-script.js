@@ -194,6 +194,18 @@ function aios_update_content(id, html) {
 	jQuery(id).html(html);
 }
 
+/**
+ * Escapes a string for safe HTML output.
+ *
+ * @param {string} str - The string to escape.
+ *
+ * @returns {string} The escaped HTML string.
+ */
+function aios_escape_html(str) {
+	const div = document.createElement('div');
+	div.textContent = str;
+	return div.innerHTML;
+}
 
 /**
  * Function to block the UI and display a loading message.
@@ -260,7 +272,7 @@ function aios_show_success_modal(args, close_popup = true) {
 	});
 
 	// click the show more for AJAX info
-	jQuery('.aios_success_popup').on('click', '#aios_ajax_showmoreoptions', function (e) {
+	jQuery('.aios_success_popup').on('click', '#aios_ajax_showmoreoptions', function(e) {
 		e.preventDefault();
 		let more_options = jQuery('#aios_ajax_moreoptions');
 		more_options.toggle();
@@ -275,7 +287,7 @@ function aios_show_success_modal(args, close_popup = true) {
 	});
 
 	if (close_popup) {
-		setTimeout(function () {
+		setTimeout(function() {
 			jQuery.unblockUI();
 		}, 2000);
 	}
@@ -290,8 +302,9 @@ function aios_show_success_modal(args, close_popup = true) {
  * @param {string} [block_ui_message="Saving..."] - The message to display while blocking UI during AJAX request.
  * @param {Function} [pre_ajax_callback] - Optional callback function to execute before the AJAX request.
  * @param {Function} [post_ajax_callback] - Optional callback function to execute after the AJAX request.
+ * @param {Function} [error_callback] - Optional callback function to execute if an error occurs during the AJAX request.
  */
-function aios_submit_form(form, action, use_data = true, block_ui_message = aios_trans.saving, pre_ajax_callback, post_ajax_callback) {
+function aios_submit_form(form, action, use_data = true, block_ui_message = aios_trans.saving, pre_ajax_callback, post_ajax_callback, error_callback) {
 	aios_block_ui(block_ui_message);
 	var submitButton = form.find(':submit');
 	submitButton.prop('disabled', true);
@@ -310,10 +323,29 @@ function aios_submit_form(form, action, use_data = true, block_ui_message = aios
 			data[dataArray[i].name] = dataArray[i].value;
 		}
 	}
+
+	if (typeof error_callback !== 'function') {
+		error_callback = function() {
+			jQuery.unblockUI();
+		};
+	} else {
+		// Save reference to the original callback
+		var original_error_callback = error_callback;
+
+		error_callback = function() {
+			original_error_callback();
+			jQuery.unblockUI();
+		};
+	}
+
+	let options = {
+		error_callback: error_callback
+	}
+
 	aios_send_command(action, data, function(response) {
 		aios_handle_ajax_update(response, post_ajax_callback);
-		submitButton.prop('disabled', false);
-	});
+		submitButton.prop('disabled', false)
+	}, options);
 }
 
 /**
@@ -387,7 +419,7 @@ function aios_show_ajax_response_message(response) {
 
 
 			let infoContainer = jQuery('<div id="aios_ajax_moreoptions" class="aiowps_more_info_body" style="display:none;"></div>');
-			response.info.forEach(function (info) {
+			response.info.forEach(function(info) {
 				infoContainer.append(`<span class="aios-modal-info">${info}</span>`, '<br>');
 			});
 
@@ -414,13 +446,16 @@ function aios_show_ajax_response_message(response) {
 jQuery(function($) {
 	//Add Generic Admin Dashboard JS Code in this file
 
+	var heartbeat = WP_Security_Heartbeat();
+	var heartbeat_agents = [];
+
 	//Media Uploader - start
 	jQuery("#aiowps_restore_htaccess_form").on('submit', function(e) {
 		e.preventDefault();
 		var form = jQuery(this);
 
-		aios_read_restore_file(this, 'htaccess', function () {
-			aios_submit_form(form, 'perform_restore_htaccess_file', true, aios_trans.processing, null, function (response) {
+		aios_read_restore_file(this, 'htaccess', function() {
+			aios_submit_form(form, 'perform_restore_htaccess_file', true, aios_trans.processing, null, function(response) {
 				form[0].reset();
 			})
 		});
@@ -430,8 +465,8 @@ jQuery(function($) {
 		e.preventDefault();
 		var form = jQuery(this);
 
-		aios_read_restore_file(this, 'wp_config', function () {
-			aios_submit_form(form, 'perform_restore_wp_config_file', true, aios_trans.processing, null, function (response) {
+		aios_read_restore_file(this, 'wp_config', function() {
+			aios_submit_form(form, 'perform_restore_wp_config_file', true, aios_trans.processing, null, function(response) {
 				form[0].reset();
 			})
 		});
@@ -441,7 +476,7 @@ jQuery(function($) {
 		e.preventDefault();
 		var form = jQuery(this);
 
-		aios_read_restore_file(this, 'import_settings', function () {
+		aios_read_restore_file(this, 'import_settings', function() {
 
 			aios_submit_form(form, 'perform_restore_aiowps_settings', true, aios_trans.processing, null, function(response) {
 				form[0].reset();
@@ -481,11 +516,11 @@ jQuery(function($) {
 		aios_import_file_reader.readAsText(aios_import_file_file);
 	}
 	//End of Media Uploader
-	
+
 	// Triggers the more info toggle link
 	jQuery(".aiowps_more_info_body").hide();//hide the more info on page load
 	function toggleMoreInfo(target = '.aiowps_more_info_anchor') {
-		jQuery(target).on('click', function () {
+		jQuery(target).on('click', function() {
 			jQuery(this).next(".aiowps_more_info_body").animate({"height": "toggle"});
 			var toggle_char_ref = jQuery(this).find(".aiowps_more_info_toggle_char");
 			var toggle_char_value = toggle_char_ref.text();
@@ -516,7 +551,7 @@ jQuery(function($) {
 	}
 
 	// Start of brute force attack prevention toggle handling
-	jQuery('input[name=aiowps_enable_brute_force_attack_prevention]').on('click', function () {
+	jQuery('input[name=aiowps_enable_brute_force_attack_prevention]').on('click', function() {
 		jQuery('input[name=aiowps_brute_force_secret_word]').prop('disabled', !jQuery(this).prop('checked'));
 		jQuery('input[name=aiowps_cookie_based_brute_force_redirect_url]').prop('disabled', !jQuery(this).prop('checked'));
 		jQuery('input[name=aiowps_brute_force_attack_prevention_pw_protected_exception]').prop('disabled', !jQuery(this).prop('checked'));
@@ -525,11 +560,11 @@ jQuery(function($) {
 	// End of brute force attack prevention toggle handling
 
 	// Start of CAPTCHA handling
-	jQuery('.wrap').on('change', '#aiowps_default_captcha', function () {
+	jQuery('.wrap').on('change', '#aiowps_default_captcha', function() {
 		var selected_captcha = jQuery(this).val();
 		jQuery('.captcha_settings').hide();
 		jQuery('#aios-'+ selected_captcha).show();
-		
+
 		if ('none' === selected_captcha) {
 			jQuery('#aios-captcha-options').hide();
 		} else {
@@ -551,7 +586,7 @@ jQuery(function($) {
 		var exclude_files = file_entities ? 0 : 1;
 
 		if ('function' === typeof updraft_backupnow_inpage_go) {
-			updraft_backupnow_inpage_go(function () {
+			updraft_backupnow_inpage_go(function() {
 				// Close the backup dialogue.
 				jQuery('#updraft-backupnow-inpage-modal').dialog('close');
 			}, file_entities, 'autobackup', 0, exclude_files, 0);
@@ -559,7 +594,7 @@ jQuery(function($) {
 	}
 
 	if (jQuery('#aios-manual-db-backup-now').length) {
-		jQuery('#aios-manual-db-backup-now').on('click', function (e) {
+		jQuery('#aios-manual-db-backup-now').on('click', function(e) {
 			e.preventDefault();
 			take_a_backup_with_updraftplus();
 		});
@@ -608,15 +643,32 @@ jQuery(function($) {
 
 	// Start audit log list table handling
 	var audit_log_table_id = '#audit-log-list-table #tables-filter',
-	audit_log_elements = '.tablenav-pages a, .manage-column.sortable a, .manage-column.sorted a, .current-page, #search-submit, .action',
-	audit_log_bulk_action_selector = '#bulk-action-selector-top, #bulk-action-selector-bottom',
-	audit_log_table_tab = 'render_audit_log_tab',
-	audit_log_filter_event = '.audit-filter-event',
-	audit_log_search = '#search_audit_events-search-input',
-	audit_log_level = '.audit-filter-level';
+		audit_log_elements = '.tablenav-pages a, .manage-column.sortable a, .manage-column.sorted a, #search-submit, .action',
+		audit_log_bulk_action_selector = '#bulk-action-selector-top, #bulk-action-selector-bottom',
+		audit_log_table_tab = 'render_audit_log_tab',
+		audit_log_filter_event = '.audit-filter-event',
+		audit_log_search = '#search_audit_events-search-input',
+		audit_log_level = '.audit-filter-level';
 	detect_table_action(audit_log_table_id, audit_log_elements, audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level);
 	// End of audit log list table handling
 
+	// Start permanent block ip list table handling
+	var permanent_blocked_ip_table_id = '#permanent-ip-list-table #tables-filter',
+		permanent_blocked_ip_elements = '.tablenav-pages a, .manage-column.sortable a, .manage-column.sorted a, #search-submit, .action',
+		permanent_blocked_ip_bulk_action_selector = '#bulk-action-selector-top, #bulk-action-selector-bottom',
+		permanent_blocked_ip_table_tab = 'render_permanent_block_list_tab',
+		permanent_blocked_ip_search = '#search_permanent_block-search-input';
+	detect_table_action(permanent_blocked_ip_table_id, permanent_blocked_ip_elements, permanent_blocked_ip_bulk_action_selector, permanent_blocked_ip_table_tab, '', permanent_blocked_ip_search, '');
+	// End of  permanent block ip list table handling
+
+	// Start 404 log list table handling
+	var log_404_table_id = '#404-log-list-table #tables-filter',
+		log_404_elements = '.tablenav-pages a, .manage-column.sortable a, .manage-column.sorted a, #search-submit, .action',
+		log_404_bulk_action_selector = '#bulk-action-selector-top, #bulk-action-selector-bottom',
+		log_404_table_tab = 'render_404_log_tab',
+		log_404_search = '#search_404_events-search-input';
+	detect_table_action(log_404_table_id, log_404_elements, log_404_bulk_action_selector, log_404_table_tab, '', log_404_search, '');
+	// End of 404 log list table handling
 
 	// Start of list table handling
 
@@ -636,7 +688,7 @@ jQuery(function($) {
 	 * @returns {void}
 	 */
 	function detect_table_action(id, elements, action_selector, tab, filter_event_selector = '', search_selector = '', filter_level_selector = '', detect = true) {
-	
+
 		if (true === detect) {
 			jQuery(id).on('click change', elements, function(e) {
 				// Check if the event's default action is prevented by the confirm message cancel
@@ -659,7 +711,7 @@ jQuery(function($) {
 			var checked_values = jQuery('th.check-column input[type="checkbox"]:checked').map(function() {
 				return jQuery(this).val();
 			}).get();
-	
+
 			var event_filter = jQuery(filter_event_selector).val();
 
 			var top_selector = jQuery('#bulk-action-selector-top').val(),
@@ -674,7 +726,7 @@ jQuery(function($) {
 			} else {
 				action = '-1';
 			}
-	
+
 			var data = {
 				'paged': get_page_number(jQuery(this)),
 				'order': get_order(jQuery(this)),
@@ -683,24 +735,14 @@ jQuery(function($) {
 				'level-filter': jQuery(filter_level_selector).val() || '-1',
 				'event-filter': event_filter || '-1',
 				'items': checked_values,
+				'bulk_apply': jQuery(this).is('.bulkactions .action'),
 				'action': action
 			};
-	
+
 			update_list_table(tab, data);
-	
+
 			jQuery(action_selector).val('-1');
 		}
-	}
-
-	/**
-	 * Remove the message after a set time.
-	 *
-	 * @returns {void}
-	 */
-	function remove_aios_message() {
-	setTimeout(function() {
-			jQuery('#aios_message').remove();
-	}, 5000);
 	}
 
 	/**
@@ -734,7 +776,7 @@ jQuery(function($) {
 			return element.closest('th').hasClass('asc') ? 'asc' : 'desc';
 		}
 	}
-	
+
 	/**
 	 * Get the page number based on the clicked element.
 	 *
@@ -774,13 +816,13 @@ jQuery(function($) {
 	 * @param {object} data - The data object containing table parameters.
 	 */
 	function update_list_table(table, data) {
-		aios_send_command(table, data, function (response) {
+		aios_send_command(table, data, function(response) {
 			// Check if the requested page number exceeds the total pages available
 			if (data.paged > response.total_pages && 0 < response.total_pages) {
 				// Update data to request the last available page
 				data.paged = response.total_pages;
 				// Make another AJAX call to get the data for the last page
-				aios_send_command(table, data, function (response) {
+				aios_send_command(table, data, function(response) {
 					render_table(response);
 					}, {
 					error_callback: handle_ajax_error
@@ -813,7 +855,6 @@ jQuery(function($) {
 		if (response.message && response.message.length) {
 			aios_show_ajax_response_message(response);
 		} else {
-			remove_aios_message();
 			setTimeout(function() {
 				jQuery.unblockUI();
 			}, 3000);
@@ -854,7 +895,7 @@ jQuery(function($) {
 	});
 	// End of database table prefix handling
 
-	// Dashboard menu ajaxify
+	// Start of dashboard menu ajaxify
 	jQuery("#locked-ip-list-table").on('click', '.aios-unlock-ip-button', function(e) {
 		e.preventDefault();
 		var element = jQuery(this);
@@ -879,9 +920,9 @@ jQuery(function($) {
 		e.preventDefault();
 		var element = jQuery(this);
 		if (confirm(element.data('message'))) {
-			aios_submit_form(element,'blocked_ip_list_unblock_ip', {id: element.data('id')}, aios_trans.processing, null, function(response) {
-				if ('success' === response.status) jQuery('#permanent-ip-list-table').load(' #permanent-ip-list-table > *');
-			})
+			aios_submit_form(element, 'blocked_ip_list_unblock_ip', {id: element.data('id')}, aios_trans.unlocking, null, function(response) {
+				if ('success' === response.status) detect_table_action(permanent_blocked_ip_table_id, '', permanent_blocked_ip_bulk_action_selector, permanent_blocked_ip_table_tab, '', permanent_blocked_ip_search, '', false);
+			});
 		}
 	});
 
@@ -891,7 +932,7 @@ jQuery(function($) {
 
 		if (confirm(element.data('message'))) {
 			aios_submit_form(element, 'delete_audit_log', {id: element.data('id')}, aios_trans.processing, null, function(response) {
-				if ('success' === response.status) detect_table_action(audit_log_table_id, '.aios-delete-audit-log', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, detect = false);
+				if ('success' === response.status) detect_table_action(audit_log_table_id, '', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, false);
 			})
 		}
 	});
@@ -901,7 +942,7 @@ jQuery(function($) {
 		var element = jQuery(this);
 		if (confirm(element.data('message'))) {
 			aios_submit_form(element, 'unlock_ip', {ip: element.data('ip')}, aios_trans.processing, null, function(response) {
-				if ('success' === response.status) detect_table_action(audit_log_table_id, '.aios-unlock-ip-button', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, detect = false);
+				if ('success' === response.status) detect_table_action(audit_log_table_id, '', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, false);
 			})
 		}
 	});
@@ -911,7 +952,7 @@ jQuery(function($) {
 		var element = jQuery(this);
 		if (confirm(element.data('message'))) {
 			aios_submit_form(element, 'unblacklist_ip', {ip: element.data('ip')}, aios_trans.processing, null, function(response) {
-				if ('success' === response.status) detect_table_action(audit_log_table_id, '.aios-unblacklist-ip-button', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, detect = false);
+				if ('success' === response.status) detect_table_action(audit_log_table_id, '', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, false);
 			})
 		}
 	});
@@ -920,8 +961,8 @@ jQuery(function($) {
 		e.preventDefault();
 		var element = jQuery(this);
 		if (confirm(element.data('message'))) {
-			aios_submit_form(element,'lock_ip', {ip: element.data('ip'), lock_reason: 'audit-log'}, aios_trans.processing, null, function (response) {
-				if ('success' === response.status) detect_table_action(audit_log_table_id, '.aios-lock-ip-button', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, false);
+			aios_submit_form(element,'lock_ip', {ip: element.data('ip'), lock_reason: 'audit-log'}, aios_trans.processing, null, function(response) {
+				if ('success' === response.status) detect_table_action(audit_log_table_id, '', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, false);
 			})
 		}
 	});
@@ -931,7 +972,7 @@ jQuery(function($) {
 		var element = jQuery(this);
 		if (confirm(element.data('message'))) {
 			aios_submit_form(element,'blacklist_ip', {ip: element.data('ip')}, aios_trans.processing, null, function(response) {
-				if ('success' === response.status) detect_table_action(audit_log_table_id, '.aios-blacklist-ip-button', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, detect = false);
+				if ('success' === response.status) detect_table_action(audit_log_table_id, '', audit_log_bulk_action_selector, audit_log_table_tab, audit_log_filter_event, audit_log_search, audit_log_level, false);
 			})
 		}
 	});
@@ -939,7 +980,8 @@ jQuery(function($) {
 	jQuery('#audit-log-list-table').on('click', '#aiowps_export_audit_event_logs_to_csv', function(e) {
 		e.preventDefault();
 
-		aios_submit_form(jQuery(this), 'export_audit_logs', true, aios_trans.processing, null, function (response) {
+		aios_submit_form(jQuery(this), 'export_audit_logs', true, aios_trans.processing, null, function(response) {
+			if (false === response.success) return;
 			aios_download_csv_file(response.data, response.title);
 		});
 	});
@@ -969,7 +1011,7 @@ jQuery(function($) {
 
 	jQuery('#aios-spam-ip-search-form').on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_ip_spam_search', true, aios_trans.processing, null, function (response) {
+		aios_submit_form(jQuery(this), 'perform_ip_spam_search', true, aios_trans.processing, null, function(response) {
 			var targetOffset = jQuery('#aios-spammer-list-table').offset().top;
 			jQuery('html, body').animate({ scrollTop: targetOffset }, 'slow');
 			if ("success" === response.status) {
@@ -986,7 +1028,7 @@ jQuery(function($) {
 		}
 
 		if (confirm(jQuery(this).data('message'))) {
-			aios_submit_form(jQuery(this), 'perform_block_spam_ip', data, aios_trans.processing, null, function (response) {
+			aios_submit_form(jQuery(this), 'perform_block_spam_ip', data, aios_trans.processing, null, function(response) {
 				if ("success" === response.status) {
 					jQuery('#aios-spammer-list-table').load(' #aios-spammer-list-table > *');
 					jQuery('html, body').animate({ scrollTop: 0 }, 'slow');
@@ -995,7 +1037,7 @@ jQuery(function($) {
 		}
 	})
 	//End of spam prevention ajaxify
-	
+
 	// Start of settings menu ajaxify
 	jQuery('#aiowpsec-disable-all-features-form').on('submit', function(e) {
 		e.preventDefault();
@@ -1018,13 +1060,13 @@ jQuery(function($) {
 		var data = {
 			'aiowps_enable_debug': aiowps_enable_debug
 		};
-		
+
 		aios_submit_form(jQuery(this), 'perform_save_debug_settings', data, aios_trans.processing);
 	});
 
 	jQuery('#aiowpsec-save-htaccess-form').on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_backup_htaccess_file', true, aios_trans.processing, null, function (response) {
+		aios_submit_form(jQuery(this), 'perform_backup_htaccess_file', true, aios_trans.processing, null, function(response) {
 			if ('success' === response.status) {
 				aios_download_txt_file(response.extra_args.data, response.extra_args.title);
 			}
@@ -1060,7 +1102,8 @@ jQuery(function($) {
 		});
 	});
 	// End of settings menu ajaxify
-	// Start of Filesystem menu ajaxify
+
+	// Start of filesystem menu ajaxify
 	jQuery('#aios-file-permissions-form').on('submit', function(e) {
 		e.preventDefault();
 		aios_submit_form(jQuery(this), 'perform_fix_permissions', true, aios_trans.processing);
@@ -1085,9 +1128,9 @@ jQuery(function($) {
 	jQuery('#aios-host-system-logs-form').on('submit', function(e) {
 		e.preventDefault();
 
-		aios_submit_form(jQuery(this), 'perform_host_system_logs', true, aios_trans.processing, function () {
+		aios_submit_form(jQuery(this), 'perform_host_system_logs', true, aios_trans.processing, function() {
 			jQuery('#aios-host-system-logs-results').html('');
-			jQuery('#aiowps_activejobs_table').html('<p><span class="aiowps_spinner spinner">'+ aios_trans.processing + '</span></p>');
+			jQuery('#aiowps_activejobs_table').html('<p><span class="aiowps_spinner spinner">'+ aios_escape_html(aios_trans.processing) + '</span></p>');
 			jQuery('#aiowps_activejobs_table .aiowps_spinner').addClass('visible');
 			},
 			function(response) {
@@ -1105,9 +1148,9 @@ jQuery(function($) {
 		e.preventDefault();
 		aios_submit_form(jQuery(this),'perform_save_copy_protection');
 	})
-	//End of Filesystem menu ajaxify
-	
-	// Firewall menu ajaxify
+	// End of filesystem menu ajaxify
+
+	// Start of firewall menu ajaxify
 	jQuery('#aios-php-firewall-settings-form').on('submit', function(e) {
 		e.preventDefault();
 		aios_submit_form(jQuery(this), 'perform_php_firewall_settings', true, aios_trans.saving, null, function(response) {
@@ -1149,7 +1192,7 @@ jQuery(function($) {
 
 	jQuery('#aiowps-firewall-status-container').on('submit', "#aiowpsec-firewall-setup-form", function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_setup_firewall', true, aios_trans.setting_up_firewall, null, function (response) {
+		aios_submit_form(jQuery(this), 'perform_setup_firewall', true, aios_trans.setting_up_firewall, null, function(response) {
 			if (response.extra_args && response.extra_args.info_box) {
 				jQuery("#aios-firewall-setup-notice").remove();
 				jQuery('#wpbody-content .wrap h2:first').after(response.extra_args.info_box);
@@ -1159,7 +1202,7 @@ jQuery(function($) {
 
 	jQuery('#aiowps-firewall-status-container').on('submit', "#aiowps-firewall-downgrade-form", function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_downgrade_firewall', true, aios_trans.downgrading_firewall, null, function (response) {
+		aios_submit_form(jQuery(this), 'perform_downgrade_firewall', true, aios_trans.downgrading_firewall, null, function(response) {
 			if (response.extra_args && response.extra_args.info_box) {
 				jQuery("#aios-firewall-installed-notice").remove();
 				jQuery('#wpbody-content .wrap h2:first').after(response.extra_args.info_box);
@@ -1170,12 +1213,8 @@ jQuery(function($) {
 	jQuery('#aios-upgrade-unsafe-http-calls-settings-form').on('submit', function(e) {
 		e.preventDefault();
 		aios_submit_form(jQuery(this), 'perform_save_upgrade_unsafe_http_calls_settings');
-	})
-	// end of firewall menu ajax
-
-	// Start of file scan handling
-	jQuery('.aiowps_next_scheduled_scan_wrapper').on('click', '.aiowps_view_last_fcd_results', view_scan_results_handler);
-	jQuery('#aiowps_fcds_change_detected').on('click', '.aiowps_view_last_fcd_results', view_scan_results_handler);
+	});
+	// End of firewall menu ajaxify
 
 	// start of user security menu ajax
 	jQuery('#aios-user-accounts-settings-form').on('submit', function(e) {
@@ -1185,7 +1224,7 @@ jQuery(function($) {
 
 	jQuery('#aios-change-admin-username-form').on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_change_admin_username', true, aios_trans.saving, null, function (response) {
+		aios_submit_form(jQuery(this), 'perform_change_admin_username', true, aios_trans.saving, null, function(response) {
 			if (response.hasOwnProperty('logout_user') && true === response.logout_user) {
 				setTimeout(function() {
 					// Check if a logout URL is present in the response
@@ -1213,7 +1252,7 @@ jQuery(function($) {
 
 	jQuery('#aios-force-user-logout-form').on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_force_logout', true, aios_trans.saving, null, function (response) {
+		aios_submit_form(jQuery(this), 'perform_force_logout', true, aios_trans.saving, null, function(response) {
 			if (response.hasOwnProperty('logout_user') && true === response.logout_user) {
 				setTimeout(function() {
 					// Check if a logout URL is present in the response
@@ -1239,10 +1278,10 @@ jQuery(function($) {
 		aios_submit_form(jQuery(this), 'perform_disable_application_password');
 	});
 
-	jQuery('#aios-enable-salt-postfix-form').submit(function (e) {
+	jQuery('#aios-enable-salt-postfix-form').submit(function(e) {
 		e.preventDefault();
 		aios_submit_form(jQuery(this),'perform_add_salt_postfix', true, aios_trans.saving, null,function() {
-			setTimeout(function () {
+			setTimeout(function() {
 				location.reload();
 			}, 3000);
 		});
@@ -1255,7 +1294,7 @@ jQuery(function($) {
 			action: 'force_user_logout'
 		};
 		if (confirm(jQuery(this).data('message'))) {
-			aios_submit_form(jQuery(this), 'perform_logged_in_user_action', data, aios_trans.processing, null, function (response) {
+			aios_submit_form(jQuery(this), 'perform_logged_in_user_action', data, aios_trans.processing, null, function(response) {
 				if ('success' === response.status) {
 					jQuery('#aios-logged-in-users-table').load(' #aios-logged-in-users-table > *');
 				}
@@ -1268,7 +1307,7 @@ jQuery(function($) {
 		aios_block_ui(aios_trans.refreshing);
 		var submitButton = jQuery(this).find(':submit');
 		submitButton.prop('disabled', true);
-		jQuery('#aios-logged-in-users-table').load(' #aios-logged-in-users-table > *', function () {
+		jQuery('#aios-logged-in-users-table').load(' #aios-logged-in-users-table > *', function() {
 			jQuery.unblockUI();
 			submitButton.prop('disabled', false);
 		});
@@ -1286,7 +1325,7 @@ jQuery(function($) {
 			action: 'approve_acct'
 		};
 		if (confirm(jQuery(this).data('message'))) {
-			aios_submit_form(jQuery(this), 'perform_manual_approval_item_action', data, aios_trans.processing, null, function () {
+			aios_submit_form(jQuery(this), 'perform_manual_approval_item_action', data, aios_trans.processing, null, function() {
 				jQuery('#aios-manual-approval-table').load(' #aios-manual-approval-table > *');
 			});
 		}
@@ -1299,7 +1338,7 @@ jQuery(function($) {
 			action: 'delete_acct'
 		};
 		if (confirm(jQuery(this).data('message'))) {
-			aios_submit_form(jQuery(this), 'perform_manual_approval_item_action', data, aios_trans.processing, null, function () {
+			aios_submit_form(jQuery(this), 'perform_manual_approval_item_action', data, aios_trans.processing, null, function() {
 				jQuery('#aios-manual-approval-table').load(' #aios-manual-approval-table > *');
 			});
 		}
@@ -1323,7 +1362,7 @@ jQuery(function($) {
 		aios_block_ui(aios_trans.refreshing);
 		var submitButton = jQuery(this).find(':submit');
 		submitButton.prop('disabled', true);
-		jQuery('#aios-manual-approval-table').load(' #aios-manual-approval-table > *', function () {
+		jQuery('#aios-manual-approval-table').load(' #aios-manual-approval-table > *', function() {
 			jQuery.unblockUI();
 			submitButton.prop('disabled', false);
 		});
@@ -1343,15 +1382,15 @@ jQuery(function($) {
 
 		jQuery('#aios-who-is-lookup-result-container').html('');
 
-		aios_submit_form(jQuery(this), 'perform_whois_lookup', true, aios_trans.processing, null, function () {
+		aios_submit_form(jQuery(this), 'perform_whois_lookup', true, aios_trans.processing, null, function() {
 			var targetOffset = jQuery('#aios-who-is-lookup-result-container').offset().top;
 			jQuery('html, body').animate({ scrollTop: targetOffset }, 'slow');
 		});
 	});
 
-	jQuery("#aiowpsec-site-lockout-form").on('submit', function (e) {
+	jQuery("#aiowpsec-site-lockout-form").on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_general_visitor_lockout', true, aios_trans.saving, function () {
+		aios_submit_form(jQuery(this), 'perform_general_visitor_lockout', true, aios_trans.saving, function() {
 			var editor = tinyMCE.get('aiowps_site_lockout_msg_editor_content');
 			if (editor) {
 				editor.save();
@@ -1359,7 +1398,7 @@ jQuery(function($) {
 		});
 	});
 
-	jQuery('#maintenance_mode_status').on('click', '#aiowps_site_lockout', function (e) {
+	jQuery('#maintenance_mode_status').on('click', '#aiowps_site_lockout', function(e) {
 		aios_block_ui(aios_trans.saving);
 
 		var enabled = jQuery(this).is(':checked');
@@ -1381,7 +1420,7 @@ jQuery(function($) {
 		});
 	});
 
-	jQuery("#aiowpsec-save-custom-rules-settings-form").on('submit', function (e) {
+	jQuery("#aiowpsec-save-custom-rules-settings-form").on('submit', function(e) {
 		e.preventDefault();
 		aios_submit_form(jQuery(this), 'perform_store_custom_htaccess_settings');
 	});
@@ -1391,6 +1430,11 @@ jQuery(function($) {
 		aios_submit_form(jQuery(this), 'perform_save_file_detection_change_settings');
 	});
 
+	// Start of file scan handling
+	var file_scan_active = false;
+	jQuery('.aiowps_next_scheduled_scan_wrapper').on('click', '.aiowps_view_last_fcd_results', view_scan_results_handler);
+	jQuery('#aiowps_fcds_change_detected').on('click', '.aiowps_view_last_fcd_results', view_scan_results_handler);
+
 	/**
 	 * This function handles the view last scan result event
 	 *
@@ -1398,10 +1442,12 @@ jQuery(function($) {
 	 */
 	function view_scan_results_handler(e) {
 		e.preventDefault();
-		
+
+		jQuery('#aiowps_previous_scan_wrapper').html('');
+
 		var reset_change_detected = jQuery(this).data('reset_change_detected') ? 1 : 0;
 
-		aios_submit_form(jQuery(this), 'get_last_scan_results', { reset_change_detected: reset_change_detected}, aios_trans.processing, null, function (response) {
+		aios_submit_form(jQuery(this), 'get_last_scan_results', { reset_change_detected: reset_change_detected}, aios_trans.processing, null, function(response) {
 			if (reset_change_detected) jQuery('#aiowps_fcds_change_detected').remove();
 			var targetOffset = jQuery('#aiowps_previous_scan_wrapper').offset().top;
 			jQuery('html, body').animate({ scrollTop: targetOffset }, 'slow');
@@ -1410,32 +1456,239 @@ jQuery(function($) {
 
 	jQuery('#aiowps_manual_fcd_scan').on('click', function(e) {
 		e.preventDefault();
-
-		aios_submit_form(jQuery(this), 'perform_file_scan', true, aios_trans.scanning, function () {
-			jQuery('#aiowps_activejobs_table').html('<p><span class="aiowps_spinner spinner">'+ aios_trans.processing + '</span></p>');
-			jQuery('#aiowps_activejobs_table .aiowps_spinner').addClass('visible');
-			}, function (response) {
-				jQuery('#aiowps_activejobs_table').html('');
-				if ('success' === response.status) {
-					jQuery('#aiowps_activejobs_table').append('<p>'+response.extra_args.result+'</p>');
-				}
-		});
+		initiate_file_scan();
 	});
+
+	jQuery('#aiowps_cancel_fcd_scan').on('click', function(e) {
+		e.preventDefault();
+
+		let task_id = jQuery(this).data('task-id');
+		let agent_id = jQuery(this).data('agent-id');
+
+		if (confirm(jQuery(this).data('message'))) {
+			reset_scan_page_ui();
+			heartbeat.cancel_agent(agent_id);
+			aios_submit_form(jQuery(this), 'cancel_file_scan', {task_id: task_id}, aios_trans.processing, null, function (response) {});
+		}
+	});
+
+	/**
+	 * This function performs a file scan when the user clicks the manual scan button.
+	 *
+	 * @returns {void}
+	 */
+	function initiate_file_scan() {
+		file_scan_active = true;
+		jQuery('#aiowps_manual_fcd_scan').prop('disabled', true);
+		// Insert spinner loader
+		aiowps_show_spinner('#aiowps_activejobs_table');
+		jQuery('#aiowps_previous_scan_wrapper').html('')
+		jQuery('#aiowps_cancel_fcd_scan').show();
+
+		aios_send_command('initiate_file_scan', {}, handle_file_scan_heartbeat);
+	}
+
+	/**
+	 * This function sets up a heartbeat agent to monitor the file scan progress.
+	 *
+	 * @param {Object} data - The data to be sent with the heartbeat command.
+	 *
+	 * @returns {void}
+	 */
+	function set_file_scan_heartbeat(data) {
+		let agent_id = heartbeat.add_agent({
+			_wait: false,
+			_keep: false,
+			command: 'aios_file_scan_task',
+			command_data: {data: data, subaction: 'get_file_scan_update'},
+			callback: function(resp) {
+				handle_file_scan_heartbeat(resp)
+			}
+		});
+		heartbeat_agents.push(agent_id);
+
+		// update agent_id data for the cancel button
+		jQuery('#aiowps_cancel_fcd_scan').data('agent-id', agent_id);
+	}
+
+	/**
+	 * This function handles the result of the file scan.
+	 *
+	 * @param {Object} response - The response object containing the scan result.
+	 *
+	 * @returns {void}
+	 */
+	function handle_file_scan_heartbeat(response) {
+		if (response.hasOwnProperty('extra_args') && response.extra_args.hasOwnProperty('error_code')) {
+			let error_code = response.extra_args.error_code;
+
+			if ('cancelled' === error_code) {
+				reset_scan_page_ui();
+				return;
+			}
+
+			aios_show_success_modal({
+				message: response.extra_args.result,
+				icon: 'no-alt',
+				classes: 'warning'
+			}, false);
+
+			reset_scan_page_ui();
+
+			return;
+		}
+
+		if ('success' === response.status) {
+			aiowps_show_spinner('#aiowps_manual_fcd_scan')
+			jQuery('#aiowps_cancel_fcd_scan').show();
+			jQuery('#aiowps_cancel_fcd_scan').data('task-id', response.extra_args.task_id);
+
+			let stage = response.extra_args.current_stage,
+				text = response.message,
+				percent = 10,
+				stop_task = false;
+
+			switch (stage) {
+				case 'starting':
+					percent = 20;
+					break;
+				case 'fetching':
+					percent = 30;
+					break;
+				case 'scanning':
+					let number_of_scanned_files = response.extra_args.number_of_scanned_files,
+						total_file_count = response.extra_args.total_files,
+						file_scan_percentage = number_of_scanned_files/total_file_count * 100;
+
+					if (total_file_count > 0) {
+						let file_scan_percentage = (number_of_scanned_files / total_file_count) * 100;
+						percent = 50 + (file_scan_percentage * 0.3);
+						if (percent > 80) percent = 80; // cap at 80
+					} else {
+						percent = 50;
+					}
+
+					text = text + ': ' + file_scan_percentage.toFixed(2) + '%';
+					break;
+				case 'comparing':
+					percent = 80;
+					break;
+				case 'saving':
+					percent = 90;
+					break;
+				case 'completed':
+					percent = 100;
+					stop_task = true;
+					break;
+			}
+
+			jQuery('#aiowps_activejobs_table').html('<div class="aios-loading-bar"><div class="aios-loading-progress"></div><div class="aios-progress-text">' + aios_escape_html(text) + '...</div></div>');
+			var progress = jQuery('.aios-loading-progress');
+			progress.css('width', percent + '%');
+
+			if (stop_task) {
+				setTimeout(function() {
+					jQuery('.aios-loading-bar').fadeOut();
+					if (response.hasOwnProperty('content')) {
+						jQuery.each(response.content, function(key, value) {
+							aios_update_content('#' + key, value);
+						});
+					}
+					reset_scan_page_ui();
+					var scan_status = response.extra_args.scan_status;
+					var view_link = '<a href="#" class="aiowps_view_last_fcd_results">' + aios_escape_html(aios_trans.scan_result_view_link) + '</a>';
+					var result_text = '';
+					if ('initial_scan' === scan_status) {
+						result_text = aios_escape_html(aios_trans.scan_result_initial) + ' ' + view_link;
+					} else if ('changes_detected' === scan_status) {
+						result_text = aios_escape_html(aios_trans.scan_result_changes) + ' ' + view_link;
+					} else if ('no_changes' === scan_status) {
+						result_text = aios_escape_html(aios_trans.scan_result_no_changes);
+					}
+					if (result_text) jQuery('#aiowps_activejobs_table').append('<p>' + result_text + '</p>');
+				}, 3000)
+			} else {
+				setTimeout(function () {
+					if (file_scan_active) set_file_scan_heartbeat({task_id: response.extra_args.task_id});
+				}, 10000)
+			}
+		} else {
+			reset_scan_page_ui();
+		}
+	}
+
+	function reset_scan_page_ui() {
+		file_scan_active = false;
+		jQuery('#aiowps_manual_fcd_scan').prop('disabled', false);
+		aiowps_hide_spinner('#aiowps_activejobs_table');
+		aiowps_hide_spinner('#aiowps_manual_fcd_scan');
+		jQuery('#aiowps_activejobs_table').find('.aios-loading-bar').remove();
+		jQuery('#aiowps_manual_fcd_scan').text(aios_trans.scan_now);
+		jQuery('#aiowps_cancel_fcd_scan').hide();
+	}
+
+	/**
+	 * This function checks if there are any running tasks and updates the UI accordingly.
+	 *
+	 * @returns {void}
+	 */
+	function check_running_tasks() {
+		var current_url = window.location.href;
+
+		// Check if the current page is a file scan page
+		var is_file_scan_page = current_url.includes('/wp-admin/admin.php?page=aiowpsec_filescan') ||
+			current_url.includes('tab=file-change-detect');
+
+		// Also check for multisite network admin pages
+		var is_network_file_scan_page = current_url.includes('/wp-admin/network/admin.php?page=aiowpsec_filescan') ||
+			current_url.includes('/wp-admin/network/admin.php?page=aiowpsec_filescan&tab=file-change-detect');
+
+		let task_type = '';
+
+		if (is_file_scan_page || is_network_file_scan_page) task_type = 'file_scan';
+
+		if (!task_type) return;
+
+		if ('file_scan' === task_type) {
+			jQuery('#aiowps_manual_fcd_scan').prop('disabled', true);
+			aiowps_show_spinner('#aiowps_activejobs_table');
+		}
+
+		aios_send_command('check_running_task', {type: task_type}, function (response) {
+			if ('success' === response.status) {
+				if ('file_scan' === task_type) {
+					file_scan_active = true;
+					aios_send_command('get_file_scan_update', {task_id: response.extra_args.task_id}, handle_file_scan_heartbeat);
+					aiowps_show_spinner('#aiowps_manual_fcd_scan')
+				}
+			} else {
+				jQuery('#aiowps_manual_fcd_scan').prop('disabled', false);
+				aiowps_hide_spinner('#aiowps_activejobs_table');
+			}
+		})
+	}
+
+	check_running_tasks();
 	// End of file scan handling
 
-	// start of brute force ajax
+	// Start of brute force ajax
 	jQuery('#aios-rename-login-page-form').on('submit', function(e) {
 		e.preventDefault();
 		aios_submit_form(jQuery(this), 'perform_rename_login_page', true, aios_trans.saving, null,function(response) {
 			if ("error" === response.status) {
 				jQuery('#aiowps_enable_rename_login_page').prop('checked', false);
+				return;
+			}
+
+			if (response.extra_args && response.extra_args.logout_url) {
+				jQuery('#wp-admin-bar-logout a').attr('href', response.extra_args.logout_url);
 			}
 		})
 	});
 
 	jQuery("#aios-cookie-based-settings-form").on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_cookie_based_brute_force_prevention', true, aios_trans.saving, null, function (response) {
+		aios_submit_form(jQuery(this), 'perform_cookie_based_brute_force_prevention', true, aios_trans.saving, null, function(response) {
 			if ("success" === response.status) {
 				jQuery('#aios_message').remove();
 				jQuery('#post-body .postbox').before(response.info_box);
@@ -1483,66 +1736,63 @@ jQuery(function($) {
 
 	jQuery("#aios-delete-404-form").on('submit', function(e) {
 		e.preventDefault();
-		aios_submit_form(jQuery(this), 'perform_delete_404_event_records', true, aios_trans.deleting, null, function(response) {
-			if ("success" === response.status) jQuery('#aios-404-event-logs-table').load(' #aios-404-event-logs-table >  *', function () {
+		aios_submit_form(jQuery(this), 'perform_delete_all_404_event_records', true, aios_trans.deleting, null, function(response) {
+			if ("success" === response.status) jQuery('#404-log-list-table').load(' #404-log-list-table >  *', function() {
 				jQuery(".aiowps_more_info_body").hide();
 			});
 		});
 	});
 
-	jQuery("#aios-404-event-logs-table").on('click', ".aios-delete-404", function(e) {
+	jQuery('#404-log-list-table').on('click', '.aios-unlock-ip-button', function(e) {
 		e.preventDefault();
-		let data = {
-			id: jQuery(this).data('id'),
-			action: 'delete'
-		};
-		if (confirm(jQuery(this).data('message'))) {
-			aios_submit_form(jQuery(this), 'perform_404_log_item_action', data, aios_trans.deleting, null, function (response) {
-				if ('success' === response.status) jQuery('#aios-404-event-logs-table').load(' #aios-404-event-logs-table > *');
-			});
+		var element = jQuery(this);
+		if (confirm(element.data('message'))) {
+			aios_submit_form(element, 'unlock_ip', {ip: element.data('ip')}, aios_trans.processing, null, function(response) {
+				if ('success' === response.status) detect_table_action(log_404_table_id, '', log_404_bulk_action_selector, log_404_table_tab, '', log_404_search, '', false);
+			})
 		}
 	});
 
-	jQuery("#aios-404-event-logs-table").on('click', ".aios-temp-block-404", function(e) {
+	jQuery('#404-log-list-table').on('click', '.aios-unblacklist-ip-button', function(e) {
 		e.preventDefault();
-		let ip = jQuery(this).data('ip'), username = jQuery(this).data('username'), data = {
-			ip: ip,
-			action: 'temp_block',
-			username: username
-		};
-		if (confirm(jQuery(this).data('message'))) {
-			aios_submit_form(jQuery(this), 'perform_404_log_item_action', data, aios_trans.blocking, null, function (response) {
-				if ('success' === response.status) jQuery('#aios-404-event-logs-table').load(' #aios-404-event-logs-table > *');
-			});
+		var element = jQuery(this);
+		if (confirm(element.data('message'))) {
+			aios_submit_form(element, 'unblacklist_ip', {ip: element.data('ip')}, aios_trans.processing, null, function(response) {
+				if ('success' === response.status) detect_table_action(log_404_table_id, '', log_404_bulk_action_selector, log_404_table_tab, '', log_404_search, '', false);
+			})
 		}
 	});
 
-	jQuery("#aios-404-event-logs-table").on('click', ".aios-blacklist-404", function(e) {
+	jQuery('#404-log-list-table').on('click', '.aios-lock-ip-button', function(e) {
 		e.preventDefault();
-		let ip = jQuery(this).data('ip'), data = {
-			ip: ip,
-			action: 'blacklist'
-		};
-		if (confirm(jQuery(this).data('message'))) {
-			aios_submit_form(jQuery(this), 'perform_404_log_item_action', data, aios_trans.processing, null, function (response) {
-				if ('success' === response.status) jQuery('#aios-404-event-logs-table').load(' #aios-404-event-logs-table > *');
-			});
+		var element = jQuery(this);
+		if (confirm(element.data('message'))) {
+			aios_submit_form(element, 'lock_ip', {ip: element.data('ip'), lock_reason: '404', username: element.data('username')}, aios_trans.processing, null, function(response) {
+				if ('success' === response.status) detect_table_action(log_404_table_id, '', log_404_bulk_action_selector, log_404_table_tab, '', log_404_search, '', false);
+			})
 		}
 	});
 
-	jQuery("#aios-404-event-logs-table").on('click', ".aios-unblock-404", function(e) {
+	jQuery('#404-log-list-table').on('click', '.aios-blacklist-ip-button', function(e) {
 		e.preventDefault();
-		let ip = jQuery(this).data('ip'), data = {
-			ip: ip,
-			action: 'unblock'
-		};
-		if (confirm(jQuery(this).data('message'))) {
-			aios_submit_form(jQuery(this), 'perform_404_log_item_action', data, aios_trans.unlocking, null, function (response) {
-				if ('success' === response.status) jQuery('#aios-404-event-logs-table').load(' #aios-404-event-logs-table > *');
-			});
+		var element = jQuery(this);
+		if (confirm(element.data('message'))) {
+			aios_submit_form(element, 'blacklist_ip', {ip: element.data('ip')}, aios_trans.processing, null, function(response) {
+				if ('success' === response.status) detect_table_action(log_404_table_id, '', log_404_bulk_action_selector, log_404_table_tab, '', log_404_search, '', false);
+			})
 		}
 	});
-	// end of brute force ajax
+
+	jQuery('#404-log-list-table').on('click', '.aios-delete-404-log', function(e) {
+		e.preventDefault();
+		var element = jQuery(this);
+		if (confirm(element.data('message'))) {
+			aios_submit_form(element, 'delete_404_log', {id: element.data('id')}, aios_trans.processing, null, function(response) {
+				if ('success' === response.status) detect_table_action(log_404_table_id, '', log_404_bulk_action_selector, log_404_table_tab, '', log_404_search, '', false);
+			})
+		}
+	});
+	// End of brute force ajax
 
 	// Start of login whitelist suggests both IPv4 and IPv6
 	if (jQuery('#aios_user_ip_maybe_also').length) {
@@ -1560,7 +1810,7 @@ jQuery(function($) {
 			type: 'GET',
 			dataType: 'json',
 			url: url,
-			success: function (response, status) {
+			success: function(response, status) {
 				if (response.hasOwnProperty('ip') && response.ip != jQuery('#aiowps_user_ip').val()) {
 					jQuery(ipfield).val(response.ip);
 					jQuery(ipfield).removeClass('aio_hidden');
@@ -1569,7 +1819,7 @@ jQuery(function($) {
 				}
 				jQuery(selector).html('');
 			},
-			error: function (response, status, error_code) {
+			error: function(response, status, error_code) {
 				console.log(response);
 				jQuery(selector).html('');
 			}
@@ -1796,6 +2046,14 @@ jQuery(function($) {
 	set_active_tab_from_url();
 	// End of the new UI settings
 
+	function aiowps_show_spinner(element){
+		jQuery(element + '_spinner').show();
+	}
+
+	function aiowps_hide_spinner(element) {
+		jQuery(element + '_spinner').hide();
+	}
+	
 	//toggle xmlrpc warning
 	jQuery('#aiowps_enable_pingback_firewall').change(function() {
 		if (jQuery(this).is(':checked')) {
@@ -1806,6 +2064,9 @@ jQuery(function($) {
 			jQuery('.xmlrpc_warning_box').addClass('aio_hidden');
 		}
 	});
+
+	// Attach heartbeat API events
+	heartbeat.setup();
 	
 	// Start of WP REST API toggle whitelist setting handling
 	jQuery('input[name=aiowps_disallow_unauthorized_rest_requests]').on('click', function() {
@@ -1833,10 +2094,10 @@ jQuery(function($) {
 		e.preventDefault();
 		var report_email = jQuery('#report_email').val();
 		var report_sections = jQuery('#report_sections').val();
-		jQuery('#report-response').html('<p><span class="aiowps_spinner spinner">'+ aios_trans.processing + '</span></p>');
+		jQuery('#report-response').html('<p><span class="aiowps_spinner spinner">'+ aios_escape_html(aios_trans.processing) + '</span></p>');
 		jQuery('#report-response .aiowps_spinner').addClass('visible');
 
-		aios_send_command('send_report_email', {'report_email': report_email, 'report_sections': report_sections}, function (resp) {
+		aios_send_command('send_report_email', {'report_email': report_email, 'report_sections': report_sections}, function(resp) {
 			if (resp.hasOwnProperty('message')) {
 				alert(resp.message);
 			}
@@ -1844,3 +2105,4 @@ jQuery(function($) {
 	});
 	// End of the send report button handling
 });
+

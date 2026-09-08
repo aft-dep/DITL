@@ -1,1 +1,0 @@
-import '@presto-player/components/loader';

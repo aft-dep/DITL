@@ -107,6 +107,7 @@ br {
 .searchbox #major-publishing-actions {
 	background: transparent;
 	border: 0;
+	display: block;
 }
 
 #submitdiv.searchbox * {

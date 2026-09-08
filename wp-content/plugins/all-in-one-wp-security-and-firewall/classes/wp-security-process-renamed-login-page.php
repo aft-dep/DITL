@@ -17,7 +17,7 @@ class AIOWPSecurity_Process_Renamed_Login_Page {
 	}
 
 	public function aiowps_login_init() {
-		$parsed_request = isset($_SERVER['REQUEST_URI']) ? wp_parse_url(sanitize_url(wp_unslash($_SERVER['REQUEST_URI']))) : '';
+		$parsed_request = isset($_SERVER['REQUEST_URI']) ? wp_parse_url(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI']))) : '';
 		if ($parsed_request && preg_match('/wp-login\.php$/', $parsed_request['path'])) {
 			AIOWPSecurity_Process_Renamed_Login_Page::aiowps_set_404();
 		}
@@ -84,7 +84,7 @@ class AIOWPSecurity_Process_Renamed_Login_Page {
 				parse_str($args[1], $args);
 				$url = esc_url(add_query_arg($args, AIOWPSecurity_Process_Renamed_Login_Page::new_login_url()));
 				$url = html_entity_decode($url);
-			} elseif (isset($_SERVER['REQUEST_URI']) && stripos(urldecode(sanitize_url(wp_unslash($_SERVER['REQUEST_URI']))), 'wp-admin/install.php')) {
+			} elseif (isset($_SERVER['REQUEST_URI']) && stripos(urldecode(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI']))), 'wp-admin/install.php')) {
 				return $url;
 			} else {
 				$url = AIOWPSecurity_Process_Renamed_Login_Page::new_login_url();
@@ -150,7 +150,7 @@ class AIOWPSecurity_Process_Renamed_Login_Page {
 		}
 
 		//case where someone attempting to reach wp-login
-		if (isset($_SERVER['REQUEST_URI']) && stripos(urldecode(sanitize_url(wp_unslash($_SERVER['REQUEST_URI']))), 'wp-login.php') && !is_user_logged_in()) {
+		if (isset($_SERVER['REQUEST_URI']) && stripos(urldecode(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI']))), 'wp-login.php') && !is_user_logged_in()) {
 
 			// Handle export personal data request for rename login case
 			if (isset($_GET['request_id'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. No nonce available.
@@ -184,7 +184,7 @@ class AIOWPSecurity_Process_Renamed_Login_Page {
 		}
 
 		//case where someone attempting to reach the standard register or signup pages
-		$request_uri = urldecode(sanitize_url(wp_unslash($_SERVER['REQUEST_URI'])));
+		$request_uri = urldecode(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])));
 		if ('' !== $request_uri && stripos($request_uri, 'wp-register.php') || '' !== $request_uri && stripos($request_uri, 'wp-signup.php')) {
 			//Check if the maintenance (lockout) mode is active - if so prevent access to site by not displaying 404 page!
 			if ('1' == $aio_wp_security->configs->get_value('aiowps_site_lockout')) {
@@ -269,8 +269,8 @@ class AIOWPSecurity_Process_Renamed_Login_Page {
 	public static function is_renamed_login_page_requested($login_slug) {
 		
 		if (empty($_SERVER['REQUEST_URI'])) return false;
-	
-		$parsed_url_path = isset($_SERVER['REQUEST_URI']) ? wp_parse_url(sanitize_url(wp_unslash($_SERVER['REQUEST_URI'])), PHP_URL_PATH) : '';
+
+		$parsed_url_path = isset($_SERVER['REQUEST_URI']) ? wp_parse_url(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])), PHP_URL_PATH) : '';
 		
 		if (empty($parsed_url_path)) return false;
 		

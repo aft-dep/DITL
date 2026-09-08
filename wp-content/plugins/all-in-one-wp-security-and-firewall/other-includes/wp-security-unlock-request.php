@@ -36,7 +36,7 @@ if (isset($_POST['aiowps_unlock_request'])) {
 		echo '<div id="login_error">'.esc_html__('ERROR: Unable to process your request!', 'all-in-one-wp-security-and-firewall').'</div>';
 		die();
 	} elseif ($display_form) {
-		echo display_unlock_form(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pcp check ingore this
+		echo display_unlock_form(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pcp check ignore this
 	}
 } //End if block
 
@@ -58,7 +58,7 @@ if (isset($_POST['aiowps_wp_submit_unlock_request'])) {
 		$display_form = true;
 		echo '<div id="login_error"><p>'.esc_html($errors).'</p></div>';
 		$sanitized_email = sanitize_email($email);
-		echo display_unlock_form($sanitized_email); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pcp check ingore this
+		echo display_unlock_form($sanitized_email); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pcp check ignore this
 	} else {
 		$locked_user = get_user_by('email', $email);
 		if (!$locked_user) {
@@ -106,7 +106,7 @@ function display_unlock_form($email = '') {
 <form name="loginform" id="loginform" action="<?php echo esc_url(wp_login_url()); ?>" method="post">
 	<?php wp_nonce_field('aios-unlock-request-nonce'); ?>
 	<?php
-	if (isset($_POST['aiowps-woo-login'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- pcp check ingore this
+	if (isset($_POST['aiowps-woo-login'])) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- pcp check ignore this
 		echo '<input type="hidden" name="aiowps-woo-login" id="aiowps-woo-login" value="1" />';
 	}
 	?>

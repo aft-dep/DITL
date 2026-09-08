@@ -17,6 +17,13 @@ if (!class_exists('AIOWPSecurity_Ajax')) :
 		private $results;
 
 		/**
+		 * Seconds for AIOS heartbeat interval
+		 *
+		 * @var int
+		 */
+		const HEARTBEAT_INTERVAL = 10; // in seconds
+
+		/**
 		 * Constructor
 		 */
 		private function __construct() {
@@ -126,6 +133,10 @@ if (!class_exists('AIOWPSecurity_Ajax')) :
 			 */
 			$allowed_commands = apply_filters('aios_multisite_allowed_commands', array(
 				'delete_audit_log',
+				'render_audit_log_tab',
+				'delete_404_log',
+				'perform_delete_all_404_event_records',
+				'render_404_log_tab',
 				'delete_locked_ip_record',
 				'clear_debug_logs',
 				'unlock_ip',

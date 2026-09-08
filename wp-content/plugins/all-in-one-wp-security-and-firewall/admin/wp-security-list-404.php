@@ -4,106 +4,132 @@ if (!defined('ABSPATH')) {
 	exit; // Exit if accessed directly
 }
 
-class AIOWPSecurity_List_404 extends AIOWPSecurity_List_Table {
+class AIOWPSecurity_List_404 extends AIOWPSecurity_Ajax_Data_Table {
 
-	public function __construct() {
+	public function __construct($data = array()) {
 
 		//Set parent defaults
 		parent::__construct(array(
 			'singular' => 'item', //singular name of the listed records
-			'plural' => 'items', //plural name of the listed records
-			'ajax' => false        //does this table support ajax?
+			'plural' => 'items',  //plural name of the listed records
+			'ajax' => true,       //does this table support ajax?
+			'data' => $data       // Request data
 		));
 	}
 
 	/**
-	 * Returns created column in datetime format as per user setting time zone.
+	 * Renders created column in datetime format as per user setting time zone.
 	 *
 	 * @param array $item - data for the columns on the current row
 	 *
-	 * @return string - the datetime
+	 * @return void
 	 */
 	public function column_created($item) {
-		return AIOWPSecurity_Utility::convert_timestamp($item['created']);
+		echo esc_html(AIOWPSecurity_Utility::convert_timestamp($item['created']));
 	}
 	
-	public function column_default($item, $column_name) {
-		return $item[$column_name];
-	}
-
 	/**
-	 * Returns id column html to be rendered.
+	 * Renders id column html.
 	 *
-	 * @param array $item - data for the columns on the current row
+	 * @param array $item Data for the columns on the current row.
 	 *
-	 * @return string - html string for column rendered
+	 * @return void
 	 */
 	public function column_id($item) {
-		$ip = $item['ip_or_host'];
+		// Build row actions.
+		$actions = array(
+			'delete' => array(
+				'text' => __('Delete', 'all-in-one-wp-security-and-firewall'),
+				'attributes' => array(
+					'class' => 'aios-delete-404-log',
+					'data-id' => $item['id'],
+					'data-message' => __('Are you sure you want to delete this item?', 'all-in-one-wp-security-and-firewall'),
+				)
+			)
+		);
 
-		$is_locked = AIOWPSecurity_Utility::check_locked_ip($ip, '404');
-		$blacklist_tab = 'blacklist';
-		$is_blacklist = AIOWPSecurity_Utility::check_blacklist_ip($ip);
+		echo esc_html($item['id']);
+		$this->row_actions($actions);
+	}
+
+	/**
+	 * Renders ip_or_host column html.
+	 *
+	 * @param array $item Data for the columns on the current row.
+	 *
+	 * @return void
+	 */
+	public function column_ip_or_host($item) {
+		$ip = $item['ip_or_host'];
 		$actions = array();
-		$actions['delete'] = '<a class="aios-delete-404" data-id="' . esc_attr($item['id']) . '" data-message="' . esc_js(__('Are you sure you want to delete this item?', 'all-in-one-wp-security-and-firewall')) . '" href="#">' . __('Delete', 'all-in-one-wp-security-and-firewall') . '</a>';
 		
-		if ($is_locked) {
-			// Build row actions for locked items
-			$actions['unblock'] = '<a class="aios-unblock-404" data-ip="' . esc_attr($ip) . '" data-message="' . esc_js(__('Are you sure you want to unblock this item?', 'all-in-one-wp-security-and-firewall')) . '" href="#">' . __('Unblock', 'all-in-one-wp-security-and-firewall') . '</a>';
-		} elseif ($is_blacklist) {
-			$unblock_url_nonce = wp_nonce_url(sprintf('admin.php?page=%s&tab=%s', AIOWPSEC_FIREWALL_MENU_SLUG, $blacklist_tab), "404_log_item_action", "aiowps_nonce");
-			$actions = array(
-				'unblock' => '<a href="'.$unblock_url_nonce.'" onclick="return confirm(\'' . esc_js(__('Are you sure you want to unblock this item?', 'all-in-one-wp-security-and-firewall')) . '\')">'.__('Unblock', 'all-in-one-wp-security-and-firewall').'</a>',
+		if (AIOWPSecurity_Utility::check_locked_ip($ip, '404')) {
+			$actions['unlock_ip'] = array(
+				'text' => __('Unlock', 'all-in-one-wp-security-and-firewall'),
+				'attributes' => array(
+					'class' => 'aios-unlock-ip-button',
+					'data-ip' => $ip,
+					'data-message' => __('Are you sure you want to unlock this IP address?', 'all-in-one-wp-security-and-firewall'),
+				),
 			);
 		} else {
-			// Build row actions for other items
-			$actions['temp_block'] = '<a class="aios-temp-block-404" data-ip="' . esc_attr($ip) . '" data-message="' . esc_js(__('Are you sure you want to block this IP address?', 'all-in-one-wp-security-and-firewall')) . '" data-username="' . esc_attr($item['username']) . '" href="#">' . __('Temporarily block', 'all-in-one-wp-security-and-firewall') . '</a>';
-			$actions['blacklist_ip'] = '<a class="aios-blacklist-404" data-ip="' . esc_attr($ip) . '" data-message="' . esc_js(__('Are you sure you want to permanently block this IP address?', 'all-in-one-wp-security-and-firewall')) . '" href="#">' . __('Blacklist IP', 'all-in-one-wp-security-and-firewall') . '</a>';
+			$actions['lock_ip'] = array(
+				'text' => __('Lock IP', 'all-in-one-wp-security-and-firewall'),
+				'attributes' => array(
+					'class' => 'aios-lock-ip-button',
+					'data-ip' => $ip,
+					'data-message' => __('Are you sure you want to temporarily lock this IP address?', 'all-in-one-wp-security-and-firewall'),
+					'data-username' => $item['username'],
+				),
+			);
 		}
 
-		//Return the user_login contents
-		return sprintf('%1$s <span style="color:silver"></span>%2$s',
-			/* $1%s */ $item['id'],
-			/* $2%s */ $this->row_actions($actions)
-		);
+		if (AIOWPSecurity_Utility_Permissions::is_main_site_and_super_admin()) {
+			if (AIOWPSecurity_Utility::check_blacklist_ip($ip)) {
+				$actions['unblacklist_ip'] = array(
+					'text' => __('Unblacklist', 'all-in-one-wp-security-and-firewall'),
+					'attributes' => array(
+						'class' => 'aios-unblacklist-ip-button',
+						'data-ip' => $ip,
+						'data-message' => __('Are you sure you want to unblacklist this IP address?', 'all-in-one-wp-security-and-firewall'),
+					),
+				);
+			} else {
+				$actions['blacklist_ip'] = array(
+					'text' => __('Blacklist IP', 'all-in-one-wp-security-and-firewall'),
+					'attributes' => array(
+						'class' => 'aios-blacklist-ip-button',
+						'data-ip' => $ip,
+						'data-message' => __('Are you sure you want to blacklist this IP address?', 'all-in-one-wp-security-and-firewall'),
+					),
+				);
+			}
+		}
+
+		echo esc_html($ip);
+		$this->row_actions($actions);
 	}
 
 	/**
-	 * Returns status column html to be rendered.
+	 * Renders status column html.
 	 *
 	 * @param array $item - data for the columns on the current row
 	 *
-	 * @return string - html string for column rendered
+	 * @return void
 	 */
 	public function column_status($item) {
-		global $aio_wp_security;
 		$ip = $item['ip_or_host'];
-		//Check if this IP address is locked
+		// Check if this IP address is locked or blacklisted
 		$is_locked = AIOWPSecurity_Utility::check_locked_ip($ip, '404');
-		$blacklisted_string = $aio_wp_security->configs->get_value('aiowps_banned_ip_addresses');
-		$banned = strpos($blacklisted_string, $ip);
-		
-		if (false !== $banned) {
-			return 'blacklisted';
-		} elseif ($is_locked) {
-			return 'temporarily blocked';
-		} else {
-			return '';
-		}
-	}
+		$blacklisted = AIOWPSecurity_Utility::check_blacklist_ip($ip);
 
-	/**
-	 * Returns checkbox column html to be rendered.
-	 *
-	 * @param array $item - data for the columns on the current row
-	 *
-	 * @return string - html string for column rendered
-	 */
-	public function column_cb($item) {
-		return sprintf('<input type="checkbox" name="%1$s[]" value="%2$s" />',
-			/* $1%s */ $this->_args['singular'], //Let's simply repurpose the table's singular label
-			/* $2%s */ $item['id']                //The value of the checkbox should be the record's id
-		);
+		if ($blacklisted && $is_locked) {
+			esc_html_e('temporarily locked and blacklisted', 'all-in-one-wp-security-and-firewall');
+		} elseif ($blacklisted) {
+			esc_html_e('blacklisted', 'all-in-one-wp-security-and-firewall');
+		} elseif ($is_locked) {
+			esc_html_e('temporarily locked', 'all-in-one-wp-security-and-firewall');
+		}
 	}
 
 	public function get_columns() {
@@ -141,121 +167,112 @@ class AIOWPSecurity_List_404 extends AIOWPSecurity_List_Table {
 	 *               and the values are the corresponding action labels.
 	 */
 	public function get_bulk_actions() {
-		return array(
-			//'unlock' => 'Unlock',
-			'bulk_block_ip' => __('Temporarily block IP', 'all-in-one-wp-security-and-firewall'),
-			'bulk_blacklist_ip' => __('Blacklist IP', 'all-in-one-wp-security-and-firewall'),
-			'delete' => __('Delete', 'all-in-one-wp-security-and-firewall')
+		$bulk_actions = array(
+			'bulk_lock_ip' => __('Lock IP', 'all-in-one-wp-security-and-firewall'),
+			'bulk_delete' => __('Delete', 'all-in-one-wp-security-and-firewall'),
 		);
+
+		if (AIOWPSecurity_Utility_Permissions::is_main_site_and_super_admin()) {
+			$bulk_actions['bulk_blacklist_ip'] = __('Blacklist IP', 'all-in-one-wp-security-and-firewall');
+		}
+
+		return $bulk_actions;
 	}
 
 	/**
-	 * Process bulk actions for the current WordPress screen.
+	 * This function will process the bulk action request.
 	 *
-	 * This method checks for the presence of a valid nonce and user capabilities,
-	 * then performs the appropriate action based on the selected bulk action.
+	 * @param string $action - The bulk action to be performed.
+	 * @param array  $items  - An array of record IDs on which the action will be performed. Default is an empty array.
 	 *
 	 * @return void
 	 */
-	private function process_bulk_action() {
-		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- PCP warning. This is the nonce.
-		if (empty($_REQUEST['_wpnonce']) || !isset($_REQUEST['_wp_http_referer'])) return;
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- PCP warning. Ignore.
-		$result = AIOWPSecurity_Utility_Permissions::check_nonce_and_user_cap($_REQUEST['_wpnonce'], 'bulk-items');
-		if (is_wp_error($result)) return;
-		
-		if ('bulk_block_ip' === $this->current_action()) {//Process delete bulk actions
-			if (!isset($_REQUEST['item'])) {
-				AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Please select some records using the checkboxes', 'all-in-one-wp-security-and-firewall'));
-			} else {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- PCP warning, ignore. Sanitized later.
-				$this->block_ip(wp_unslash($_REQUEST['item']));
-			}
+	private function process_bulk_action($action, $items = array()) {
+		if (empty($items) || !is_array($items)) {
+			AIOS_Helper::set_message('aios_list_message', __('Please select some records using the checkboxes.', 'all-in-one-wp-security-and-firewall'), 'error');
+			return;
 		}
 
-		if ('bulk_blacklist_ip' === $this->current_action()) {//Process delete bulk actions
-			if (!isset($_REQUEST['item'])) {
-				AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Please select some records using the checkboxes', 'all-in-one-wp-security-and-firewall'));
-			} else {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- PCP warning, ignore. Sanitized later.
-				$this->blacklist_ip_address(wp_unslash($_REQUEST['item']));
-			}
+		switch ($action) {
+			case 'bulk_lock_ip':
+				$this->lock_ips($items);
+				break;
+			case 'bulk_blacklist_ip':
+				$this->blacklist_ips($items);
+				break;
+			case 'bulk_delete':
+				$this->delete_404_event_records($items);
+				break;
+			default:
+				/* translators: %s: Invalid requested action */
+				AIOS_Helper::set_message('aios_list_message', sprintf(__('The requested bulk action is invalid: %s', 'all-in-one-wp-security-and-firewall'), $action), 'error');
+				return;
 		}
-		if ('delete' === $this->current_action()) {//Process delete bulk actions
-			if (!isset($_REQUEST['item'])) {
-				AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Please select some records using the checkboxes', 'all-in-one-wp-security-and-firewall'));
-			} else {
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- PCP warning, ignore. Sanitized later.
-				$this->delete_404_event_records(wp_unslash($_REQUEST['item']));
-			}
-		}
-		// phpcs:enable WordPress.Security.NonceVerification.Recommended -- PCP warning. This is the nonce.
 	}
 
 	/**
-	 * Locks an IP address by adding it to the AIOWPSEC_TBL_LOGIN_LOCKOUT table.
+	 * Temporarily locks multiple IP addresses by adding them to the AIOWPSEC_TBL_LOGIN_LOCKOUT table.
 	 *
-	 * @param array|string $entries  - ids that correspond to ip addresses in the AIOWPSEC_TBL_EVENTS table or a single ip address
-	 * @param string       $username - (optional)username of user being locked
+	 * @param array $entries IDs that correspond to IP addresses in the AIOWPSEC_TBL_EVENTS table.
 	 *
-	 * @return boolean|void
+	 * @return void
 	 */
-	public function block_ip($entries, $username = '') {
+	private function lock_ips($entries) {
 		global $wpdb;
-		if (is_array($entries)) {
-			//lock multiple records
-			$entries = array_filter($entries, 'is_numeric'); //discard non-numeric ID values
-			$id_list = "(" .implode(",", $entries) .")"; //Create comma separate list for DB operation
-			$events_table = AIOWPSEC_TBL_EVENTS;
-			// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
-			$results = $wpdb->get_col("SELECT ip_or_host FROM $events_table WHERE ID IN " . $id_list);
-			if (empty($results)) {
-				AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Could not process the request because the IP addresses for the selected entries could not be found.', 'all-in-one-wp-security-and-firewall'));
-				return false;
-			} else {
-				foreach ($results as $entry) {
-					if (filter_var($entry, FILTER_VALIDATE_IP)) {
-						AIOWPSecurity_Utility::lock_IP($entry, '404', $username);
-					}
+
+		$entries = array_filter($entries, 'is_numeric'); //discard non-numeric ID values
+
+		$id_list = "(" .implode(",", $entries) .")"; //Create comma separate list for DB operation
+		$events_table = AIOWPSEC_TBL_EVENTS;
+		// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
+		$results = $wpdb->get_col("SELECT ip_or_host FROM $events_table WHERE ID IN " . $id_list);
+
+		if (empty($results)) {
+			AIOS_Helper::set_message('aios_list_message', __('Could not process the request because the IP addresses for the selected entries could not be found.', 'all-in-one-wp-security-and-firewall'), 'error');
+			return;
+		} else {
+			foreach ($results as $entry) {
+				if (filter_var($entry, FILTER_VALIDATE_IP)) {
+					AIOWPSecurity_Utility::lock_ip($entry, '404');
 				}
 			}
-			AIOWPSecurity_Admin_Menu::show_msg_updated_st(__('The selected IP addresses are now temporarily blocked.', 'all-in-one-wp-security-and-firewall'));
 		}
+		AIOS_Helper::set_message('aios_list_message', __('The selected IP addresses are now temporarily locked.', 'all-in-one-wp-security-and-firewall'));
 	}
 
 	/**
-	 * Permanently blocks an IP address by adding it to the blacklist and writing rules to the htaccess file.
+	 * Blacklists multiple IP addresses by adding them to the blacklist.
 	 *
-	 * @param array|string $entries - ids that correspond to ip addresses in the AIOWPSEC_TBL_EVENTS table or a single ip address
+	 * @param array $entries IDs that correspond to IP addresses in the AIOWPSEC_TBL_EVENTS table.
 	 *
-	 * @return boolean|void
+	 * @return void
 	 */
-	public function blacklist_ip_address($entries) {
+	private function blacklist_ips($entries) {
 		global $wpdb, $aio_wp_security;
 		$aiowps_firewall_config = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONFIG);
+
 		$bl_ip_addresses = $aio_wp_security->configs->get_value('aiowps_banned_ip_addresses'); //get the currently saved blacklisted IPs
 		$ip_list_array = AIOWPSecurity_Utility_IP::create_ip_list_array_from_string_with_newline($bl_ip_addresses);
-		
-		if (is_array($entries)) {
-			//Get the selected IP addresses
-			$entries = array_filter($entries, 'is_numeric'); //discard non-numeric ID values
-			$id_list = "(" .implode(",", $entries) .")"; //Create comma separate list for DB operation
-			$events_table = AIOWPSEC_TBL_EVENTS;
-			// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
-			$results = $wpdb->get_col("SELECT ip_or_host FROM $events_table WHERE ID IN " . $id_list);
-			if (empty($results)) {
-				AIOWPSecurity_Admin_Menu::show_msg_error_st(__('Could not process the request because the IP addresses for the selected entries could not be found.', 'all-in-one-wp-security-and-firewall'));
-				return false;
-			} else {
-				foreach ($results as $entry) {
-					$ip_list_array[] = $entry;
-				}
+
+		//Get the selected IP addresses
+		$entries = array_filter($entries, 'is_numeric'); //discard non-numeric ID values
+		$id_list = "(" .implode(",", $entries) .")"; //Create comma separate list for DB operation
+		$events_table = AIOWPSEC_TBL_EVENTS;
+		// phpcs:ignore WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
+		$results = $wpdb->get_col("SELECT ip_or_host FROM $events_table WHERE ID IN " . $id_list);
+
+		if (empty($results)) {
+			AIOS_Helper::set_message('aios_list_message', __('Could not process the request because the IP addresses for the selected entries could not be found.', 'all-in-one-wp-security-and-firewall'), 'error');
+			return;
+		} else {
+			foreach ($results as $entry) {
+				$ip_list_array[] = $entry;
 			}
 		}
 
 		$validated_ip_list_array = AIOWPSecurity_Utility_IP::validate_ip_list($ip_list_array, 'blacklist');
 		if (is_wp_error($validated_ip_list_array)) {
-			AIOWPSecurity_Admin_Menu::show_msg_error_st(nl2br($validated_ip_list_array->get_error_message()));
+			AIOS_Helper::set_message('aios_list_message', nl2br($validated_ip_list_array->get_error_message()), 'error');
 		} else {
 			$banned_ip_data = implode("\n", $validated_ip_list_array);
 			$aio_wp_security->configs->set_value('aiowps_enable_blacklisting', '1'); // Force blacklist feature to be enabled.
@@ -263,7 +280,9 @@ class AIOWPSecurity_List_404 extends AIOWPSecurity_List_Table {
 			$aio_wp_security->configs->save_config();
 
 			$aiowps_firewall_config->set_value('aiowps_blacklist_ips', $validated_ip_list_array);
-			AIOWPSecurity_Admin_Menu::show_msg_updated_st(__('The selected IP addresses have been added to the blacklist and will be permanently blocked.', 'all-in-one-wp-security-and-firewall'));
+			$aiowps_firewall_config->set_value('aiowps_enable_blacklisting', '1');
+
+			AIOS_Helper::set_message('aios_list_message', __('The selected IP addresses have been added to the blacklist.', 'all-in-one-wp-security-and-firewall'));
 		}
 	}
 
@@ -272,25 +291,31 @@ class AIOWPSecurity_List_404 extends AIOWPSecurity_List_Table {
 	 *
 	 * @param array|string|integer $entries - ids or a single id
 	 *
-	 * @return void|string
+	 * @return void
 	 */
 	public function delete_404_event_records($entries) {
 		global $wpdb, $aio_wp_security;
 		$events_table = AIOWPSEC_TBL_EVENTS;
+		$result = false;
+
 		if (is_array($entries)) {
 			//Delete multiple records
 			$entries = array_map('esc_sql', $entries); //escape every array element
 			$entries = array_filter($entries, 'is_numeric'); //discard non-numeric ID values
+
 			$id_list = "(" . implode(",", $entries) . ")"; //Create comma separate list for DB operation
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery -- PCP error. Ignore.
 			$result = $wpdb->query("DELETE FROM " . $events_table . " WHERE id IN " . $id_list);
-			if ($result) {
-				AIOWPSecurity_Admin_Menu::show_msg_record_deleted_st();
-			} else {
-				// Error on bulk delete
-				$aio_wp_security->debug_logger->log_debug('Database error occurred when deleting rows from Events table. Database error: '.$wpdb->last_error, 4);
-				AIOWPSecurity_Admin_Menu::show_msg_record_not_deleted_st();
-			}
+		} elseif (null != $entries) {
+			//Delete single record
+			$result = $wpdb->query($wpdb->prepare("DELETE FROM $events_table WHERE id = %d", absint($entries))); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- We can't use %i because our plugin supports wordpress < 6.2.
+		}
+
+		if ($result) {
+			AIOS_Helper::set_message('aios_list_message', AIOWPSecurity_Admin_Menu::show_msg_record_deleted_st(true, true));
+		} else {
+			$aio_wp_security->debug_logger->log_debug('Database error occurred when deleting rows from the Events table. Database error: ' . $wpdb->last_error, 4);
+			AIOS_Helper::set_message('aios_list_message', AIOWPSecurity_Admin_Menu::show_msg_record_not_deleted_st(true, true), 'error');
 		}
 	}
 
@@ -305,29 +330,50 @@ class AIOWPSecurity_List_404 extends AIOWPSecurity_List_Table {
 		/**
 		 * First, lets decide how many records per page to show
 		 */
+		$no_action = '-1';
 		$per_page = 100;
 		$columns = $this->get_columns();
 		$hidden = array();
 		$sortable = $this->get_sortable_columns();
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. Nonce checked in previous function.
-		$search_term = isset($_REQUEST['s']) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : '';
+		$search_term = isset($this->_args['data']['s']) ? sanitize_text_field($this->_args['data']['s']) : '';
 
 		$this->_column_headers = array($columns, $hidden, $sortable);
 
-		$this->process_bulk_action();
+		$items = array();
+
+		if (isset($this->_args['data']['items'])) {
+			if (is_array($this->_args['data']['items'])) {
+				foreach ($this->_args['data']['items'] as $item) {
+					$sanitized_item = sanitize_text_field($item);
+					$items[] = $sanitized_item;
+				}
+			} else {
+				$sanitized_item = sanitize_text_field($this->_args['data']['items']);
+				$items[] = $sanitized_item;
+			}
+		} else {
+			$items = null;
+		}
+
+		if (isset($this->_args['data']['bulk_apply']) && 'true' === $this->_args['data']['bulk_apply']) {
+			$action = isset($this->_args['data']['action']) ? sanitize_text_field($this->_args['data']['action']) : $no_action;
+
+			if ($no_action !== $action) {
+				$this->process_bulk_action($action, $items);
+			} else {
+				AIOS_Helper::set_message('aios_list_message', __('Please select a bulk action from the dropdown.', 'all-in-one-wp-security-and-firewall'), 'error');
+			}
+		}
 
 		global $wpdb;
 		$events_table_name = AIOWPSEC_TBL_EVENTS;
 
 		// Ordering parameters
 		// Parameters that are going to be used to order the result
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. No nonce.
-		$orderby = isset($_GET['orderby']) ? sanitize_text_field(wp_unslash($_GET['orderby'])) : '';
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- PCP warning. No nonce.
-		$order = isset($_GET['order']) ? sanitize_text_field(wp_unslash($_GET['order'])) : '';
+		$orderby = isset($this->_args['data']['orderby']) ? sanitize_text_field($this->_args['data']['orderby']) : '';
+		$order = isset($this->_args['data']['order']) ? sanitize_text_field($this->_args['data']['order']) : '';
 
-		$orderby = !empty($orderby) ? esc_sql($orderby) : 'id';
-		$order = !empty($order) ? esc_sql($order) : 'DESC';
+		$orderby = empty($orderby) ? 'id' : $orderby;
 
 		$orderby = AIOWPSecurity_Utility::sanitize_value_by_array($orderby, $sortable);
 		$order = AIOWPSecurity_Utility::sanitize_value_by_array($order, array('DESC' => '1', 'ASC' => '1'));

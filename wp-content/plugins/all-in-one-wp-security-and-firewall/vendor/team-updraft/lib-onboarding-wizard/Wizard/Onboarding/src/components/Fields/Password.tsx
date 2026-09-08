@@ -30,6 +30,7 @@ const Password = ({
         responseMessage,
     } = useOnboardingStore();
 
+    // Check field.show_forgot_password, defaulting to true if undefined
     const showForgotPassword = field.show_forgot_password !== undefined ? field.show_forgot_password : true;
 
     const forgot_password = get_website_url(onboardingData.forgot_password_url, {
@@ -92,10 +93,10 @@ const Password = ({
                 {showForgotPassword && ( // Conditional rendering for the block
 
                     <div className="flex flex-row-reverse items-start gap-3 mt-1">
-                    <a className="underline text-[var(--teamupdraft-grey-600)] focus:outline-none focus:ring-0 w-auto" target="_blank" href={forgot_password}>
-                        {__("Forgot your password?", "ONBOARDING_WIZARD_TEXT_DOMAIN") }
-                    </a>
-                    {isBadAuthError && (
+                        <a className="underline text-[var(--teamupdraft-grey-600)] focus:outline-none focus:ring-0 w-auto" target="_blank" href={forgot_password}>
+                            {__("Forgot your password?", "ONBOARDING_WIZARD_TEXT_DOMAIN") }
+                        </a>
+                        {isBadAuthError && (
                             <div className="flex items-start gap-2 text-sm flex-1">
                                 <Icon
                                     name='warning'
@@ -107,8 +108,8 @@ const Password = ({
                                 />
                                 <p className="text-[#B40000] break-words whitespace-normal">{responseMessage}</p>
                             </div>
-                    )}
-                </div>
+                        )}
+                    </div>
                 )}
             </FieldWrapper>
         </>

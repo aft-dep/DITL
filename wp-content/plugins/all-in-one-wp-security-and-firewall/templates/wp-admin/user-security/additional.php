@@ -25,7 +25,7 @@
 				</tr>
 			</table>
 			<?php
-				submit_button(esc_html__('Save settings', 'all-in-one-wp-security-and-firewall'), 'primary', 'aiowpsec_save_additonal_settings');
+				submit_button(esc_html__('Save settings', 'all-in-one-wp-security-and-firewall'), 'primary', 'aiowpsec_save_additional_settings');
 			?>
 		</form>
 	</div>

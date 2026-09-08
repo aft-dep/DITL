@@ -57,6 +57,7 @@ trait AIOWPSecurity_Brute_Force_Commands_Trait {
 			$message = __('The settings have been successfully updated.', 'all-in-one-wp-security-and-firewall');
 			$args['badges'] = array("bf-rename-login-page");
 			$args['content'] = array('aios-rename-login-notice' => $aio_wp_security->include_template('wp-admin/brute-force/partials/rename-login-notice.php', true, array('home_url' => $home_url)));
+			$args['extra_args'] = array('logout_url' => $this->get_logout_url($options));
 		}
 
 		return $this->handle_response($success, $message, $args);
@@ -434,7 +435,7 @@ trait AIOWPSecurity_Brute_Force_Commands_Trait {
 	 *
 	 * @return array The response containing the status, message, and badge.
 	 */
-	public function perform_delete_404_event_records() {
+	public function perform_delete_all_404_event_records() {
 		global $aio_wp_security, $wpdb;
 
 		$success = true;
@@ -453,113 +454,6 @@ trait AIOWPSecurity_Brute_Force_Commands_Trait {
 		}
 
 		return $this->handle_response($success, $message);
-	}
-
-	/**
-	 * Handles the AJAX request for 404 log item actions.
-	 *
-	 * @param array $data The data received from the AJAX request.
-	 *
-	 * @return array The response containing the status, message, and badge.
-	 */
-	public function perform_404_log_item_action($data) {
-		global $wpdb, $aio_wp_security, $aiowps_firewall_config;
-
-		if (empty($data['action']) || !in_array($data['action'], array('delete', 'temp_block', 'blacklist', 'unblock'))) {
-			return $this->handle_response(false, __('Invalid action provided for 404 log item.', 'all-in-one-wp-security-and-firewall'));
-		}
-
-		$action = $data['action'];
-		$message = false;
-
-		switch ($action) {
-			case 'delete':
-			if (!isset($data['id'])) {
-					return $this->handle_response(false, __('Invalid 404 event log ID provided.', 'all-in-one-wp-security-and-firewall'));
-			}
-			$events_table = AIOWPSEC_TBL_EVENTS;
-			$id = absint($data['id']);
-			//Delete single record
-			$delete_command = "DELETE FROM " . $events_table . " WHERE id = '" . absint($id) . "'";
-			$result = $wpdb->query($delete_command);
-			if (false === $result) {
-					// Error on single delete
-					$aio_wp_security->debug_logger->log_debug('Database error occurred when deleting rows from Events table. Database error: '.$wpdb->last_error, 4);
-					return $this->handle_response(false, __('The selected record(s) have failed to delete.', 'all-in-one-wp-security-and-firewall'));
-			} else {
-								$message = __('The selected record(s) has been deleted successfully.', 'all-in-one-wp-security-and-firewall');
-			}
-				break;
-			case 'temp_block':
-			if (!isset($data['ip'])) {
-					return $this->handle_response(false, __('Invalid IP provided.', 'all-in-one-wp-security-and-firewall'));
-			}
-			$ip = sanitize_text_field($data['ip']);
-			$username = isset($data['username']) ? sanitize_user($data['username']) : '';
-
-			if (AIOWPSecurity_Utility_IP::get_user_ip_address() == $ip) {
-					return $this->handle_response(false, __('You cannot block your own IP address:', 'all-in-one-wp-security-and-firewall') . ' ' . $ip);
-			}
-			//Block single record
-			if (filter_var($ip, FILTER_VALIDATE_IP)) {
-					AIOWPSecurity_Utility::lock_IP($ip, '404', $username);
-					$message = __('The selected IP address is now temporarily blocked.', 'all-in-one-wp-security-and-firewall');
-			} else {
-								$message = __('The selected entry is not a valid IP address.', 'all-in-one-wp-security-and-firewall');
-								return $this->handle_response(false, $message);
-			}
-				break;
-			case 'blacklist':
-			if (!isset($data['ip'])) {
-					return $this->handle_response(false, __('Invalid IP provided.', 'all-in-one-wp-security-and-firewall'));
-			}
-
-			$bl_ip_addresses = $aio_wp_security->configs->get_value('aiowps_banned_ip_addresses'); //get the currently saved blacklisted IPs
-			$ip_list_array = AIOWPSecurity_Utility_IP::create_ip_list_array_from_string_with_newline($bl_ip_addresses);
-			$ip = sanitize_text_field($data['ip']);
-			$ip_list_array[] = $ip;
-			$validated_ip_list_array = AIOWPSecurity_Utility_IP::validate_ip_list($ip_list_array, 'blacklist');
-
-			if (is_wp_error($validated_ip_list_array)) {
-					$response = nl2br($validated_ip_list_array->get_error_message());
-					return $this->handle_response(false, $response);
-			} else {
-								$banned_ip_data = implode("\n", $validated_ip_list_array);
-								$aio_wp_security->configs->set_value('aiowps_enable_blacklisting', '1'); // Force blacklist feature to be enabled.
-								$aio_wp_security->configs->set_value('aiowps_banned_ip_addresses', $banned_ip_data);
-								$aio_wp_security->configs->save_config();
-
-								$aiowps_firewall_config->set_value('aiowps_blacklist_ips', $validated_ip_list_array);
-								$message = __('The selected IP addresses have been added to the blacklist and will be permanently blocked.', 'all-in-one-wp-security-and-firewall');
-			}
-				break;
-			case 'unblock':
-			if (!isset($data['ip'])) {
-					return $this->handle_response(false, __('Invalid log event ID provided.', 'all-in-one-wp-security-and-firewall'));
-			}
-
-			$ip_range = sanitize_text_field($data['ip']);
-			$lockout_table = AIOWPSEC_TBL_LOGIN_LOCKOUT;
-
-			// get the latest data with that ip in the table that's locked and reason is 404
-			$query = $wpdb->prepare("SELECT id FROM {$lockout_table} WHERE `released` > UNIX_TIMESTAMP() AND `lock_reason` = %s and failed_login_ip = %s ORDER BY id ASC LIMIT 1", '404', $ip_range);
-			$id = $wpdb->get_var($query);
-
-			if (null === $id) {
-					return $this->handle_response(false, __('Invalid log event ID provided.', 'all-in-one-wp-security-and-firewall'));
-			}
-
-			$result = $wpdb->query($wpdb->prepare("UPDATE $lockout_table SET `released` = UNIX_TIMESTAMP() WHERE `id` = %d", absint($id)));
-
-			if (null != $result) {
-					$message = __('Access from the selected IP address has been unblocked.', 'all-in-one-wp-security-and-firewall');
-			} else {
-								return $this->handle_response(false, __('The selected IP entry could not be unlocked', 'all-in-one-wp-security-and-firewall'));
-			}
-				break;
-		}
-
-		return $this->handle_response(true, $message);
 	}
 
 	/**
@@ -728,5 +622,31 @@ trait AIOWPSecurity_Brute_Force_Commands_Trait {
 			'aiowps_enable_contact_form_7_captcha' => $aiowps_enable_contact_form_7_captcha,
 			'aiowps_captcha_shortcode' => $aiowps_captcha_shortcode,
 		);
+	}
+
+	/**
+	 * Construct the logout URL based on whether the rename login page feature is enabled and the provided login slug.
+	 *
+	 * @param array $options Updated plugin options that affect this setting
+	 *
+	 * @return string The constructed logout URL with the appropriate nonce for logout action.
+	 */
+	private function get_logout_url($options) {
+		$rename_page_enabled = '1' === $options['aiowps_enable_rename_login_page'];
+		$login_slug = $options['aiowps_login_page_slug'];
+		
+		if ($rename_page_enabled && !empty($login_slug)) {
+			if (get_option('permalink_structure')) {
+				$base_login_url = trailingslashit(home_url($login_slug));
+			} else {
+				$base_login_url = trailingslashit(home_url()) . '?' . $login_slug;
+			}
+		} else {
+			$base_login_url = trailingslashit(site_url()) . 'wp-login.php';
+		}
+
+		$action_url = add_query_arg('action', 'logout', $base_login_url);
+
+		return esc_url_raw(html_entity_decode(wp_nonce_url($action_url, 'log-out')));
 	}
 }

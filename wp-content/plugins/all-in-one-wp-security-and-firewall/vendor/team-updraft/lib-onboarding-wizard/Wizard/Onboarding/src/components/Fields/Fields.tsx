@@ -12,6 +12,8 @@ import NumberInputWithControls from './NumberInputWithControls';
 import MultiSelectDropdown from './MultiSelectDropdown';
 import Text from './Text';
 import Textarea from './Textarea';
+import Pricing from './Pricing';
+import Status from './Status';
 import { ErrorBoundary } from '../ErrorBoundary';
 // @ts-ignore
 import useOnboardingStore from "@/store/useOnboardingStore";
@@ -19,6 +21,8 @@ import useOnboardingStore from "@/store/useOnboardingStore";
 import useAlertStore from "@/store/useAlertStore";
 import ButtonInput from '../Inputs/ButtonInput';
 import Alert from '../Alert';
+import { normalizeValue } from '../../utils/normalizeValue';
+import { useEffect } from '@wordpress/element';
 
 type FieldsProps = {
     fields: any[];
@@ -43,9 +47,27 @@ const Fields = ({ fields, onChange, fieldStatus = () => {} }:FieldsProps ) => {
 
     const { getAlertState, setAlertState } = useAlertStore();
 
+    // Effect to set default values for fields that haven't been edited.
+    // This runs after the component renders, avoiding the "cannot update during render" warning.
+    useEffect(() => {
+        fields.forEach((field) => {
+            const isEditedField = isEdited(field.id);
+            const value = getValue(field.id);
+
+            if (!isEditedField && (value === undefined || value === null) && field.default !== undefined) {
+                const disabled = field.is_lock === true;
+                if (disabled) {
+                    setValue(field.id, false);
+                } else {
+                    setValue(field.id, field.default);
+                }
+            }
+        });
+    }, [fields, settings, isEdited, setValue, getValue]); // Re-run only when necessary
+
     if (!fields) return null;
 
-    const fieldComponents = {
+    const fieldComponents: Record<string, any> = {
         two_fa_validation: TwoFaValidation,
         qr_code: QrCode,
         backup_codes: BackupCodes,
@@ -61,27 +83,35 @@ const Fields = ({ fields, onChange, fieldStatus = () => {} }:FieldsProps ) => {
         button: ButtonInput,
         text: Text,
         textarea: Textarea,
+        pricing: Pricing,
+        status: Status,
     };
 
     //the settings contain the values.
     return (
         <ErrorBoundary>
             {fields.map((field) => {
-                let value = getValue(field.id);
-                const isEditedField = isEdited(field.id);
-                if (!isEditedField && (value === undefined || value === null) && field.default !== undefined) {
-                    const disabled = field.is_lock === true;
+                // 1) Evaluate visible_if (if present)
+                if (field.visible_if && field.visible_if.field) {
+                    const cond = field.visible_if;
 
-                    if (disabled) {
-                        setValue(field.id, false);
-                        value = false;
-                    } else {
-                        setValue(field.id, field.default);
-                        value = field.default;
+                    // Try to get the current value from the store
+                    let currentValue = getValue(cond.field);
+
+                    const normalizedCurrent = normalizeValue(currentValue);
+                    const normalizedEquals = normalizeValue(cond.equals);
+
+                    if (normalizedCurrent !== normalizedEquals) {
+                        // Condition not met: skip rendering this field
+                        return null;
                     }
                 }
+
+                // 2) Get the value from the store. Default values are now handled in the useEffect hook.
+                const value = getValue(field.id);
                 const Component = fieldComponents[field.type] || null;
 
+                // 3) Special handling for "button" field type (externalAction)
                 if (field.type === 'button') {
                     const groupId = field.group_id;
                     const alertState = getAlertState(groupId);
@@ -137,10 +167,11 @@ const Fields = ({ fields, onChange, fieldStatus = () => {} }:FieldsProps ) => {
                     );
                 }
 
+                // 4) Common props for non-button fields
                 const commonProps = {
                     key: field.id,
                     field: field,
-                    onChange: (value: any) => onChange(field.id, value),
+                    onChange: (val: any) => onChange(field.id, val),
                     fieldStatus: (success: boolean) => fieldStatus(field.id, success),
                     value: value,
                 };

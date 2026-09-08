@@ -19,6 +19,8 @@ class AIOWPSecurity_Feature_Item {
 
 	public $callback;
 
+	public $category;
+
 	/**
 	 * Constructor sets up the feature item
 	 *
@@ -28,14 +30,16 @@ class AIOWPSecurity_Feature_Item {
 	 * @param string  $security_level  - the level of the feature
 	 * @param array   $feature_options - the options the feature uses
 	 * @param boolean $callback        - callback to set feature active status
+	 * @param string  $category        - the category the feature belongs to
 	 */
-	public function __construct($feature_id, $feature_name, $item_points, $security_level, $feature_options, $callback) {
+	public function __construct($feature_id, $feature_name, $item_points, $security_level, $feature_options, $callback, $category) {
 		$this->feature_id = $feature_id;
 		$this->feature_name = $feature_name;
 		$this->item_points = $item_points;
 		$this->security_level = $security_level;
 		$this->feature_options = $feature_options;
 		$this->callback = $callback;
+		$this->category = $category;
 	}
 	
 	/**

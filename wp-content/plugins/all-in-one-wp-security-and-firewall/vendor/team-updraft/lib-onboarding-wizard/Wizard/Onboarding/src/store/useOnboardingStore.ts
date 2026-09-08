@@ -51,7 +51,7 @@ export interface OnboardingState {
     addSuccessStep: (stepId: string) => void;
     getValue: (id: string) => string|boolean|any;
     isEdited: (id: string) => boolean;
-    setValue: (id: string, value:string|boolean) => void;
+    setValue: (id: string, value: any) => void;
     setSteps: (steps: Step[]) => void;
     updateEmail: () => Promise<void>;
     getSettings: () => Array<any>;
@@ -159,9 +159,9 @@ const useOnboardingStore = create<OnboardingState>((set) => ({
         const state = useOnboardingStore.getState();
         return !!state.settings.find((field) => field.id === id)?.edited;
     },
-    setValue: async (id: string, value: string | boolean) => {
+    setValue: (id: string, value: any) => {
         const state = useOnboardingStore.getState();
-        let currentSettings = await state.getSettings();
+        const currentSettings = state.getSettings();
 
         const existingFieldIndex = currentSettings.findIndex((field) => field.id === id);
 
@@ -267,6 +267,19 @@ const useOnboardingStore = create<OnboardingState>((set) => ({
             password: password,
         }
 
+        // Add other fields from the current step's settings dynamically
+        if (currentStep?.fields) {
+            currentStep.fields.forEach(field => {
+                // Skip email and password as they are handled explicitly
+                if (field.id !== emailFieldId && field.id !== passwordFieldId) {
+                    const fieldValue = settings?.find(s => s.id === field.id)?.value;
+                    if (fieldValue !== undefined && fieldValue !== false) {
+                        data[field.id] = fieldValue;
+                    }
+                }
+            });
+        }
+
         let resp = await adminAjaxRequest(data);
         try {
             if (resp.hasOwnProperty('code')) {
@@ -289,9 +302,104 @@ const useOnboardingStore = create<OnboardingState>((set) => ({
                         //In future we should add content here as per simba vendor package.
                     //}
                     //message = __('You have successfully connected for access to updates to this plugin.', 'ONBOARDING_WIZARD_TEXT_DOMAIN');
-                    message = ''; // we will not show this message as it is not needed.
-                    isSuccess = true;
-                    set({ licenseStatus: 'activated' });
+                    if (resp.hasOwnProperty('tfa_enabled')) {
+                        set((state) => {                           
+                            currentStep.fields = currentStep.fields.map(item => ({
+                                ...item,
+                                visible_if: {
+                                    field: 'is_tfa',
+                                    equals: false,
+                                }
+                            }));
+
+                            currentStep.fields = [
+                                ...currentStep.fields,
+                                {
+                                    id: 'tfa',
+                                    type: 'text',
+                                    visible_if: {
+                                        field: 'is_tfa',
+                                        equals: true,
+                                    },
+                                },
+                                {
+                                    id: 'is_tfa',
+                                    type: 'hidden',
+                                    default: true,
+                                },
+                            ];
+
+                            const fn = (window as any).pluginOnboardingActions?.beforeTfa;
+                            if (fn) {
+                                const extra = fn(currentStep, resp);
+                                
+                                currentStep.title = extra?.title ?? currentStep.title;
+                                currentStep.subtitle = extra?.subtitle ?? currentStep.subtitle;
+                                currentStep.title_conditional.isUpdating = extra?.isUpdating ?? currentStep.title_conditional.isUpdating;
+                                currentStep.icon = extra?.icon ?? currentStep.icon;
+                            }
+
+                            return {
+                                currentStep,
+                                licenseStatus: 'none',
+                                isUpdating: false
+                            };
+                        });
+
+                        return false;
+                    } else {
+                        // Check extra services
+                        const fn = (window as any).pluginOnboardingActions?.updateLicenseBullet;
+                        if (fn) {
+                            let hasError = false;
+                            let errorMessage = '';
+
+                            const requests = Object.keys(data).map(key => {
+                                return Promise.resolve(fn(key, data, currentStep, settings, state.setValue))
+                                    .then((external) => {
+                                        // If external is string => error
+                                        if (typeof external === 'string') {
+                                            hasError = true;
+                                            errorMessage = external;
+                                            return undefined;
+                                        }
+
+                                        // If external is normal object
+                                        if (external && typeof external === 'object') {
+                                            return {
+                                                icon: external.icon,
+                                                text: external.text,
+                                            };
+                                        }
+
+                                        return undefined;
+                                    })
+                                    .catch(() => undefined);
+                            });
+
+                            const results = (await Promise.all(requests))
+                                .filter(Boolean);
+
+                            // If error, stop here
+                            if (hasError) {
+                                message = errorMessage;
+                                isSuccess = false;
+                            } else if (results.length > 0) {
+                                set((state) => {                           
+                                    currentStep.bullets = results;
+                                    currentStep.icon = 'license';
+
+                                    return { 
+                                        currentStep,
+                                    };
+                                });
+                            }
+                        }
+
+                        message = '';
+                        isSuccess = true;
+                        set({ licenseStatus: 'activated' });
+                    }
                 } else if (resp.code == 'ERR') {
                     message = __('Your login was accepted, but no available entitlement for this plugin was found.', 'ONBOARDING_WIZARD_TEXT_DOMAIN')+' '+__('Has your licence expired, or have you used all your available licences elsewhere?', 'ONBOARDING_WIZARD_TEXT_DOMAIN');
                 }
@@ -447,4 +555,4 @@ const useOnboardingStore = create<OnboardingState>((set) => ({
 
 }));
 
-export default useOnboardingStore; 
+export default useOnboardingStore;

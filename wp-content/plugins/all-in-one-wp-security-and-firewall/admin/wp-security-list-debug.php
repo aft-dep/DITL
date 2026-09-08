@@ -21,26 +21,14 @@ class AIOWPSecurity_List_Debug_Log extends AIOWPSecurity_List_Table {
 	}
 	
 	/**
-	 * Returns logtime column in datetime format as per user setting time zone.
+	 * Renders logtime column in datetime format as per user setting time zone.
 	 *
 	 * @param array $item - data for the columns on the current row
 	 *
-	 * @return string - the datetime
+	 * @return void
 	 */
 	public function column_logtime($item) {
-		return AIOWPSecurity_Utility::convert_timestamp($item['logtime']);
-	}
-
-	/**
-	 * This function renders a default column item
-	 *
-	 * @param array  $item        - Item object
-	 * @param string $column_name - Column name to be rendered from item object
-	 *
-	 * @return mixed - data to be rendered for column
-	 */
-	public function column_default($item, $column_name) {
-		return $item[$column_name];
+		echo esc_html(AIOWPSecurity_Utility::convert_timestamp($item['logtime']));
 	}
 
 	/**

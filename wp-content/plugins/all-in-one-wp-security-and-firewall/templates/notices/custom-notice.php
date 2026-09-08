@@ -22,7 +22,7 @@
 			if (!empty($button_link) && !empty($button_meta)) {
 			?>
 			<p>
-				<a class="aiowps_notice_link button button-primary" href="<?php esc_url($button_link);?>">
+				<a class="aiowps_notice_link button button-primary" href="<?php echo esc_url($button_link);?>">
 					<?php echo esc_html($button_meta); ?>
 				</a>
 				<a class="aiowps_notice_link button button-secondary" style="margin-left: 8px;" href="#" onclick="jQuery(this).closest('.aiowps_ad_container').slideUp(); jQuery.post(ajaxurl, {action: 'aios_ajax', subaction: 'dismiss_notice', nonce: '<?php echo esc_js(wp_create_nonce('wp-security-ajax-nonce')); ?>', data: { notice: '<?php echo esc_js($dismiss_time);?>', dismiss_forever: '1'}});">

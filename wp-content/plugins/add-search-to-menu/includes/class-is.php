@@ -49,12 +49,14 @@ class IS_Loader {
 		if ( ! ivory_search_is_json_request() ) {
 			$this->set_locale();
 
-			$this->admin_public_hooks();
+			if( class_exists( 'IS_Admin_Public' ) ) {
+				$this->admin_public_hooks();
+			}
 
-			if ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_POST['action'] ) && 'is_ajax_load_posts' == $_POST['action'] ) ) {
+			if ( class_exists( 'IS_Admin' ) && ( is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_POST['action'] ) && 'is_ajax_load_posts' == $_POST['action'] ) )) {
 				$this->admin_hooks();
 			} 
-			if ( ! is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_POST['action'] ) && 'is_ajax_load_posts' == $_POST['action'] ) ) {
+			if ( class_exists( 'IS_Public' ) && ( ! is_admin() || ( defined( 'DOING_AJAX' ) && DOING_AJAX && isset( $_POST['action'] ) && 'is_ajax_load_posts' == $_POST['action'] ) ) ){
 				$this->public_hooks();
 			}
 		}
@@ -88,7 +90,6 @@ class IS_Loader {
 	private function admin_public_hooks() {
 		$admin_public = IS_Admin_Public::getInstance();
 		add_action( 'init', array( $admin_public, 'init' ) );
-		add_action( 'before_woocommerce_init', array( $admin_public, 'declare_wc_features_support' ) );
 		add_filter( 'get_search_form', array( $admin_public, 'get_search_form' ), 9999999 );
 		add_action( 'customize_register', array( $admin_public, 'customize_register' ) );
 		add_filter( 'upload_mimes', array( $admin_public, 'add_custom_mime_types' ) );

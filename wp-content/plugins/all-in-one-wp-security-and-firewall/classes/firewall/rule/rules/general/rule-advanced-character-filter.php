@@ -44,7 +44,7 @@ class Rule_Advanced_Character_Filter extends Rule {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- PCP warning. Sanitizing will interfere with 6g rules.
 		$uri = (string) parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-		return Rule_Utils::contains_pattern($uri, array_merge($this->get_general_characters(), $this->get_common_patterns(), $this->get_specific_exploits()));
+		return Rule_Utils::contains_pattern(rawurldecode($uri), array_merge($this->get_general_characters(), $this->get_common_patterns(), $this->get_specific_exploits()));
 	}
 
 	/**
@@ -131,25 +131,11 @@ class Rule_Advanced_Character_Filter extends Rule {
 			'/\|/i',
 			'/\.\./i',
 			'/\%0/i',
-			'/\%A/i',
-			'/\%B/i',
-			'/\%C/i',
-			'/\%D/i',
-			'/\%E/i',
-			'/\%F/i',
-			'/\%22/i',
-			'/\%27/i',
-			'/\%28/i',
-			'/\%29/i',
-			'/\%3C/i',
-			'/\%3E/i',
-			'/\%3F/i',
-			'/\%5B/i',
-			'/\%5C/i',
-			'/\%5D/i',
-			'/\%7B/i',
-			'/\%7C/i',
-			'/\%7D/i',
+			'/\'/i',
+			'/\(/i',
+			'/\)/i',
+			'/\?/i',
+			'/\\\\/i',
 		);
 	}
 

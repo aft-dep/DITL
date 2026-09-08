@@ -1,1 +1,0 @@
-import{P as PrestoEmailOverlay$1,d as defineCustomElement$1}from"./presto-email-overlay2.js";const PrestoEmailOverlay=PrestoEmailOverlay$1,defineCustomElement=defineCustomElement$1;export{PrestoEmailOverlay,defineCustomElement};

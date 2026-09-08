@@ -19,8 +19,32 @@
 #teamupdraft-onboarding .custom-scrollbar{
     --scrollbar-track: initial;
     --scrollbar-thumb: initial;
+
+    /* Firefox */
     scrollbar-color: var(--teamupdraft-orange-dark) #fff;
     scrollbar-width: thin;
+
+    /* Keep a visible gutter so users notice the area is scrollable */
+    scrollbar-gutter: stable;
+}
+
+/* WebKit (Chrome/Safari/Edge) */
+#teamupdraft-onboarding .custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+#teamupdraft-onboarding .custom-scrollbar::-webkit-scrollbar-track {
+    background: #fff;
+}
+
+#teamupdraft-onboarding .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--teamupdraft-orange-dark);
+    border-radius: 9999px;
+    border: 2px solid #fff;
+}
+
+#teamupdraft-onboarding .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--teamupdraft-orange-dark);
 }
 
 #teamupdraft-onboarding,

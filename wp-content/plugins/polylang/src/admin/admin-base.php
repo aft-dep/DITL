@@ -249,7 +249,6 @@ abstract class PLL_Admin_Base extends PLL_Base {
 		 * 3 => true if loaded in footer
 		 */
 		$scripts = array(
-			'user'    => array( array( 'profile', 'user-edit' ), array( 'jquery' ), false, false ),
 			'widgets' => array( array( 'widgets' ), array( 'jquery' ), false, false ),
 		);
 
@@ -332,7 +331,7 @@ abstract class PLL_Admin_Base extends PLL_Base {
 	 */
 	private function add_inline_scripts() {
 		if ( wp_script_is( 'pll_block-editor', 'enqueued' ) ) {
-			$default_lang_script = 'const pllDefaultLanguage = "' . $this->options['default_lang'] . '";';
+			$default_lang_script = sprintf( 'const pllDefaultLanguage = %s;', wp_json_encode( $this->options['default_lang'] ) );
 			wp_add_inline_script(
 				'pll_block-editor',
 				$default_lang_script,
@@ -606,24 +605,16 @@ abstract class PLL_Admin_Base extends PLL_Base {
 
 	/**
 	 * Tells if the Polylang's admin bar menu should be hidden for the current page.
-	 * Conventionally, it should be hidden on edition pages.
+	 * Conventionally, it should be hidden on edition pages, term edit pages and Site Editor pages.
 	 *
 	 * @since 3.8
 	 *
 	 * @return bool
 	 */
 	public function should_hide_admin_bar_menu(): bool {
-		global $pagenow, $typenow, $taxnow;
+		global $pagenow;
 
-		if ( in_array( $pagenow, array( 'post.php', 'post-new.php' ), true ) ) {
-			return ! empty( $typenow );
-		}
-
-		if ( 'term.php' === $pagenow ) {
-			return ! empty( $taxnow );
-		}
-
-		return false;
+		return in_array( $pagenow, array( 'post.php', 'post-new.php', 'site-editor.php', 'term.php' ), true );
 	}
 
 	/**

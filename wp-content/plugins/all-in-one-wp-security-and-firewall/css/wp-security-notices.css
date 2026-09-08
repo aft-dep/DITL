@@ -119,3 +119,7 @@ h4.aiowps_advert_heading {
 	}
 
 }
+
+.notice p, div.error p {
+	padding: 2px;
+}

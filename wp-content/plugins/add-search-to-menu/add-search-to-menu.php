@@ -4,7 +4,7 @@
  * Plugin Name: Ivory Search
  * Plugin URI:  https://ivorysearch.com
  * Description: The WordPress Search plugin that provides Search Form Customizer, WooCommerce Search, Image Search, Search Shortcode, AJAX Search & Live Search support!
- * Version:     5.5.14
+ * Version:     5.5.18
  * Author:      Ivory Search
  * Author URI:  https://ivorysearch.com/
  * License:     GPL2+
@@ -13,7 +13,7 @@
  * Text Domain: add-search-to-menu
  *
  * 
- * WC tested up to: 10
+ * WC tested up to: 11
  *
  * Ivory Search is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ final class Ivory_Search {
      */
     public function define_constants() {
         if ( !defined( 'IS_VERSION' ) ) {
-            define( 'IS_VERSION', '5.5.14' );
+            define( 'IS_VERSION', '5.5.18' );
         }
         if ( !defined( 'IS_PLUGIN_FILE' ) ) {
             define( 'IS_PLUGIN_FILE', __FILE__ );
@@ -152,6 +152,17 @@ final class Ivory_Search {
     }
 
     /**
+     * Tells WooCommerce that the plugin supports High-Performance Order Storage (HPOS)
+     * 
+     * @since 5.5.18
+     */
+    public function declare_wc_features_support() {
+        if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', IS_PLUGIN_FILE, true );
+        }
+    }
+
+    /**
      * Starts plugin execution.
      */
     function start() {
@@ -169,7 +180,7 @@ function ivory_search_start() {
     $is->start();
 }
 
-add_action( 'plugins_loaded', 'ivory_search_start' );
+add_action( 'init', 'ivory_search_start' );
 /**
  * Freemius needs to be loaded before plugins_loaded.
  * Otherwise, the fs register_unistall_hook will get 
@@ -187,3 +198,4 @@ require_once IS_PLUGIN_DIR . 'includes/freemius.php';
  */
 $is->includes();
 $is->register_activ_deactiv_hooks();
+add_action( 'before_woocommerce_init', array($is, 'declare_wc_features_support') );

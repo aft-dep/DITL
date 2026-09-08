@@ -12,11 +12,11 @@
 
 // Redirect to https login if forced to use SSL
 if (force_ssl_admin() && ! is_ssl()) {
-	if (0 === strpos(isset($_SERVER['REQUEST_URI']) ? sanitize_url(wp_unslash($_SERVER['REQUEST_URI'])) : '', 'http')) {
-		wp_safe_redirect(set_url_scheme(sanitize_url(wp_unslash($_SERVER['REQUEST_URI'], 'https'))));
+	if (0 === strpos(isset($_SERVER['REQUEST_URI']) ? esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) : '', 'http')) {
+		wp_safe_redirect(set_url_scheme(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'], 'https'))));
 		exit();
 	} else {
-		wp_safe_redirect('https://' . isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '' . sanitize_url(wp_unslash($_SERVER['REQUEST_URI'])));
+		wp_safe_redirect('https://' . isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '' . esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])));
 		exit();
 	}
 }
@@ -407,8 +407,16 @@ function retrieve_password() {
 	*/
 	$message = apply_filters('retrieve_password_message', $message, $key, $user_login, $user_data);
 
-	if ($message && !wp_mail($user_email, wp_specialchars_decode($title), $message))
-		wp_die(esc_html__('The email could not be sent.') . "<br />\n" . esc_html__('Possible reason: your host may have disabled the mail() function.'));
+	$mail_data = array(
+		'to' => $user_email,
+		'subject' => wp_specialchars_decode($title),
+		'message' => $message,
+	);
+
+	$send_mail = AIOWPSecurity_Reporting::notification($mail_data);
+
+	if ($message && !$send_mail)
+		wp_die(esc_html__('The email could not be sent.', 'all-in-one-wp-security-and-firewall') . "<br />\n" . esc_html__('Possible reason: your host may have disabled the mail() function.', 'all-in-one-wp-security-and-firewall'));
 
 	return true;
 }

@@ -170,7 +170,7 @@ trait AIOWPSecurity_Settings_Commands_Trait {
 			$message = __('Please choose a valid .htaccess to restore from.', 'all-in-one-wp-security-and-firewall');
 			$success = false;
 		} else {
-			$htaccess_file_contents = trim(stripslashes($data['aiowps_htaccess_file_contents']));
+			$htaccess_file_contents = trim($data['aiowps_htaccess_file_contents']); // stripslashes not required wp_unslash applied already AIOWPSecurity_Ajax::set_data
 			//Verify that file chosen has contents which are relevant to .htaccess file
 			$is_htaccess = AIOWPSecurity_Utility_Htaccess::check_if_htaccess_contents($htaccess_file_contents);
 			if (1 == $is_htaccess) {
@@ -215,7 +215,7 @@ trait AIOWPSecurity_Settings_Commands_Trait {
 			$message = __('Please choose a wp-config.php file to restore from.', 'all-in-one-wp-security-and-firewall');
 			$success = false;
 		} else {
-			$wp_config_file_contents = trim(stripslashes($data['aiowps_wp_config_file_contents']));
+			$wp_config_file_contents = trim($data['aiowps_wp_config_file_contents']); // stripslashes not required wp_unslash applied already AIOWPSecurity_Ajax::set_data
 
 			//Verify that file chosen is a wp-config.file
 			$is_wp_config = AIOWPSecurity_Utility_File::check_if_wp_config_contents($wp_config_file_contents);
@@ -304,6 +304,7 @@ trait AIOWPSecurity_Settings_Commands_Trait {
 		$extra_args = array();
 
 		$msg_updated = __('Your AIOS settings were successfully imported.', 'all-in-one-wp-security-and-firewall');
+		/* translators: %s: Htaccess file path */
 		$msg_error = sprintf(__('Could not write to the %s file.', 'all-in-one-wp-security-and-firewall'), AIOWPSecurity_Utility_File::get_home_path().'.htaccess') . ' ' . __('Please check the file permissions.', 'all-in-one-wp-security-and-firewall');
 
 		if (empty($data['aiowps_import_settings_file']) && empty($data['aiowps_import_settings_file_contents'])) {
@@ -358,7 +359,7 @@ trait AIOWPSecurity_Settings_Commands_Trait {
 
 					//Just in case user submits partial config settings
 					//Run add_option_values to make sure any missing config items are at least set to default
-					AIOWPSecurity_Configure_Settings::add_option_values();
+					AIOWPSecurity_Configure_Settings::add_option_values(false);
 
 					$res = true;
 
@@ -372,7 +373,7 @@ trait AIOWPSecurity_Settings_Commands_Trait {
 						$url = 'admin.php?page='.AIOWPSEC_SETTINGS_MENU_SLUG."&tab=settings-file-operations&success=import_settings";
 						$url .= empty($aio_wp_security->configs->get_value('aiowps_brute_force_secret_word')) ? '' : '&'.$aio_wp_security->configs->get_value('aiowps_brute_force_secret_word').'=1';
 						$url .= $res ? '' : '&error=write_htaccess';
-						$extra_args['redirect_url'] = admin_url(sanitize_url($url));
+						$extra_args['redirect_url'] = admin_url(esc_url_raw($url));
 					}
 
 					$message = $msg_updated;
@@ -423,8 +424,10 @@ trait AIOWPSecurity_Settings_Commands_Trait {
 			//Clear logged in list because it might be showing wrong addresses
 			if (AIOWPSecurity_Utility::is_multisite_install()) {
 				$current_blog_id = get_current_blog_id();
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- PCP warning. Direct call needed.
 				$wpdb->query($wpdb->prepare("DELETE FROM `{$logged_in_users_table}` WHERE site_id = %d", $current_blog_id));
 			}
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- PCP warning. Direct call needed.
 			$wpdb->query("DELETE FROM `{$logged_in_users_table}`");
 
 			$message = '';
@@ -478,7 +481,7 @@ trait AIOWPSecurity_Settings_Commands_Trait {
 			}
 		}
 
-		$output = json_encode($config_data);
+		$output = wp_json_encode($config_data);
 
 		$extra_args = array(
 			'data' => $output,

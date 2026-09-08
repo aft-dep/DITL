@@ -127,6 +127,41 @@ class AIOWPSecurity_Ajax_Data_Table {
 		'extra_tablenav',
 		'single_row_columns',
 	);
+	
+	/**
+	 * Allowed HTML tags and attributes used when rendering pagination & header markup.
+	 *
+	 * @var array
+	 */
+	protected $allowed_html = array(
+		'a' => array(
+			'class' => true,
+			'id'    => true,
+			'href'  => true,
+		),
+		'div' => array(
+			'class' => true,
+			'id'    => true,
+		),
+		'span' => array(
+			'class'       => true,
+			'id'          => true,
+			'aria-hidden' => true,
+		),
+		'label' => array(
+			'class' => true,
+			'for'   => true,
+		),
+		'input' => array(
+			'class'            => true,
+			'id'               => true,
+			'name'             => true,
+			'type'             => true,
+			'value'            => true,
+			'size'             => true,
+			'aria-describedby' => true,
+		),
+	);
 
 	/**
 	 * Constructor.
@@ -164,6 +199,11 @@ class AIOWPSecurity_Ajax_Data_Table {
 			)
 		);
 
+		// Workaround for WordPress bug that was fixed in 6.1: https://core.trac.wordpress.org/ticket/49089
+		if (empty($GLOBALS['hook_suffix'])) {
+			$GLOBALS['hook_suffix'] = '';
+		}
+
 		$this->screen = convert_to_screen($args['screen']);
 
 		add_filter("manage_{$this->screen->id}_columns", array($this, 'get_columns'), 0);
@@ -184,8 +224,8 @@ class AIOWPSecurity_Ajax_Data_Table {
 
 		if (empty($this->modes)) {
 			$this->modes = array(
-				'list'    => __('List view', 'all-in-one-wp-security-and-firewall'),
-				'excerpt' => __('Excerpt view', 'all-in-one-wp-security-and-firewall'),
+				'list'    => esc_html__('List view', 'all-in-one-wp-security-and-firewall'),
+				'excerpt' => esc_html__('Excerpt view', 'all-in-one-wp-security-and-firewall'),
 			);
 		}
 	}
@@ -484,10 +524,8 @@ class AIOWPSecurity_Ajax_Data_Table {
 		echo '<option value="-1">' . esc_html__('Bulk actions', 'all-in-one-wp-security-and-firewall') . "</option>\n";
 
 		foreach ($this->_actions as $name => $title) {
-			$class = 'edit' === $name ? ' class="hide-if-no-js"' : '';
-
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP error. HTML in $class doesn't need escaping.
-			echo "\t" . '<option value="' . esc_attr($name) . '"' . $class . '>' . esc_html($title) . "</option>\n";
+			$class = 'edit' === $name ? 'hide-if-no-js' : '';
+			echo "\t" . '<option value="' . esc_attr($name) . '" class="' . esc_attr($class) . '">' . esc_html($title) . "</option>\n";
 		}
 
 		echo "</select>\n";
@@ -498,7 +536,7 @@ class AIOWPSecurity_Ajax_Data_Table {
 			$submit_attributes['onclick'] = "return confirm('".esc_js(__('Are you sure you want to perform this bulk action?', 'all-in-one-wp-security-and-firewall'))."')";
 		}
 
-		submit_button(__('Apply', 'all-in-one-wp-security-and-firewall'), 'action', '', false, $submit_attributes);
+		submit_button(esc_html__('Apply', 'all-in-one-wp-security-and-firewall'), 'action', '', false, $submit_attributes);
 		echo "\n";
 	}
 
@@ -530,29 +568,41 @@ class AIOWPSecurity_Ajax_Data_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param string[] $actions        - An array of action links.
-	 * @param bool     $always_visible - Whether the actions should be always visible.
-	 * @return string
+	 * @param array[] $actions - An array of action properties to make into a link.
 	 */
-	protected function row_actions($actions, $always_visible = false) {
+	protected function row_actions($actions) {
 		$action_count = count($actions);
 		$i            = 0;
-
-		if (!$action_count) {
-			return '';
+		
+		if (empty($action_count)) {
+			return;
 		}
-
-		$out = '<div class="' . ($always_visible ? 'row-actions visible' : 'row-actions') . '">';
-		foreach ($actions as $action => $link) {
+		
+		echo '<div class="row-actions">';
+		
+		foreach ($actions as $action => $data) {
 			++$i;
-			($i == $action_count) ? $sep = '' : $sep = ' | ';
-			$out .= "<span class='$action'>$link$sep</span>";
+			
+			if (!isset($data['attributes']['href'])) {
+				$data['attributes']['href'] = '#';
+			}
+			
+			echo '<span class="'.esc_attr($action).'">';
+				echo '<a';
+				foreach ($data['attributes'] as $attribute => $value) {
+					if ('href' === $attribute) {
+						echo ' href="'.esc_url($value).'"';
+					} else {
+						echo ' '.esc_attr($attribute).'="'.esc_attr($value).'"';
+					}
+				}
+				$sep = ($i === $action_count) ? '' : ' | ';
+				echo '>'.esc_html($data['text']).'</a>'.esc_html($sep);
+			echo '</span>';
 		}
-		$out .= '</div>';
-
-		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __('Show more details', 'all-in-one-wp-security-and-firewall') . '</span></button>';
-
-		return $out;
+			
+		echo '</div>';
+		echo '<button type="button" class="toggle-row"><span class="screen-reader-text">'.esc_html__('Show more details', 'all-in-one-wp-security-and-firewall').'</span></button>';
 	}
 
 	/**
@@ -863,11 +913,11 @@ class AIOWPSecurity_Ajax_Data_Table {
 
 		if ('bottom' === $which) {
 			$html_current_page  = $current;
-			$total_pages_before = '<span class="screen-reader-text">' . __('Current page', 'all-in-one-wp-security-and-firewall') . '</span><span id="table-paging" class="paging-input"><span class="tablenav-paging-text">';
+			$total_pages_before = '<span class="screen-reader-text">' . esc_html__('Current page', 'all-in-one-wp-security-and-firewall') . '</span><span id="table-paging" class="paging-input"><span class="tablenav-paging-text">';
 		} else {
 			$html_current_page = sprintf(
 				"%s<input class='current-page' id='current-page-selector' type='text' name='paged' value='%s' size='%d' aria-describedby='table-paging' /><span class='tablenav-paging-text'>",
-				'<label for="current-page-selector" class="screen-reader-text">' . __('Current page', 'all-in-one-wp-security-and-firewall') . '</label>',
+				'<label for="current-page-selector" class="screen-reader-text">' . esc_html__('Current page', 'all-in-one-wp-security-and-firewall') . '</label>',
 				$current,
 				strlen($total_pages)
 			);
@@ -911,8 +961,7 @@ class AIOWPSecurity_Ajax_Data_Table {
 		}
 		$this->_pagination = "<div class='tablenav-pages" . $page_class . "'>" . $output . "</div>";
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Necessary escaping done above.
-		echo $this->_pagination;
+		echo wp_kses($this->_pagination, $this->allowed_html);
 	}
 
 	/**
@@ -1097,6 +1146,8 @@ class AIOWPSecurity_Ajax_Data_Table {
 	 * @param bool $with_id - Whether to set the id attribute or not
 	 */
 	public function print_column_headers($with_id = true) {
+		global $wp_version;
+		
 		list($columns, $hidden, $sortable, $primary) = $this->get_column_info();
 
 		$host = isset($_SERVER['HTTP_HOST']) ? sanitize_text_field(wp_unslash($_SERVER['HTTP_HOST'])) : '';
@@ -1118,7 +1169,7 @@ class AIOWPSecurity_Ajax_Data_Table {
 
 		if (!empty($columns['cb'])) {
 			static $cb_counter = 1;
-			$columns['cb']     = '<label class="screen-reader-text" for="cb-select-all-' . $cb_counter . '">' . __('Select all', 'all-in-one-wp-security-and-firewall') . '</label>'
+			$columns['cb']     = '<label class="screen-reader-text" for="cb-select-all-' . $cb_counter . '">' . esc_html__('Select all', 'all-in-one-wp-security-and-firewall') . '</label>'
 				. '<input id="cb-select-all-' . $cb_counter . '" type="checkbox" />';
 			$cb_counter++;
 		}
@@ -1152,20 +1203,32 @@ class AIOWPSecurity_Ajax_Data_Table {
 					$class[] = 'sortable';
 					$class[] = $desc_first ? 'asc' : 'desc';
 				}
-
-				$column_display_name = '<a href="' . esc_url(add_query_arg(compact('orderby', 'order'), $current_url)) . '"><span>' . $column_display_name . '</span><span class="sorting-indicator"></span></a>';
+				
+				$sorting_indicators_html = "<span class='sorting-indicator'></span>";
+				
+				if (version_compare($wp_version, '6.3', '>=')) {
+					$sorting_indicators_html = '<span class="sorting-indicators">'
+						.     '<span class="sorting-indicator asc" aria-hidden="true"></span>'
+						.     '<span class="sorting-indicator desc" aria-hidden="true"></span>'
+						. '</span>';
+				}
+				
+				$column_display_name = '<a href="' . esc_url(add_query_arg(compact('orderby', 'order'), $current_url)) . '">'
+					. '<span>' . $column_display_name . '</span>'
+					. $sorting_indicators_html
+					. '</a>';
 			}
-
-			$tag   = ('cb' === $column_key) ? 'td' : 'th';
-			$scope = ('th' === $tag) ? 'scope="col"' : '';
-			$id    = $with_id ? "id='$column_key'" : '';
-
-			if (!empty($class)) {
-				$class = "class='" . join(' ', $class) . "'";
-			}
-
-			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped earlier in other functions.
-			echo "<$tag $scope $id $class>$column_display_name</$tag>";
+			
+			$tag = ('cb' === $column_key) ? 'td' : 'th';
+						
+			printf(
+				'<%1$s %2$s %3$s class="%4$s">%5$s</%1$s>',
+				tag_escape($tag),
+				('th' === $tag) ? 'scope="col"' : '',
+				$with_id ? 'id="'.esc_attr($column_key).'"' : '',
+				esc_attr(join(' ', $class)),
+				wp_kses($column_display_name, $this->allowed_html)
+			);
 		}
 	}
 
@@ -1302,15 +1365,22 @@ class AIOWPSecurity_Ajax_Data_Table {
 	 * @param array  $item        - Item object
 	 * @param string $column_name - Column name to be rendered from item object
 	 */
-	protected function column_default($item, $column_name) {} // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable, Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore, PEAR.WhiteSpace.ScopeClosingBrace.Line -- this is a protected function
-
+	protected function column_default($item, $column_name) {
+		echo esc_html($item[$column_name]);
+	}
+	
 	/**
 	 * This function renders the checkbox column
 	 *
 	 * @param array $item - item object
 	 */
-	protected function column_cb($item) {} // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable, Squiz.WhiteSpace.ScopeClosingBrace.ContentBefore, PEAR.WhiteSpace.ScopeClosingBrace.Line -- this is a protected function
-
+	protected function column_cb($item) {
+		printf(
+			'<input type="checkbox" name="%1$s[]" value="%2$s" />',
+			esc_attr($this->_args['singular']),  //Let's simply repurpose the table's singular label
+			esc_attr($item['id'])                //The value of the checkbox should be the record's id
+		);
+	}
 
 	/**
 	 * Generates the columns for a single row of the table
@@ -1336,55 +1406,22 @@ class AIOWPSecurity_Ajax_Data_Table {
 
 			// Comments column uses HTML in the display name with screen reader text.
 			// Instead of using esc_attr(), we strip tags to get closer to a user-friendly string.
-			$data = 'data-colname="' . wp_strip_all_tags($column_display_name) . '"';
+			$data_colname = wp_strip_all_tags($column_display_name);
 
-			$attributes = "class='$classes' $data";
 			if ('cb' === $column_name) {
 				echo '<th scope="row" class="check-column">';
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP Error. Escaped earlier in other functions.
-				echo $this->column_cb($item);
+				$this->column_cb($item);
 				echo '</th>';
-			} elseif (method_exists($this, '_column_' . $column_name)) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP Error. Escaped earlier in other functions.
-				echo call_user_func(
-					array($this, '_column_' . $column_name),
-					$item,
-					$classes,
-					$data,
-					$primary
-				);
 			} elseif (method_exists($this, 'column_' . $column_name)) {
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP Error. Escaped earlier in other functions.
-				echo "<td $attributes>";
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP Error. Escaped earlier in other functions.
-				echo call_user_func(array($this, 'column_' . $column_name), $item);
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP Error. Escaped earlier in other functions.
-				echo $this->handle_row_actions($item, $column_name, $primary);
+				echo '<td class="'.esc_attr($classes).'" data-colname="'.esc_attr($data_colname).'">';
+				call_user_func(array($this, 'column_' . $column_name), $item);
 				echo '</td>';
 			} else {
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP Error. Escaped earlier in other functions.
-				echo "<td $attributes>";
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP Error. Escaped earlier in other functions.
-				echo $this->column_default($item, $column_name);
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- PCP Error. Escaped earlier in other functions.
-				echo $this->handle_row_actions($item, $column_name, $primary);
+				echo '<td class="'.esc_attr($classes).'" data-colname="'.esc_attr($data_colname).'">';
+				$this->column_default($item, $column_name);
 				echo '</td>';
 			}
 		}
-	}
-
-	/**
-	 * Generates and display row actions links for the list table.
-	 *
-	 * @since 4.3.0
-	 *
-	 * @param object $item        - The item being acted upon.
-	 * @param string $column_name - Current column name.
-	 * @param string $primary     - Primary column name.
-	 * @return string The row actions HTML, or an empty string if the current column is the primary column.
-	 */
-	protected function handle_row_actions($item, $column_name, $primary) {
-		return $column_name === $primary ? '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __('Show more details', 'all-in-one-wp-security-and-firewall') . '</span></button>' : '';
 	}
 
 

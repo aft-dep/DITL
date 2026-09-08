@@ -27,7 +27,7 @@ const QrCode = ({
                     <div className="flex flex-col items-center flex-1">
                         <div className="text-md font-semibold mb-2">{field.private_key}</div>
                         <button className="relative w-full justify-center text-md border rounded-xl py-1.5 flex items-center space-x-2 shadow-sm hover:bg-orange-light">
-                            <input onClick={ () => handleCopy() } className="cursor-pointer opacity-0 absolute inset-0" value={field.private_key}/>
+                            <input id={field.id} onClick={ () => handleCopy() } className="cursor-pointer opacity-0 absolute inset-0" value={field.private_key}/>
                             <span className={copied ? "text-green" : ""}>{!copied ? __("Copy key", "ONBOARDING_WIZARD_TEXT_DOMAIN") : __("Copied!", "ONBOARDING_WIZARD_TEXT_DOMAIN")}</span>
                             <Icon name="copy" size={18} color="gray-800" fill="gray-800"/>
                         </button>

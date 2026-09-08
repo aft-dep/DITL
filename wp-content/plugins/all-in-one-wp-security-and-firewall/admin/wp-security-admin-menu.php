@@ -43,7 +43,7 @@ abstract class AIOWPSecurity_Admin_Menu {
 	protected function render_page($title) {
 		$current_tab = $this->get_current_tab();
 		?>
-		<div class="wrap">
+		<div class="wrap" id="aios-wrap">
 			<h2><?php echo esc_html($title); ?></h2>
 			<?php $this->render_tabs($current_tab); ?>
 			<div id="poststuff">
@@ -183,21 +183,39 @@ abstract class AIOWPSecurity_Admin_Menu {
 	/**
 	 * Renders record(s) successfully deleted message at top of page.
 	 *
-	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message
+	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message.
+	 * @param bool $only_text              - Whether to only echo/return the text without div.
+	 *
 	 * @return mixed
 	 */
-	public static function show_msg_record_deleted_st($return_instead_of_echo = false) {
-		return AIOWPSecurity_Admin_Menu::show_msg_updated_st(__('The selected record(s) has been deleted successfully.', 'all-in-one-wp-security-and-firewall'), $return_instead_of_echo);
+	public static function show_msg_record_deleted_st($return_instead_of_echo = false, $only_text = false) {
+		$message = esc_html__('The selected record(s) has been deleted successfully.', 'all-in-one-wp-security-and-firewall');
+
+		if ($only_text) {
+			if ($return_instead_of_echo) return $message;
+			echo $message;
+		} else {
+			return AIOWPSecurity_Admin_Menu::show_msg_updated_st($message, $return_instead_of_echo);
+		}
 	}
 
 	/**
 	 * Renders record(s) unsuccessfully deleted message at top of page.
 	 *
-	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message
+	 * @param bool $return_instead_of_echo - This is used for when the function needs to return the message.
+	 * @param bool $only_text              - Whether to only echo/return the text without div.
+	 *
 	 * @return mixed
 	 */
-	public static function show_msg_record_not_deleted_st($return_instead_of_echo = false) {
-		return AIOWPSecurity_Admin_Menu::show_msg_error_st(__('The selected record(s) have failed to delete.', 'all-in-one-wp-security-and-firewall'), $return_instead_of_echo);
+	public static function show_msg_record_not_deleted_st($return_instead_of_echo = false, $only_text = false) {
+		$message = esc_html__('The selected record(s) have failed to delete.', 'all-in-one-wp-security-and-firewall');
+
+		if ($only_text) {
+			if ($return_instead_of_echo) return $message;
+			echo $message;
+		} else {
+			return AIOWPSecurity_Admin_Menu::show_msg_error_st($message, $return_instead_of_echo);
+		}
 	}
 
 	/**

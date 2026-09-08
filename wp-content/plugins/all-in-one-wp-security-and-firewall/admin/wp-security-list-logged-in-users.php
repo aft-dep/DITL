@@ -17,29 +17,29 @@ class AIOWPSecurity_List_Logged_In_Users extends AIOWPSecurity_List_Table {
 		));
 		
 	}
-
-	public function column_default($item, $column_name) {
-		return $item[$column_name];
-	}
 	
 	/**
-	 * Returns user id column html to be rendered.
+	 * Renders user id column html.
 	 *
 	 * @param array $item - data for the columns on the current row
 	 *
-	 * @return string - the html to be rendered
+	 * @return void
 	 */
 	public function column_user_id($item) {
 		//Build row actions
 		$actions = array(
-			'logout' => '<a class="aios-force-logout-user" data-user-id="'.esc_attr($item['user_id']).'" data-message="'.esc_js(__('Are you sure you want to force this user to be logged out of this session?', 'all-in-one-wp-security-and-firewall')).'" href="">'.__('Force logout', 'all-in-one-wp-security-and-firewall').'</a>',
+			'logout' => array(
+				'text' => __('Force logout', 'all-in-one-wp-security-and-firewall'),
+				'attributes' => array(
+					'class' => 'aios-force-logout-user',
+					'data-user-id' => $item['user_id'],
+					'data-message' => __('Are you sure you want to force this user to be logged out of this session?', 'all-in-one-wp-security-and-firewall')
+				)
+			)
 		);
 		
-		//Return the user_login contents
-		return sprintf('%1$s <span style="color:silver"></span>%2$s',
-			/*$1%s*/ $item['user_id'],
-			/*$2%s*/ $this->row_actions($actions)
-		);
+		echo esc_html($item['user_id']);
+		$this->row_actions($actions);
 	}
 
 	/**
@@ -66,10 +66,10 @@ class AIOWPSecurity_List_Logged_In_Users extends AIOWPSecurity_List_Table {
 	 * @return string - the html to be rendered
 	 */
 	public function column_cb($item) {
-		return sprintf(
+		printf(
 			'<input type="checkbox" name="%1$s[]" value="%2$s" />',
-			/* $1%s */ $this->_args['singular'], // Let's simply repurpose the table's singular label
-			/* $2%s */ $item['user_id'] // The value of the checkbox should be the record's id and its ip address
+			esc_attr($this->_args['singular']), // Let's simply repurpose the table's singular label
+			esc_attr($item['user_id'])
 		);
 	}
 

@@ -172,6 +172,12 @@ function wpforms_panel_field( $option, $panel, $field, $form_data, $label, $args
 
 		// Textarea.
 		case 'textarea':
+			// Guard against non-string values (e.g. corrupted form data) reaching esc_textarea(),
+			// which would throw a TypeError in htmlspecialchars() and crash the builder.
+			if ( ! is_string( $value ) ) {
+				$value = is_array( $value ) || is_object( $value ) ? (string) wp_json_encode( $value ) : (string) $value;
+			}
+
 			$output = sprintf(
 				'<textarea id="%s" name="%s" rows="%d" placeholder="%s" class="%s" %s>%s</textarea>',
 				$input_id,
@@ -676,9 +682,14 @@ function wpforms_builder_preview_get_allowed_tags(): array {
  * Output builder panel fields group wrapper.
  *
  * @since 1.6.6
+ * @since 2.0.1 Added the `title_attr` argument.
+ * @since 2.0.1 An explicit user collapse is now honoured: the `wpforms_fields_group_closed_{group}` cookie
+ *                  keeps a group closed even when it is declared with `'default' => 'opened'`.
  *
  * @param string $inner   Inner HTML to wrap.
- * @param array  $args    Array of arguments.
+ * @param array  $args    Array of arguments. Supports `group`, `unfoldable`, `default`, `class`,
+ *                        `borders`, `title`, `title_badge` (trusted HTML shown after the title),
+ *                        `title_attr` (plain, translated text for the title bar `title` attribute), `description`.
  * @param bool   $do_echo Flag to display.
  *
  * @return string|null
@@ -690,7 +701,15 @@ function wpforms_panel_fields_group( $inner, $args = [], $do_echo = true ): ?str
 	$unfoldable = ! empty( $args['unfoldable'] );
 	$default    = ( ! empty( $args['default'] ) && $args['default'] === 'opened' ) ? ' opened' : '';
 	$opened     = ! empty( $_COOKIE[ 'wpforms_fields_group_' . $group ] ) && $_COOKIE[ 'wpforms_fields_group_' . $group ] === 'true' ? ' opened' : $default;
-	$class      = ! empty( $args['class'] ) ? wpforms_sanitize_classes( $args['class'] ) : '';
+	// The `wpforms_fields_group_closed_` cookie records an explicit user collapse. Never name a group `closed_{something}`, it would collide with this prefix.
+	$is_closed = ! empty( $_COOKIE[ 'wpforms_fields_group_closed_' . $group ] ) && $_COOKIE[ 'wpforms_fields_group_closed_' . $group ] === 'true';
+	$class     = ! empty( $args['class'] ) ? wpforms_sanitize_classes( $args['class'] ) : '';
+
+	// Three-state precedence: an explicit collapse wins over both the open cookie and the `opened` default,
+	// so a group the user closed stays closed in the initial markup instead of being reopened on every load.
+	if ( $is_closed ) {
+		$opened = '';
+	}
 
 	$output = sprintf(
 		'<div class="wpforms-panel-fields-group %1$s%2$s" %3$s>',
@@ -705,7 +724,11 @@ function wpforms_panel_fields_group( $inner, $args = [], $do_echo = true ): ?str
 
 	if ( ! empty( $args['title'] ) ) {
 		$chevron = $unfoldable ? '<i class="fa fa-chevron-circle-right"></i>' : '';
-		$output .= '<div class="wpforms-panel-fields-group-title">' . esc_html( $args['title'] ) . $chevron . '</div>';
+		// Caller-controlled trusted markup (e.g. a "New" badge) shown after the title.
+		$title_badge = ! empty( $args['title_badge'] ) ? $args['title_badge'] : '';
+		// Collapsible groups are toggled by clicking the title bar, so callers can name that action for a native tooltip.
+		$title_attr = empty( $args['title_attr'] ) ? '' : sprintf( ' title="%s"', esc_attr( $args['title_attr'] ) );
+		$output    .= '<div class="wpforms-panel-fields-group-title"' . $title_attr . '>' . esc_html( $args['title'] ) . $title_badge . $chevron . '</div>';
 	}
 
 	if ( ! empty( $args['description'] ) ) {

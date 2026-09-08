@@ -2,7 +2,7 @@
 <h2><?php esc_html_e('Login whitelist', 'all-in-one-wp-security-and-firewall'); ?></h2>
 <div class="aio_blue_box">
 	<?php
-		echo '<p>' . esc_html__('The All-In-One Security whitelist feature gives you the option of only allowing certain IP addresses or ranges to have access to your WordPress login page.', 'all-in-one-wp-security-and-firewall') . '<br>' . esc_html__('This feature will deny login access for all IP addresses which are not in your whitelist as configured in the settings below.', 'all-in-one-wp-security-and-firewall') . '<br>' . esc_html__('By allowing/blocking IP addresses, you are using the most secure first line of defence because login access will only be granted to whitelisted IP addresses and other addresses will be blocked as soon as they try to access your login page.', 'all-in-one-wp-security-and-firewall') .'</p>';
+		echo '<p>' . esc_html__('The All-In-One Security Whitelist feature gives you the option of only allowing certain IP addresses or ranges to have access to your WordPress login page.', 'all-in-one-wp-security-and-firewall') . '<br>' . esc_html__('This feature will deny login access for all IP addresses which are not in your whitelist as configured in the settings below.', 'all-in-one-wp-security-and-firewall') . '<br>' . esc_html__('By allowing/blocking IP addresses, you are using the most secure first line of defence because login access will only be granted to whitelisted IP addresses and other addresses will be blocked as soon as they try to access your login page.', 'all-in-one-wp-security-and-firewall') .'</p>';
 	?>
 </div>
 <div class="aio_grey_box">

@@ -2,6 +2,8 @@
 
 namespace WPForms\Lite\Integrations\LiteConnect;
 
+use WPForms\Integrations\UsageTracking\UsageTracking;
+
 /**
  * Class LiteConnect for WPForms Lite.
  *
@@ -59,6 +61,10 @@ class LiteConnect extends \WPForms\Integrations\LiteConnect\LiteConnect {
 
 		parent::load();
 
+		// Register outside the cap check — wizard REST calls have no current user
+		// at plugins_loaded, so this stamping filter must always be attached.
+		add_filter( 'wpforms_update_settings', [ $this, 'update_enabled_settings' ] );
+
 		// Do not load if user doesn't have permissions to update settings.
 		if ( ! wpforms_current_user_can( wpforms_get_capability_manage_options() ) ) {
 			return;
@@ -77,6 +83,10 @@ class LiteConnect extends \WPForms\Integrations\LiteConnect\LiteConnect {
 
 		// We always need to instance the Integration class as part of the load process for the Lite Connect integration.
 		$this->integration = new Integration();
+
+		if ( is_admin() ) {
+			new Admin();
+		}
 	}
 
 	/**
@@ -88,10 +98,6 @@ class LiteConnect extends \WPForms\Integrations\LiteConnect\LiteConnect {
 
 		// Add Lite Connect option to settings.
 		add_filter( 'wpforms_settings_defaults', [ $this, 'settings_option' ] );
-
-		// Automatically save the timestamp when Lite Connect was enabled first time.
-		add_filter( 'wpforms_update_settings', [ $this, 'update_enabled_settings' ] );
-
 	}
 
 	/**
@@ -116,7 +122,7 @@ class LiteConnect extends \WPForms\Integrations\LiteConnect\LiteConnect {
 				'input-attr'    => 'disabled',
 				'desc-on'       => sprintf(
 					wp_kses( /* translators: %s - upgrade to WPForms Pro landing page URL. */
-						__( '<strong>Your form entries are not being stored locally, but are backed up remotely.</strong> If you <a href="%s" target="_blank" rel="noopener noreferrer" class="wpforms-upgrade-modal">upgrade to WPForms PRO</a>, you can restore your entries and they’ll be available in the WordPress dashboard.', 'wpforms-lite' ),
+						__( '<strong>Your form entries are not being stored locally, but are backed up remotely.</strong> If you <a href="%s" target="_blank" rel="noopener noreferrer" class="wpforms-upgrade-modal">upgrade to WPForms PRO</a>, you can restore your entries and they’ll be available in the WordPress dashboard. Entry backups expire after 1 year.', 'wpforms-lite' ),
 						[
 							'a'      => [
 								'href'   => [],
@@ -156,6 +162,7 @@ class LiteConnect extends \WPForms\Integrations\LiteConnect\LiteConnect {
 	 * Automatically save the additional info when Lite Connect was enabled first time.
 	 *
 	 * @since 1.7.4
+	 * @since 2.0.1.1 Also enables usage tracking on a Lite Connect opt-in.
 	 *
 	 * @param array $settings WPForms settings.
 	 *
@@ -165,6 +172,21 @@ class LiteConnect extends \WPForms\Integrations\LiteConnect\LiteConnect {
 
 		if ( empty( $settings[ self::SETTINGS_SLUG ] ) ) {
 			return $settings;
+		}
+
+		$old_settings = (array) get_option( 'wpforms_settings', [] );
+
+		// This filter runs on every settings save, and the saved array is seeded from the whole
+		// stored option, so Lite Connect reads as enabled even on an unrelated save. Comparing
+		// against the stored value narrows the stamping to a genuine off-to-on transition,
+		// which keeps the Settings > Misc opt-out from being silently reverted afterwards.
+		// A missing usage tracking key also stamps: Lite Connect can be persisted where this
+		// filter never ran (a non-production host, e.g. a staging build later moved live), and
+		// unlike the -since/-email keys below, the transition check alone would never recover
+		// that consent. Disabling Lite Connect deliberately has no matching branch: usage
+		// tracking is opted out of only through that Misc setting.
+		if ( empty( $old_settings[ self::SETTINGS_SLUG ] ) || ! array_key_exists( UsageTracking::SETTINGS_SLUG, $settings ) ) {
+			$settings[ UsageTracking::SETTINGS_SLUG ] = true;
 		}
 
 		$since = self::SETTINGS_SLUG . '-since';

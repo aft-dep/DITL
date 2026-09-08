@@ -48,7 +48,8 @@ class FieldOption {
 
 		$type    = $args['type'] ?? 'default';
 		$data    = [
-			'field-id' => $field['id'],
+			'field-id'   => $field['id'],
+			'field-type' => $field['type'],
 		];
 		$classes = [
 			'wpforms-btn-purple',
@@ -139,11 +140,6 @@ class FieldOption {
 	 */
 	private function is_license_active(): bool {
 
-		$license = (array) get_option( 'wpforms_license', [] );
-
-		return ! empty( wpforms_get_license_key() ) &&
-			empty( $license['is_expired'] ) &&
-			empty( $license['is_disabled'] ) &&
-			empty( $license['is_invalid'] );
+		return wpforms_is_license_valid();
 	}
 }

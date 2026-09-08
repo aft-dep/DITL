@@ -435,6 +435,7 @@ class Core {
                 ];
                 echo wp_kses( $html, $allowed_html );
             */
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- user-authored map content may legitimately include forms/scripts; see note above.
             echo $html;
         }
     }

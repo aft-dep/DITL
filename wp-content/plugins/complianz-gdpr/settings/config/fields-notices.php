@@ -12,16 +12,7 @@ function cmplz_field_notices(): array {
 	}
 
 	$notices = array();
-	if ( get_option( 'cmplz_detected_stats_type' ) || get_option( 'cmplz_detected_stats_data' ) ) {
-		$notices[] = array(
-			'field_id' => 'compile_statistics',
-			'label'    => 'default',
-			'title'    => __( 'Prefilled field', 'complianz-gdpr' ),
-			'text'     => __( 'Some answers have been been pre-filled by our system detection. Please check before continuing', 'complianz-gdpr' ) .
-							' ' . __( 'Please make sure you remove your current implementation to prevent double statistics tracking.', 'complianz-gdpr' ),
-		);
-	}
-	$stats = cmplz_scan_detected_stats();
+	$stats   = cmplz_scan_detected_stats();
 	if ( $stats ) {
 		$type      = reset( $stats );
 		$type      = COMPLIANZ::$config->stats[ $type ];
@@ -29,8 +20,8 @@ function cmplz_field_notices(): array {
 			'field_id' => 'compile_statistics',
 			'label'    => 'default',
 			'title'    => __( 'Detected statistics', 'complianz-gdpr' ),
-			// translators: %s placeholder for the statistics service currently enabled on the site.
-			'text'     => cmplz_sprintf( __( 'The site scan detected %s on your site, which means the answer to this question should be %s.', 'complianz-gdpr' ), $type, $type ),
+			// translators: %s placeholder for the detected statistics service (e.g. Google Analytics).
+			'text'     => cmplz_sprintf( __( 'The site scan detected %s on your site. Select it below and enter your tracking ID, and make sure you remove your current implementation to prevent double statistics tracking.', 'complianz-gdpr' ), $type ),
 		);
 	}
 
@@ -206,8 +197,11 @@ function cmplz_field_notices(): array {
 			'label'       => 'info',
 			'title'       => __( 'Single Functional Category Detected', 'complianz-gdpr' ),
 			'text'        => '<strong>' . __( 'Attention: please review your cookie configuration', 'complianz-gdpr' ) . '</strong><br><br>' .
-							__( "Currently, the only active cookie category is Functional. In some regions, when only one category is available, the cookie banner may not be 
-	displayed. We recommend double-checking your settings and, if needed, following this guide to force the banner display.", 'complianz-gdpr' ),
+							__(
+								'Currently, the only active cookie category is Functional. In some regions, when only one category is available, the cookie banner may not be 
+	displayed. We recommend double-checking your settings and, if needed, following this guide to force the banner display.',
+								'complianz-gdpr'
+							),
 			'url'         => 'https://complianz.io/display-a-cookie-banner-even-when-not-required',
 			'dismissible' => true,
 		);

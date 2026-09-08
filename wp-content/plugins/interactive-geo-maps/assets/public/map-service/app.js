@@ -26,8 +26,9 @@ function _typeof(obj) {
  */
 function geocluster(elements, bias, defaults, tooltipTemplate) {
   bias = parseFloat(bias);
-  if (!(this instanceof geocluster))
+  if (!(this instanceof geocluster)) {
     return new geocluster(elements, bias, defaults, tooltipTemplate);
+  }
   return this._cluster(elements, bias, defaults, tooltipTemplate);
 } // degrees to radians
 
@@ -76,41 +77,19 @@ geocluster.prototype._clean = function (data) {
 
 geocluster.prototype._cluster = function (elements, bias, defaults, tooltipTemplate) {
   var self = this,
-    cluster_map_collection = [];
+    clusterMapCollection = [];
   var tempMarker; // set bias to 1 on default
 
-  if (typeof bias !== 'number' || isNaN(bias)) bias = 1;
-  var tot_diff = 0;
-  var diffs = [];
-  var diff; // calculate sum of differences
-
-  for (var i = 1; i < elements.length; i++) {
-    diff = self._dist(
-      elements[i].latitude,
-      elements[i].longitude,
-      elements[i - 1].latitude,
-      elements[i - 1].longitude
-    );
-    tot_diff += diff;
-    diffs.push(diff);
+  if (typeof bias !== 'number' || isNaN(bias)) {
+    bias = 1;
   }
 
-  // calculate mean diff
-  var mean_diff = tot_diff / diffs.length;
-  var diff_variance = 0;
-
-  // calculate variance total
-  diffs.forEach(function (diff) {
-    diff_variance += Math.pow(diff - mean_diff, 2);
-  });
-
-  // derive threshold from stdev and bias - modified to allow bias to be more decisive
-  var diff_stdev = Math.sqrt(diff_variance / diffs.length);
+  // derive threshold from bias
   var threshold = 10000 * bias;
-  var cluster_map = [];
+  var clusterMap = [];
 
   // generate random initial cluster map
-  cluster_map.push({
+  clusterMap.push({
     centroid: elements[Math.floor(0.5 * elements.length)],
     elements: [],
     fill: defaults.fill,
@@ -122,46 +101,46 @@ geocluster.prototype._cluster = function (elements, bias, defaults, tooltipTempl
   var changing = true;
 
   while (changing === true) {
-    var new_cluster = false;
-    var cluster_changed = false; // iterate over elements
+    var newCluster = false;
+    var clusterChanged = false; // iterate over elements
 
-    elements.forEach(function (e, ei) {
-      var closest_dist = Infinity;
-      var closest_cluster = null; // find closest cluster
+    elements.forEach(function (e) {
+      var closestDist = Infinity;
+      var closestCluster = null; // find closest cluster
 
-      cluster_map.forEach(function (cluster, ci) {
+      clusterMap.forEach(function (cluster, ci) {
         // distance to cluster
         var dist = self._dist(
           e.latitude,
           e.longitude,
-          cluster_map[ci].centroid.latitude,
-          cluster_map[ci].centroid.longitude
+          clusterMap[ci].centroid.latitude,
+          clusterMap[ci].centroid.longitude
         );
 
-        if (dist < closest_dist) {
-          closest_dist = dist;
-          closest_cluster = ci;
+        if (dist < closestDist) {
+          closestDist = dist;
+          closestCluster = ci;
         }
       }); // is the closest distance smaller than the stddev of elements?
 
-      if (closest_dist < threshold || closest_dist === 0) {
+      if (closestDist < threshold || closestDist === 0) {
         // put element into existing cluster
-        cluster_map[closest_cluster].elements.push(e);
+        clusterMap[closestCluster].elements.push(e);
       } else {
         // create a new cluster with this element
-        cluster_map.push({
+        clusterMap.push({
           centroid: e,
           elements: [e],
         });
-        new_cluster = true;
+        newCluster = true;
       }
-    }); // delete empty clusters from cluster_map
+    }); // delete empty clusters from clusterMap
 
-    cluster_map = cluster_map.filter(function (cluster) {
+    clusterMap = clusterMap.filter(function (cluster) {
       return cluster.elements.length > 0;
     }); // calculate the clusters centroids and check for change
 
-    cluster_map.forEach(function (cluster, ci) {
+    clusterMap.forEach(function (cluster, ci) {
       var centroid = self._centroid(cluster.elements);
 
       changing = false;
@@ -170,26 +149,27 @@ geocluster.prototype._cluster = function (elements, bias, defaults, tooltipTempl
         centroid.latitude !== cluster.centroid.latitude ||
         centroid.longitude !== cluster.centroid.longitude
       ) {
-        cluster_map[ci].centroid = centroid;
-        cluster_changed = true;
+        clusterMap[ci].centroid = centroid;
+        clusterChanged = true;
       }
     }); // loop cycle if clusters have changed
 
-    if (!cluster_changed && !new_cluster) {
+    if (!clusterChanged && !newCluster) {
       changing = false;
     } else {
       // remove all elements from clusters and run again
-      if (changing)
-        cluster_map = cluster_map.map(function (cluster) {
+      if (changing) {
+        clusterMap = clusterMap.map(function (cluster) {
           cluster.elements = [];
           return cluster;
         });
+      }
     }
   }
 
-  cluster_map = cluster_map.map(function (cluster) {
+  clusterMap = clusterMap.map(function (cluster) {
     if (cluster.elements.length === 1) {
-      cluster_map_collection.push(cluster.elements[0]);
+      clusterMapCollection.push(cluster.elements[0]);
     } else {
       tempMarker = {
         id: '',
@@ -211,11 +191,11 @@ geocluster.prototype._cluster = function (elements, bias, defaults, tooltipTempl
         tempMarker.tooltipTemplate = tooltipTemplate;
       }
 
-      cluster_map_collection.push(tempMarker);
+      clusterMapCollection.push(tempMarker);
     }
   }); // compress result
 
-  return cluster_map_collection;
+  return clusterMapCollection;
 };
 /* ROUTER */
 var iMapsRouter = {};
@@ -373,7 +353,7 @@ iMapsRouter.iso2cleanName = function (iso, mapID) {
 
   // this block needs reviewing.. if/else are a mess
   if (Array.isArray(tempIso)) {
-    tempIso.forEach(function (item, index) {
+    tempIso.forEach(function (item) {
       if (series.hasOwnProperty(item)) {
         match = item;
       }
@@ -447,7 +427,7 @@ iMapsModel.prepareOverlayInclude = function (data) {
   var includes = data.includes || '';
 
   if (data.regions) {
-    data.regions.forEach(function (region, index) {
+    data.regions.forEach(function (region) {
       includes += ',' + region.id;
     });
   }
@@ -457,6 +437,7 @@ iMapsModel.prepareOverlayInclude = function (data) {
 
 iMapsModel.iterateData = function (data) {
   // check if there's a custom callback function to prepare the data
+  /* eslint-disable-next-line camelcase -- public API: site developers may define a global `igm_custom_filter` function to hook into map data before rendering. */
   if (typeof igm_custom_filter === 'function') {
     data = igm_custom_filter(data);
   } // check if there's a map specific custom callback function
@@ -551,7 +532,7 @@ iMapsModel.prepareGroupedRegions = function (data) {
         regions = region.id.split(',');
         groupName = region.name;
 
-        regions.forEach(function (reg, ix) {
+        regions.forEach(function (reg) {
           tempRegion = Object.assign({}, region);
           tempRegion.id = reg.trim();
 
@@ -648,8 +629,11 @@ iMapsModel.isMSIE = function () {
 };
 
 iMapsModel.removeHTMLtags = function (str) {
-  if (str === null || str === '') return '';
-  else str = str.toString();
+  if (str === null || str === '') {
+    return '';
+  } else {
+    str = str.toString();
+  }
   return str.replace(/<[^>]*>/g, '');
 };
 
@@ -1004,7 +988,7 @@ iMapsModel.prepareExcludeIncludes = function (data) {
     data.exclude = [];
 
     if (data.regions) {
-      data.regions.forEach(function (region, index) {
+      data.regions.forEach(function (region) {
         data.include.push(region.id);
 
         if (!isNaN(region.id)) {
@@ -1047,7 +1031,7 @@ iMapsModel.coordinatesToInt = function (data) {
         return;
       }
 
-      Object.keys(Obj).map(function (key, index) {
+      Object.keys(Obj).map(function (key) {
         if (_typeof(Obj[key]) === 'object') {
           if (key === 'coordinates' || key === 'homeGeoPoint') {
             convertCoordinates(key, Obj);
@@ -1083,7 +1067,7 @@ iMapsModel.prepareColor = function (data) {
     ],
     createGradient = function createGradient(data) {
       var colours = data.split('|');
-      var gradient, gradientType, gradientOffset, colourIndex;
+      var gradient, gradientType, gradientOffset;
 
       gradientType = typeof igmGradientType !== 'undefined' ? igmGradientType : 'LinearGradient';
       gradientOffset =
@@ -1146,7 +1130,7 @@ iMapsModel.prepareColor = function (data) {
         return;
       }
 
-      Object.keys(Obj).map(function (key, index) {
+      Object.keys(Obj).map(function (key) {
         if (_typeof(Obj[key]) === 'object') {
           iterateObj(Obj[key]);
         } else if (typeof Obj['className'] !== 'undefined') {
@@ -1223,12 +1207,6 @@ iMapsManager.addMap = function (index) {
     groupedSeries,
     markerSeries,
     labelSeries,
-    lineSeries,
-    clusters,
-    mapContainer,
-    seriesColumn,
-    legendHover,
-    legendActive,
     customLegend,
     imageSeries,
     iconSeries,
@@ -1307,13 +1285,13 @@ iMapsManager.addMap = function (index) {
   clusterSeries = im.maps[id].clusterSeries;
   // ready event
   // on click map debug
-  map.events.on('ready', function (ev) {
+  map.events.on('ready', function () {
     var event = new Event('mapready');
     container.dispatchEvent(event);
     // we might move the event that triggers on ready to mapappeared because it doesn't work well with custom maps
     im.triggerOnReady(id, data);
   });
-  map.events.on('appeared', function (ev) {
+  map.events.on('appeared', function () {
     var event = new Event('mapappeared');
     container.dispatchEvent(event);
     im.triggerOnAppeared(id, data);
@@ -1355,7 +1333,7 @@ iMapsManager.addMap = function (index) {
 
   // fix issues with USA territories map
   if (data.map.startsWith('usaTerritories')) {
-    map.events.on('ready', function (ev) {
+    map.events.on('ready', function () {
       map.projection = new am4maps.projections[data.projection]();
     });
   }
@@ -1467,7 +1445,7 @@ iMapsManager.addMap = function (index) {
     if (data.legend.clickable === 'toggle') {
       // do nothing, it's the default event
       // let's just clear the events, just in case.
-      map.legend.itemContainers.template.events.on('hit', function (ev) {
+      map.legend.itemContainers.template.events.on('hit', function () {
         iMapsManager.clearSelected(id);
       });
     }
@@ -1477,8 +1455,7 @@ iMapsManager.addMap = function (index) {
       map.legend.itemContainers.template.events.on('hit', function (ev) {
         iMapsManager.clearSelected(id);
         var select = [];
-        var seriesType = im.getTargetSeriesType(ev.target.dataItem.dataContext);
-        var target = ''; // currently only works for region series
+        var seriesType = im.getTargetSeriesType(ev.target.dataItem.dataContext); // currently only works for region series
 
         if (seriesType === 'MapPolygonSeries') {
           ev.target.dataItem.dataContext.mapPolygons.each(function (polygon) {
@@ -1603,7 +1580,7 @@ iMapsManager.addMap = function (index) {
   } // Create Other Series - we create them after the overlay to avoid overlap
 
   if (Array.isArray(data.lines) && data.lines.length) {
-    lineSeries = im.pushLineSeries(id, data);
+    im.pushLineSeries(id, data);
   }
 
   if (Array.isArray(data.roundMarkers) && data.roundMarkers.length) {
@@ -1611,7 +1588,7 @@ iMapsManager.addMap = function (index) {
 
     if (data.clusterMarkers && im.bool(data.clusterMarkers.enabled)) {
       markerSeries.hidden = true;
-      clusters = im.setupClusters(data, id);
+      im.setupClusters(data, id);
       clusterSeries[id].zoomLevels[data.clusterMarkers.zoomLevel] = markerSeries;
       // we setup the main index series (zoom=1) to be visible
       // when doing it inside setupClusters function, there was a bug
@@ -1664,8 +1641,6 @@ iMapsManager.handleZoom = function (id) {
   var im = this,
     map = im.maps[id].map,
     data = im.maps[id].data,
-    allCurrentSeries = im.maps[id].series,
-    allBaseSeries = im.maps[id].allBaseSeries,
     defaultOffset = true,
     defaultZoom = true; // Viewport settings
 
@@ -1887,7 +1862,7 @@ iMapsManager.handleZoom = function (id) {
   }
 
   // pan events?
-  map.events.on('mappositionchanged', function (ev) {
+  map.events.on('mappositionchanged', function () {
     // what to do here to have tooltips always display follow pan?
   });
 
@@ -2089,7 +2064,6 @@ iMapsManager.pushSeries = function (id, data) {
     iconSeries,
     imageSeries,
     groupedSeries,
-    clusters,
     clusterSeries = im.maps[id].clusterSeries,
     parentData = im.maps[id].data,
     seriesIndex = im.maps[id].seriesIndex,
@@ -2138,7 +2112,7 @@ iMapsManager.pushSeries = function (id, data) {
     // in case we don't allow empty, we only include the active regions
     if (!im.bool(parentData.allowEmpty)) {
       data.include = [];
-      data.regions.forEach(function (region, index) {
+      data.regions.forEach(function (region) {
         data.include.push(region.id);
         if (!isNaN(region.id)) {
           data.include.push(parseInt(region.id));
@@ -2222,7 +2196,7 @@ iMapsManager.pushSeries = function (id, data) {
     // clusters in overlay maps
     if (data.clusterMarkers && im.bool(data.clusterMarkers.enabled)) {
       markerSeries.hidden = true;
-      clusters = im.setupClusters(data, id, data.id);
+      im.setupClusters(data, id, data.id);
       clusterSeries[data.id].zoomLevels[data.clusterMarkers.zoomLevel] = markerSeries; // we setup the main index series (zoom=1) to be visible
       // when doing it inside setupClusters function, there was a bug
 
@@ -2404,7 +2378,7 @@ iMapsManager.pushRegionSeries = function (id, data, groupHover) {
       : '{tooltipContent}';
   }
 
-  regionTemplate.adapter.add('tooltipHTML', function (value, target, key) {
+  regionTemplate.adapter.add('tooltipHTML', function (value, target) {
     if (
       _typeof(target.dataItem.dataContext) === 'object' &&
       typeof tooltipConfig.onlyWithData !== 'undefined'
@@ -2425,7 +2399,7 @@ iMapsManager.pushRegionSeries = function (id, data, groupHover) {
 
     return value.replace(/\\/g, '');
   });
-  regionTemplate.adapter.add('tooltipText', function (value, target, key) {
+  regionTemplate.adapter.add('tooltipText', function (value, target) {
     if (
       _typeof(target.dataItem.dataContext) === 'object' &&
       typeof tooltipConfig.onlyWithData !== 'undefined'
@@ -2583,10 +2557,10 @@ iMapsManager.pushRegionSeries = function (id, data, groupHover) {
       }
     }
 
-    regionSeries.events.on('hidden', function (ev) {
+    regionSeries.events.on('hidden', function () {
       labelSeries.hide();
     });
-    regionSeries.events.on('shown', function (ev) {
+    regionSeries.events.on('shown', function () {
       labelSeries.show();
     });
     // label events
@@ -3059,7 +3033,6 @@ iMapsManager.pushIconMarkerSeries = function (id, data) {
     hover,
     active,
     highlightState,
-    label,
     clickableOverlay;
 
   if (Array.isArray(data.iconMarkers) && data.iconMarkers.length) {
@@ -3225,7 +3198,7 @@ iMapsManager.pushLineSeries = function (id, data) {
     //lineSeries.mapLines.template.arrow.disabled = true;
     lineSeries.mapLines.template.arrow.propertyFields.disabled = 'arrowDisabled';
 
-    data.lines.forEach(function (lineObj, index) {
+    data.lines.forEach(function (lineObj) {
       // make sure multiGeoLine is array of arrays:
       lineObj.multiGeoLine = [lineObj.multiGeoLine];
       lineData.push(lineObj);
@@ -3533,7 +3506,7 @@ iMapsManager.setupTooltip = function (id, series, data, marker) {
             });
           });
 
-          map.events.on('mappositionchanged', function (ev) {
+          map.events.on('mappositionchanged', function () {
             marker.clones.each(function (clone) {
               clone.showTooltip();
             });
@@ -3560,7 +3533,7 @@ iMapsManager.prepareURL = function (str) {
   var url, protocols;
   try {
     url = new URL(str);
-  } catch (_) {
+  } catch {
     url = false;
   }
 
@@ -3722,7 +3695,7 @@ iMapsManager.setupHitEvents = function (id, ev) {
   }
 };
 
-iMapsManager.zoomToMap = function (ev, target, id) {
+iMapsManager.zoomToMap = function (ev, target) {
   var im = this;
   var baseMap = false;
 
@@ -3752,7 +3725,6 @@ iMapsManager.zoomToRegion = function (ev, id) {
   var im = this,
     seriesType = im.getTargetSeriesType(ev.target),
     data = im.maps[id].data,
-    map = im.maps[id].map,
     markerZoomLevel,
     dataContext; // do nothing if we clicked a label
 
@@ -3882,7 +3854,7 @@ iMapsManager.setupHoverEvents = function (id, ev) {
     ev.target.dataItem &&
     typeof ev.target.dataItem.dataContext.madeFromGeoData === 'undefined'
   ) {
-    selected.forEach(function (sel, index) {
+    selected.forEach(function (sel) {
       if (typeof sel === 'object' && typeof sel.isHover !== 'undefined') {
         sel.isHover = false;
       }
@@ -3901,7 +3873,7 @@ iMapsManager.setupHoverEvents = function (id, ev) {
   // if it's a marker and we want to trigger hover event also on associated regions in marker value
   if (im.bool(dataContext.triggerRegionHover) && dataContext.val && dataContext.val !== '') {
     iMapsManager.hover(id, dataContext.val);
-    ev.target.events.on('out', function (ev) {
+    ev.target.events.on('out', function () {
       iMapsManager.clearHovered(id);
     });
   }
@@ -4115,18 +4087,14 @@ iMapsManager.select = function (id, elID, forceFixedTooltip, showTooltip, series
     defaultTooltipShowOn,
     seriesByID = iMaps.maps[id].seriesById,
     thisSeries = false,
-    ogID,
     customRegionGroup = true,
     triggered = false, // temp solution to prevent map from triggering multiple click actions if there are entries with same ID in different layers
-    isGroup = false,
     keepThis = true;
 
   // map sure it's string
   if (Number.isInteger(elID)) {
     elID = elID.toString();
   }
-
-  ogID = elID;
 
   // Force fixed position?
   if (typeof forceFixedTooltip === 'undefined') {
@@ -4341,7 +4309,7 @@ iMapsManager.select = function (id, elID, forceFixedTooltip, showTooltip, series
         if (elID.includes(',')) {
           // hilight
           group = elID.split(',');
-          group.forEach(function (rxid, indx) {
+          group.forEach(function (rxid) {
             select = series[i].getImageById(rxid);
 
             if (typeof select !== 'undefined' && select) {
@@ -4461,7 +4429,7 @@ iMapsManager.setupRangeHeatMap = function (series, id, data) {
     });
 
     if (Array.isArray(markers) && markers.length > 0) {
-      markers.forEach(function (entry, index) {
+      markers.forEach(function (entry) {
         if (typeof entry[data.heatMapMarkers.source] === 'undefined') {
           return;
         }
@@ -4478,7 +4446,7 @@ iMapsManager.setupRangeHeatMap = function (series, id, data) {
           val = parseFloat(val);
         }
 
-        reordered.forEach(function (ruleData, index) {
+        reordered.forEach(function (ruleData) {
           if (isNaN(ruleData.rule)) {
             start = ruleData.rule.trim(); // if it's not a number
 
@@ -4518,7 +4486,7 @@ iMapsManager.setupRangeHeatMap = function (series, id, data) {
         data.heatMapRegions.source = parseInt(data.heatMapRegions.source);
       }
 
-      regions.forEach(function (entry, index) {
+      regions.forEach(function (entry) {
         if (typeof entry[data.heatMapRegions.source] === 'undefined') {
           return;
         }
@@ -4534,7 +4502,7 @@ iMapsManager.setupRangeHeatMap = function (series, id, data) {
           val = parseFloat(val);
         }
 
-        reordered.forEach(function (ruleData, index) {
+        reordered.forEach(function (ruleData) {
           if (isNaN(ruleData.rule)) {
             start = ruleData.rule.trim(); // if it's a number
 
@@ -4702,7 +4670,6 @@ iMapsManager.setupHeatMap = function (series, id, data) {
 
 iMapsManager.drillTo = function (id, ev, currentRegion, customMap) {
   var im = iMapsManager,
-    map = im.maps[id].map,
     data = im.maps[id].data,
     allCurrentSeries = iMapsManager.maps[id].series,
     baseSeries = iMapsManager.maps[id].baseSeries,
@@ -4756,8 +4723,7 @@ iMapsManager.drillTo = function (id, ev, currentRegion, customMap) {
 };
 
 iMapsManager.drillDown = function (id, ev) {
-  var im = iMapsManager,
-    mapName = iMapsRouter.iso2cleanName(ev.target.dataItem.dataContext.id, id),
+  var mapName = iMapsRouter.iso2cleanName(ev.target.dataItem.dataContext.id, id),
     targetID = ev.target.dataItem.dataContext.id,
     allCurrentSeries = iMapsManager.maps[id].series,
     clicked = ev.target.dataItem.dataContext,
@@ -4898,7 +4864,7 @@ iMapsManager.clearSelected = function (id, keepThis, skipReset) {
   skipReset = skipReset || false;
 
   if (Array.isArray(selected) && selected.length > 0) {
-    selected.forEach(function (polygon, index) {
+    selected.forEach(function (polygon) {
       if (
         polygon !== keepThis &&
         typeof polygon === 'object' &&
@@ -4943,7 +4909,7 @@ iMapsManager.clearHighlighted = function (id) {
     highlighted = map.highlighted || [];
 
   if (Array.isArray(highlighted) && highlighted.length > 0) {
-    highlighted.forEach(function (polygon, index) {
+    highlighted.forEach(function (polygon) {
       polygon.isHover = false;
       polygon.isActive = false;
       polygon.setState('default');
@@ -4963,7 +4929,6 @@ iMapsManager.clearHighlighted = function (id) {
 iMapsManager.hover = function (id, eID, forceFixedTooltip) {
   var im = this,
     map = im.maps[id],
-    data = map.data,
     series = map.series,
     hovered = map.hovered || [],
     hover,
@@ -4991,7 +4956,7 @@ iMapsManager.hover = function (id, eID, forceFixedTooltip) {
         if (eID.includes(',')) {
           // foreach code
           group = eID.split(',');
-          group.forEach(function (rxid, indx) {
+          group.forEach(function (rxid) {
             // single
             hover = series[i].getPolygonById(rxid.trim());
 
@@ -5041,7 +5006,7 @@ iMapsManager.hover = function (id, eID, forceFixedTooltip) {
         if (eID.includes(',')) {
           // foreach code
           group = eID.split(',');
-          group.forEach(function (rxid, indx) {
+          group.forEach(function (rxid) {
             hover = series[i].getImageById(rxid);
 
             if (hover) {
@@ -5186,7 +5151,7 @@ iMapsManager.highlight = function (id, elID) {
         // check if group
         if (elID.includes(',')) {
           group = elID.split(',');
-          group.forEach(function (rxid, indx) {
+          group.forEach(function (rxid) {
             select = series[i].getPolygonById(rxid.trim());
 
             if (typeof select !== 'undefined' && select) {
@@ -5211,7 +5176,7 @@ iMapsManager.highlight = function (id, elID) {
       if (series[i].mapImages) {
         if (elID.includes(',')) {
           group = elID.split(',');
-          group.forEach(function (rxid, indx) {
+          group.forEach(function (rxid) {
             select = series[i].getImageById(rxid);
 
             if (typeof select !== 'undefined' && select) {
@@ -5355,7 +5320,7 @@ iMapsManager.triggerOnAppeared = function (id, data) {
  * @return newSeries - the new created series object
  */
 
-iMapsManager.addGeoFileSeries = function (id, dataContext, data) {
+iMapsManager.addGeoFileSeries = function (id, dataContext) {
   var newSeries,
     geoFiles = iMapsRouter.getGeoFiles(dataContext);
   var scriptPromise = new Promise(function (resolve, reject) {
@@ -5386,8 +5351,7 @@ iMapsManager.handleInfoBox = function (id) {
     map = im.maps[id].map,
     events = ['ready', 'mappositionchanged', 'zoomlevelchanged'],
     container = document.getElementById('map_visual_info'),
-    coordinatesc = document.getElementById('map_click_events_coordinates'),
-    series = im.maps[id].series;
+    coordinatesc = document.getElementById('map_click_events_coordinates');
 
   if (container) {
     iMapsManager.populateInfo(id, container); // zoom, etc
@@ -5395,7 +5359,7 @@ iMapsManager.handleInfoBox = function (id) {
     events.forEach(function (event) {
       map.events.on(
         event,
-        function (ev) {
+        function () {
           iMapsManager.populateInfo(id, container);
         },
         this
@@ -5482,7 +5446,6 @@ iMapsManager.hideAllSeries = function (id, keepBase) {
 
   keepBase = keepBase || false;
   var map = iMaps.maps[id];
-  var baseRegionSeries = map.baseRegionSeries;
   var groupedSeries = map.groupedBaseRegionSeries;
   var allbaseSeries = map.allBaseSeries;
 
@@ -5529,7 +5492,7 @@ iMapsManager.bool = function (string) {
 iMapsManager.isJSON = function (str) {
   try {
     JSON.parse(str);
-  } catch (e) {
+  } catch {
     return false;
   }
 
@@ -5547,7 +5510,9 @@ if (!Element.prototype.closest) {
     var el = this;
 
     do {
-      if (el.matches(s)) return el;
+      if (el.matches(s)) {
+        return el;
+      }
       el = el.parentElement || el.parentNode;
     } while (el !== null && el.nodeType === 1);
 
@@ -5587,7 +5552,7 @@ iMapsManager.handleExternalZoom = function (id) {
   homeBtn.classList.add('map_home_button');
   homeBtn.innerHTML =
     '<svg height="20" width="20"><path d="M16,8 L14,8 L14,16 L10,16 L10,10 L6,10 L6,16 L2,16 L2,8 L0,8 L8,0 L16,8 Z M16,8" /></svg>';
-  homeBtn.addEventListener('click', function (ev) {
+  homeBtn.addEventListener('click', function () {
     var id = this.getAttribute('data-map-id');
     iMaps.maps[id].map.goHome();
 
@@ -5617,7 +5582,7 @@ iMapsManager.handleExternalZoom = function (id) {
   zoomInBtn.setAttribute('data-map-id', id);
   zoomInBtn.classList.add('map_zoomin_button');
   zoomInBtn.innerHTML = '+';
-  zoomInBtn.addEventListener('click', function (ev) {
+  zoomInBtn.addEventListener('click', function () {
     var id = this.getAttribute('data-map-id');
     iMaps.maps[id].map.zoomIn();
   }); // zoom out
@@ -5627,7 +5592,7 @@ iMapsManager.handleExternalZoom = function (id) {
   zoomOutBtn.setAttribute('data-map-id', id);
   zoomOutBtn.classList.add('map_zoomout_button');
   zoomOutBtn.innerHTML = '-';
-  zoomOutBtn.addEventListener('click', function (ev) {
+  zoomOutBtn.addEventListener('click', function () {
     var id = this.getAttribute('data-map-id');
     iMaps.maps[id].map.zoomOut();
   }); // controls container
@@ -5806,7 +5771,7 @@ iMaps.loadScripts = function (urls, callback) {
     }
   };
 
-  urls.forEach(function (url, index) {
+  urls.forEach(function (url) {
     iMaps.loadScript(url, multiCallback);
   });
 };

@@ -1,1 +1,0 @@
-let player;export default function(r){player=r,player.on("error",(...r)=>{console.error({args:r})})}

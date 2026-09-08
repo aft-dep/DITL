@@ -26,9 +26,13 @@ class AIOWPSecurity_Audit_Events {
 	/**
 	 * This function adds all the event actions we want to capture and record in the audit log
 	 *
+	 * @global string $wp_version
+	 *
 	 * @return void
 	 */
 	public static function add_event_actions() {
+		global $wp_version;
+
 		// Setup event types to display filter dropdown for audit logs list
 		add_action('init', 'AIOWPSecurity_Audit_Events::setup_event_types');
 
@@ -42,6 +46,10 @@ class AIOWPSecurity_Audit_Events {
 		add_action('deactivated_plugin', 'AIOWPSecurity_Audit_Events::plugin_deactivated', 10, 2);
 		add_action('delete_plugin', 'AIOWPSecurity_Audit_Events::plugin_delete', 10, 2);
 		add_action('deleted_plugin', 'AIOWPSecurity_Audit_Events::plugin_deleted', 10, 2);
+
+		if (version_compare($wp_version, '5.5.0', '<')) {
+			add_filter('upgrader_source_selection', 'AIOWPSecurity_Audit_Events::get_package_info', 10, 3);
+		}
 
 		// Theme events
 		add_action('upgrader_process_complete', 'AIOWPSecurity_Audit_Events::theme_installed', 10, 2);
@@ -123,6 +131,7 @@ class AIOWPSecurity_Audit_Events {
 			'rule_active' => __('Rule active', 'all-in-one-wp-security-and-firewall'),
 			'rule_not_active' => __('Rule not active', 'all-in-one-wp-security-and-firewall'),
 			'password_reset' => __('Password reset', 'all-in-one-wp-security-and-firewall'),
+			'wpcli_command' => __('TFA CLI command', 'all-in-one-wp-security-and-firewall'),
 		);
 	}
 
@@ -160,7 +169,9 @@ class AIOWPSecurity_Audit_Events {
 			return;
 		}
 		if ('plugin' !== $hook_extra['type'] || 'install' !== $hook_extra['action']) return;
-		self::$installed_plugin_info = $upgrader->new_plugin_data;
+		if (isset($upgrader->new_plugin_data)) {
+			self::$installed_plugin_info = $upgrader->new_plugin_data;
+		}
 		self::event_plugin_changed('installed', '', '');
 	}
 
@@ -285,7 +296,9 @@ class AIOWPSecurity_Audit_Events {
 		// If this is empty then we have no way to know if this is a plugin/theme install/update so return as we catch this in plugin_installed()
 		if (empty($hook_extra)) return;
 		if ('theme' !== $hook_extra['type'] || 'install' !== $hook_extra['action']) return;
-		self::$installed_theme_info = $upgrader->new_theme_data;
+		if (isset($upgrader->new_theme_data)) {
+			self::$installed_theme_info = $upgrader->new_theme_data;
+		}
 		self::event_theme_changed('installed', '', '');
 	}
 
@@ -636,6 +649,84 @@ class AIOWPSecurity_Audit_Events {
 			)
 		);
 		do_action('aiowps_record_event', 'successful_logout', $details, 'info', $username);
+	}
+	
+	/**
+	 * Adds a WP CLI command event to the audit log
+	 *
+	 * @param string $command - the executed command for WP CLI
+	 *
+	 * @return void
+	 */
+	public static function event_wpcli_command($command) {
+		$details = array(
+			'wpcli_command' => array(
+				'command' => $command,
+			)
+		);
+		do_action('aiowps_record_event', 'wpcli_command', $details, 'info');
+	}
+
+	/**
+	 * Gets package info agnostic to theme/plugin.
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @param string      $source         The path to the downloaded package source.
+	 * @param string      $_remote_source Remote file source location.
+	 * @param WP_Upgrader $upgrader       WP_Upgrader instance.
+	 *
+	 * @return string The source as passed.
+	 */
+	public static function get_package_info($source, $_remote_source, $upgrader) {
+		global $wp_filesystem;
+
+		self::$installed_plugin_info = array();
+		self::$installed_theme_info = array();
+
+		if (is_wp_error($source)) {
+			return $source;
+		}
+
+		$working_directory = str_replace($wp_filesystem->wp_content_dir(), trailingslashit(WP_CONTENT_DIR), $source);
+		if (!is_dir($working_directory)) {
+			return $source;
+		}
+
+		if ($upgrader instanceof Plugin_Upgrader) {
+			// Check that the folder contains at least 1 valid plugin.
+			$files = glob($working_directory . '*.php');
+			if (!$files) {
+				return $source;
+			}
+
+			foreach ($files as $file) {
+				$new_plugin_data = get_plugin_data($file, false, false);
+				if (!empty($new_plugin_data['Name'])) {
+					self::$installed_plugin_info = $new_plugin_data;
+					break;
+				}
+			}
+		} elseif ($upgrader instanceof Theme_Upgrader) {
+			if (!file_exists($working_directory . 'style.css')) {
+				return $source;
+			}
+
+			// All these headers are needed on Theme_Installer_Skin::do_overwrite().
+			self::$installed_theme_info = get_file_data(
+				$working_directory . 'style.css',
+				array(
+					'Name'        => 'Theme Name',
+					'Version'     => 'Version',
+					'Author'      => 'Author',
+					'Template'    => 'Template',
+					'RequiresWP'  => 'Requires at least',
+					'RequiresPHP' => 'Requires PHP',
+				)
+			);
+		}
+
+		return $source;
 	}
 
 }

@@ -24,6 +24,8 @@ abstract class AIOWPSecurity_Base_Tasks {
 		} else {
 			static::run_for_a_site();
 		}
+		Updraft_Tasks_Activation::uninstall(AIO_WP_SECURITY_PLUGIN_SLUG);
+
 	}
 
 	/**

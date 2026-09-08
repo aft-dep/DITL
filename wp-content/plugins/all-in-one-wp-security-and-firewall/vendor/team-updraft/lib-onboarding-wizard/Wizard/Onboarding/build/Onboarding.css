@@ -481,6 +481,9 @@
 #teamupdraft-onboarding .\!mt-6{
     margin-top: 1.5rem !important;
 }
+#teamupdraft-onboarding .mb-1{
+    margin-bottom: 0.25rem;
+}
 #teamupdraft-onboarding .mb-2{
     margin-bottom: 0.5rem;
 }
@@ -489,6 +492,15 @@
 }
 #teamupdraft-onboarding .mb-4{
     margin-bottom: 1rem;
+}
+#teamupdraft-onboarding .mb-\[10px\]{
+    margin-bottom: 10px;
+}
+#teamupdraft-onboarding .mb-\[14px\]{
+    margin-bottom: 14px;
+}
+#teamupdraft-onboarding .mb-\[5px\]{
+    margin-bottom: 5px;
 }
 #teamupdraft-onboarding .ml-1{
     margin-left: 0.25rem;
@@ -523,8 +535,14 @@
 #teamupdraft-onboarding .mt-4{
     margin-top: 1rem;
 }
+#teamupdraft-onboarding .mt-\[10px\]{
+    margin-top: 10px;
+}
 #teamupdraft-onboarding .mt-\[3px\]{
     margin-top: 3px;
+}
+#teamupdraft-onboarding .mt-auto{
+    margin-top: auto;
 }
 #teamupdraft-onboarding .box-border{
     box-sizing: border-box;
@@ -574,6 +592,9 @@
 #teamupdraft-onboarding .h-8{
     height: 2rem;
 }
+#teamupdraft-onboarding .h-\[11px\]{
+    height: 11px;
+}
 #teamupdraft-onboarding .h-\[13px\]{
     height: 13px;
 }
@@ -586,14 +607,14 @@
 #teamupdraft-onboarding .h-\[54px\]{
     height: 54px;
 }
-#teamupdraft-onboarding .h-\[var\(--radix-select-trigger-height\)\]{
-    height: var(--radix-select-trigger-height);
-}
 #teamupdraft-onboarding .h-full{
     height: 100%;
 }
 #teamupdraft-onboarding .h-px{
     height: 1px;
+}
+#teamupdraft-onboarding .max-h-60{
+    max-height: 15rem;
 }
 #teamupdraft-onboarding .min-h-\[40px\]{
     min-height: 40px;
@@ -615,6 +636,9 @@
 }
 #teamupdraft-onboarding .w-48{
     width: 12rem;
+}
+#teamupdraft-onboarding .w-\[11px\]{
+    width: 11px;
 }
 #teamupdraft-onboarding .w-\[13px\]{
     width: 13px;
@@ -659,6 +683,9 @@
 #teamupdraft-onboarding .max-w-md{
     max-width: 28rem;
 }
+#teamupdraft-onboarding .max-w-sm{
+    max-width: 24rem;
+}
 #teamupdraft-onboarding .flex-1{
     flex: 1 1 0%;
 }
@@ -682,6 +709,10 @@
 }
 #teamupdraft-onboarding .translate-x-24{
     --tw-translate-x: 6rem;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+#teamupdraft-onboarding .translate-x-\[-15px\]{
+    --tw-translate-x: -15px;
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 #teamupdraft-onboarding .translate-x-\[0px\]{
@@ -718,6 +749,9 @@
 }
 #teamupdraft-onboarding .list-disc{
     list-style-type: disc;
+}
+#teamupdraft-onboarding .grid-cols-2{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 #teamupdraft-onboarding .flex-row{
     flex-direction: row;
@@ -766,6 +800,12 @@
 }
 #teamupdraft-onboarding .gap-5{
     gap: 1.25rem;
+}
+#teamupdraft-onboarding .gap-\[10px\]{
+    gap: 10px;
+}
+#teamupdraft-onboarding .gap-\[5px\]{
+    gap: 5px;
 }
 #teamupdraft-onboarding :is(.space-x-2 > :not([hidden]) ~ :not([hidden])){
     --tw-space-x-reverse: 0;
@@ -824,6 +864,12 @@
 }
 #teamupdraft-onboarding .rounded-2xl{
     border-radius: 1rem;
+}
+#teamupdraft-onboarding .rounded-\[12px\]{
+    border-radius: 12px;
+}
+#teamupdraft-onboarding .rounded-\[7px\]{
+    border-radius: 7px;
 }
 #teamupdraft-onboarding .rounded-\[80px\]{
     border-radius: 80px;
@@ -981,6 +1027,10 @@
     --tw-bg-opacity: 1;
     background-color: rgb(254 245 234 / var(--tw-bg-opacity, 1));
 }
+#teamupdraft-onboarding .bg-orange-lightest{
+    --tw-bg-opacity: 1;
+    background-color: rgb(255 245 235 / var(--tw-bg-opacity, 1));
+}
 #teamupdraft-onboarding .bg-primary{
     --tw-bg-opacity: 1;
     background-color: rgb(43 129 51 / var(--tw-bg-opacity, 1));
@@ -996,6 +1046,9 @@
 #teamupdraft-onboarding .bg-white{
     --tw-bg-opacity: 1;
     background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+}
+#teamupdraft-onboarding .bg-white\/60{
+    background-color: rgb(255 255 255 / 0.6);
 }
 #teamupdraft-onboarding .bg-yellow{
     --tw-bg-opacity: 1;
@@ -1036,6 +1089,9 @@
 #teamupdraft-onboarding .p-6{
     padding: 1.5rem;
 }
+#teamupdraft-onboarding .p-\[14px\]{
+    padding: 14px;
+}
 #teamupdraft-onboarding .px-1{
     padding-left: 0.25rem;
     padding-right: 0.25rem;
@@ -1055,6 +1111,10 @@
 #teamupdraft-onboarding .px-4{
     padding-left: 1rem;
     padding-right: 1rem;
+}
+#teamupdraft-onboarding .px-\[12px\]{
+    padding-left: 12px;
+    padding-right: 12px;
 }
 #teamupdraft-onboarding .py-0\.5{
     padding-top: 0.125rem;
@@ -1087,6 +1147,10 @@
 #teamupdraft-onboarding .py-\[5px\]{
     padding-top: 5px;
     padding-bottom: 5px;
+}
+#teamupdraft-onboarding .py-\[8px\]{
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 #teamupdraft-onboarding .pl-1{
     padding-left: 0.25rem;
@@ -1132,6 +1196,24 @@
     font-size: 1.5rem;
     line-height: 2rem;
 }
+#teamupdraft-onboarding .text-\[11px\]{
+    font-size: 11px;
+}
+#teamupdraft-onboarding .text-\[14px\]{
+    font-size: 14px;
+}
+#teamupdraft-onboarding .text-\[15px\]{
+    font-size: 15px;
+}
+#teamupdraft-onboarding .text-\[17px\]{
+    font-size: 17px;
+}
+#teamupdraft-onboarding .text-\[19px\]{
+    font-size: 19px;
+}
+#teamupdraft-onboarding .text-\[24px\]{
+    font-size: 24px;
+}
 #teamupdraft-onboarding .text-base{
     font-size: 0.8125rem;
     line-height: 1.25rem;
@@ -1155,6 +1237,9 @@
 #teamupdraft-onboarding .\!font-semibold{
     font-weight: 600 !important;
 }
+#teamupdraft-onboarding .font-bold{
+    font-weight: 700;
+}
 #teamupdraft-onboarding .font-light{
     font-weight: 300;
 }
@@ -1166,6 +1251,9 @@
 }
 #teamupdraft-onboarding .font-semibold{
     font-weight: 600;
+}
+#teamupdraft-onboarding .leading-\[1\.4\]{
+    line-height: 1.4;
 }
 #teamupdraft-onboarding .leading-relaxed{
     line-height: 1.625;
@@ -1253,6 +1341,9 @@
 #teamupdraft-onboarding .opacity-50{
     opacity: 0.5;
 }
+#teamupdraft-onboarding .opacity-70{
+    opacity: 0.7;
+}
 #teamupdraft-onboarding .shadow-\[0_0_10px_\#fff5eb\]{
     --tw-shadow: 0 0 10px #fff5eb;
     --tw-shadow-colored: 0 0 10px var(--tw-shadow-color);
@@ -1293,6 +1384,11 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
 }
+#teamupdraft-onboarding .transition-colors{
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
 #teamupdraft-onboarding .transition-opacity{
     transition-property: opacity;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -1318,6 +1414,9 @@
 #teamupdraft-onboarding .ease-out{
     transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
 }
+#teamupdraft-onboarding .\[scrollbar-gutter\:stable\]{
+    scrollbar-gutter: stable;
+}
 
 /* Custom styles for the onboarding component */
 
@@ -1334,8 +1433,32 @@
 #teamupdraft-onboarding .custom-scrollbar{
     --scrollbar-track: initial;
     --scrollbar-thumb: initial;
+
+    /* Firefox */
     scrollbar-color: var(--teamupdraft-orange-dark) #fff;
     scrollbar-width: thin;
+
+    /* Keep a visible gutter so users notice the area is scrollable */
+    scrollbar-gutter: stable;
+}
+
+/* WebKit (Chrome/Safari/Edge) */
+#teamupdraft-onboarding .custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+#teamupdraft-onboarding .custom-scrollbar::-webkit-scrollbar-track {
+    background: #fff;
+}
+
+#teamupdraft-onboarding .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--teamupdraft-orange-dark);
+    border-radius: 9999px;
+    border: 2px solid #fff;
+}
+
+#teamupdraft-onboarding .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--teamupdraft-orange-dark);
 }
 
 #teamupdraft-onboarding,
@@ -1379,9 +1502,9 @@
     --tw-ring-color: rgb(43 129 51 / 0.2);
 }
 
-#teamupdraft-onboarding .hover\:bg-\[\#C4511C\]:hover{
+#teamupdraft-onboarding .hover\:bg-gray-100:hover{
     --tw-bg-opacity: 1;
-    background-color: rgb(196 81 28 / var(--tw-bg-opacity, 1));
+    background-color: rgb(248 249 250 / var(--tw-bg-opacity, 1));
 }
 
 #teamupdraft-onboarding .hover\:bg-gray-200:hover{
@@ -1429,6 +1552,10 @@
     text-underline-offset: 4px;
 }
 
+#teamupdraft-onboarding .hover\:\[box-shadow\:0_0_0_3px_\#C4511C99\]:hover{
+    box-shadow: 0 0 0 3px #C4511C99;
+}
+
 #teamupdraft-onboarding .hover\:\[box-shadow\:0_0_0_3px_rgba\(0\2c 0\2c 0\2c 0\.1\)\]:hover{
     box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
 }
@@ -1448,11 +1575,6 @@
 #teamupdraft-onboarding .focus\:border-primary-dark:focus{
     --tw-border-opacity: 1;
     border-color: rgb(35 53 37 / var(--tw-border-opacity, 1));
-}
-
-#teamupdraft-onboarding .focus\:bg-\[\#C4511C\]:focus{
-    --tw-bg-opacity: 1;
-    background-color: rgb(196 81 28 / var(--tw-bg-opacity, 1));
 }
 
 #teamupdraft-onboarding .focus\:bg-gray-100:focus{
@@ -1490,6 +1612,10 @@
 
 #teamupdraft-onboarding .focus\:ring-offset-2:focus{
     --tw-ring-offset-width: 2px;
+}
+
+#teamupdraft-onboarding .focus\:\[box-shadow\:0_0_0_3px_\#C4511C99\]:focus{
+    box-shadow: 0 0 0 3px #C4511C99;
 }
 
 #teamupdraft-onboarding .focus\:\[box-shadow\:0_0_0_3px_rgba\(0\2c 0\2c 0\2c 0\.1\)\]:focus{
@@ -1551,6 +1677,11 @@
 
 #teamupdraft-onboarding .data-\[side\=top\]\:-translate-y-1[data-side="top"]{
     --tw-translate-y: -0.25rem;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+#teamupdraft-onboarding .data-\[state\=checked\]\:translate-x-\[0px\][data-state="checked"]{
+    --tw-translate-x: 0px;
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 

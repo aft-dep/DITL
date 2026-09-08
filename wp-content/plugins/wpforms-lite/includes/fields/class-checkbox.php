@@ -425,8 +425,8 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 	 */
 	public function field_display( $field, $deprecated, $form_data ) {
 
-		$using_image_choices = empty( $field['dynamic_choices'] ) && ! empty( $field['choices_images'] );
-		$using_icon_choices  = empty( $field['dynamic_choices'] ) && empty( $field['choices_images'] ) && ! empty( $field['choices_icons'] );
+		$using_image_choices = $this->is_image_choices( $field );
+		$using_icon_choices  = $this->is_icon_choices( $field );
 
 		// Define data.
 		$container = $field['properties']['input_container'];
@@ -471,7 +471,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 				if ( wpforms_is_amp() && ( $using_image_choices || $using_icon_choices ) ) {
 					$choice['container']['attr']['[class]'] = sprintf(
 						'%s + ( %s[%s] ? " wpforms-selected" : "")',
-						wp_json_encode( implode( ' ', $choice['container']['class'] ) ),
+						wp_json_encode( wpforms_sanitize_classes( $choice['container']['class'], is_array( $choice['container']['class'] ) ) ),
 						$amp_state_id,
 						wp_json_encode( $choice['id'] )
 					);
@@ -623,7 +623,9 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 			return;
 		}
 
-		$field_submit = (array) $field_submit;
+		if ( ! is_array( $field_submit ) ) {
+			$field_submit = wpforms_is_empty_string( $field_submit ) ? [] : (array) $field_submit;
+		}
 
 		$this->validate_field_choice_limit( $field_id, $field_submit, $form_data );
 
@@ -644,6 +646,8 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 		if ( ! empty( $error ) ) {
 			wpforms()->obj( 'process' )->errors[ $form_data['id'] ][ $field_id ] = $error;
 		}
+
+		$this->validate_choices_allowlist( $field_id, $field_submit, $form_data );
 	}
 
 	/**
@@ -659,9 +663,11 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 
 		$field_submit = (array) $field_submit;
 		$field        = $form_data['fields'][ $field_id ];
+		$field_submit = (array) $this->sanitize_choices_submission( $field_submit, $field, $form_data );
 		$dynamic      = ! empty( $field['dynamic_choices'] ) ? $field['dynamic_choices'] : false;
 		$name         = sanitize_text_field( $field['label'] );
-		$value_raw    = wpforms_sanitize_array_combine( $field_submit );
+		$combined     = wpforms_sanitize_array_combine( $field_submit );
+		$value_raw    = is_string( $combined ) ? $combined : '';
 
 		$data = [
 			'name'      => $name,
@@ -727,7 +733,7 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 						// Check if the submitted value is the same as the choice value or if the value is empty and the key matches.
 						// Skip if the submitted value is empty.
 						if ( ( ! empty( $item ) && $item === $choice['value'] ) || ( empty( $choice['value'] ) && (int) str_replace( 'Choice ', '', $item ) === $key ) ) {
-							$value[]       = $choice['label'];
+							$value[]       = isset( $choice['label'] ) ? $choice['label'] : '';
 							$choice_keys[] = $key;
 
 							break;
@@ -744,8 +750,10 @@ class WPForms_Field_Checkbox extends WPForms_Field {
 				// Determine choices keys, this is needed for image choices.
 				foreach ( $field_submit as $item ) {
 					foreach ( $field['choices'] as $key => $choice ) {
+						$label = isset( $choice['label'] ) ? $choice['label'] : '';
+
 						/* translators: %s - choice number. */
-						if ( $item === $choice['label'] || $item === sprintf( esc_html__( 'Choice %s', 'wpforms-lite' ), $key ) ) {
+						if ( $item === $label || $item === sprintf( esc_html__( 'Choice %s', 'wpforms-lite' ), $key ) ) {
 							$choice_keys[] = $key;
 
 							break;

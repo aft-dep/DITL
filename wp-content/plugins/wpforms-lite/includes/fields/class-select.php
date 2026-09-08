@@ -130,6 +130,7 @@ class WPForms_Field_Select extends WPForms_Field {
 
 			// Used for dynamic choices.
 			$depth = isset( $choice['depth'] ) ? absint( $choice['depth'] ) : 1;
+			$label = isset( $choice['label'] ) ? $choice['label'] : '';
 
 			$properties['inputs'][ $key ] = [
 				'container' => [
@@ -145,11 +146,11 @@ class WPForms_Field_Select extends WPForms_Field {
 					'class' => [ 'wpforms-field-label-inline' ],
 					'data'  => [],
 					'id'    => '',
-					'text'  => $choice['label'],
+					'text'  => $label,
 				],
 				'attr'      => [
 					'name'  => "wpforms[fields][{$field_id}]",
-					'value' => isset( $field['show_values'] ) ? $choice['value'] : $choice['label'],
+					'value' => isset( $field['show_values'] ) ? $choice['value'] : $label,
 				],
 				'class'     => [],
 				'data'      => [],
@@ -506,7 +507,7 @@ class WPForms_Field_Select extends WPForms_Field {
 				'<option value="%1$s" %2$s class="%3$s" %4$s %5$s>%6$s</option>',
 				esc_attr( $value ),
 				selected( true, ! empty( $choice['default'] ), false ),
-				esc_attr( implode( ' ', $choice['container']['class'] ) ),
+				esc_attr( wpforms_sanitize_classes( $choice['container']['class'], is_array( $choice['container']['class'] ) ) ),
 				$data_html,
 				$selected_html,
 				wp_kses(
@@ -543,6 +544,8 @@ class WPForms_Field_Select extends WPForms_Field {
 		}
 
 		parent::validate( $field_id, $field_submit, $form_data );
+
+		$this->validate_choices_allowlist( $field_id, $field_submit, $form_data );
 	}
 
 	/**
@@ -568,7 +571,9 @@ class WPForms_Field_Select extends WPForms_Field {
 			$field_submit = [ $field_submit ];
 		}
 
-		$value_raw = wpforms_sanitize_array_combine( $field_submit );
+		$field_submit = $this->sanitize_choices_submission( $field_submit, $field, $form_data );
+		$combined     = wpforms_sanitize_array_combine( $field_submit );
+		$value_raw    = is_string( $combined ) ? $combined : '';
 
 		$data = [
 			'name'      => $name,
@@ -629,7 +634,7 @@ class WPForms_Field_Select extends WPForms_Field {
 				foreach ( $field_submit as $item ) {
 					foreach ( $field['choices'] as $choice ) {
 						if ( $item === $choice['value'] ) {
-							$value[] = $choice['label'];
+							$value[] = isset( $choice['label'] ) ? $choice['label'] : '';
 
 							break;
 						}

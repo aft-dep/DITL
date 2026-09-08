@@ -23,7 +23,7 @@
 			$user_list->prepare_items();
 			// echo "put table of locked entries here";
 		?>
-		<form id="tables-filter" method="get">
+		<form id="tables-filter" method="POST">
 			<!-- Now we can render the completed list table -->
 			<?php $user_list->display(); ?>
 		</form>

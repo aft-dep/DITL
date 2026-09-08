@@ -14,6 +14,7 @@ use WPForms\Helpers\Templates;
 use WPForms\Vendor\HTMLPurifier;
 use WPForms\Vendor\HTMLPurifier_Config;
 use WPForms\Helpers\File;
+use WPForms\Vendor\enshrined\svgSanitize\Sanitizer;
 
 /**
  * Decode special characters, both alpha- (<) and numeric-based (').
@@ -501,6 +502,173 @@ function wpforms_esc_unselected_choices( $formatted_field ) {
 }
 
 /**
+ * Sanitize HTML produced for an entry field value before it is displayed.
+ *
+ * Entry surfaces pass the value through the `wpforms_html_field_value` filter, whose callbacks may
+ * return markup built from stored submission data. Sanitize on output, mirroring the entry
+ * single-View screen, so event-handler attributes and <script> cannot survive to the browser.
+ *
+ * Callers that render a field value known to be built as an iframe by the plugin itself pass
+ * `$is_iframe_allowed`, which widens the allowlist for that single call only.
+ * Use wpforms_is_entry_field_value_iframe_allowed() to decide, so the allowance is granted per
+ * field rather than per screen.
+ *
+ * @since 2.0.1
+ *
+ * @param string $value             Field value HTML.
+ * @param bool   $is_iframe_allowed Whether the iframe tag is allowed in the value.
+ *
+ * @return string
+ */
+function wpforms_esc_entry_field_value( $value, bool $is_iframe_allowed = false ): string {
+
+	$allowed_html = wp_kses_allowed_html( 'post' );
+
+	if ( ! $is_iframe_allowed ) {
+		return wp_kses( (string) $value, $allowed_html );
+	}
+
+	// The Rich Text and Geolocation field values render through an iframe that the `post` allowlist drops.
+	// The allowlist is extended locally instead of via add_filter()/remove_filter(): WordPress keys hook
+	// registrations by callback and priority, so a nested call inside a region that registered the same
+	// callback (like the entry single-View fields loop) would detach the outer registration.
+	$allowed_html = wpforms_get_allowed_html_tags_for_entry_field_value( $allowed_html, 'post' );
+
+	// Force kses to treat `data-src` as a URI attribute, so unsafe protocols are stripped from it.
+	// The filter is registered only around this single core call and removed right after it. The
+	// has_filter() check keeps that bracket re-entrant: a nested call (or an existing outside
+	// registration) must not have its registration removed when the inner bracket unwinds.
+	$is_registered = has_filter( 'wp_kses_uri_attributes', 'wpforms_add_data_src_uri_attribute' ) !== false;
+
+	if ( ! $is_registered ) {
+		add_filter( 'wp_kses_uri_attributes', 'wpforms_add_data_src_uri_attribute' );
+	}
+
+	$sanitized = wp_kses( (string) $value, $allowed_html );
+
+	if ( ! $is_registered ) {
+		remove_filter( 'wp_kses_uri_attributes', 'wpforms_add_data_src_uri_attribute' );
+	}
+
+	return $sanitized;
+}
+
+/**
+ * Add the `data-src` attribute to the list of attributes kses validates as a URI.
+ *
+ * Makes kses run wp_kses_bad_protocol() on `data-src`, stripping `javascript:` and `data:` URIs.
+ *
+ * @since 2.0.1
+ *
+ * @param array|mixed $uri_attributes List of attributes treated as URIs by kses.
+ *
+ * @return array
+ */
+function wpforms_add_data_src_uri_attribute( $uri_attributes ): array {
+
+	$uri_attributes = (array) $uri_attributes;
+
+	$uri_attributes[] = 'data-src';
+
+	return $uri_attributes;
+}
+
+/**
+ * Neutralize all HTML tags in a value by entity-encoding it.
+ *
+ * Neither half of this does the job alone. Wp_strip_all_tags() relies on strip_tags(), which leaves a
+ * tag intact when whitespace follows the opening bracket: `< iframe data-src="https://evil.test">`
+ * passes through untouched and can then be parsed back into a real tag by a later kses call. Escaping
+ * with esc_html() alone closes that hole, but it also stops removing genuine markup, so a submitted
+ * `<b>hi</b>` reaches the screen as visible `<b>hi</b>` rather than `hi`, including on the front-end
+ * Entry Preview.
+ *
+ * Running both in this order gives each half the case it handles well: strip_tags() deletes what really
+ * parses as a tag (and wp_strip_all_tags() drops `<script>`/`<style>` contents with it), then esc_html()
+ * makes the leftovers inert. A spaced-out fake tag therefore survives as text instead of becoming markup,
+ * while legitimate bare-angle-bracket content such as `5 < 10 and 20 > 15` still round-trips unchanged —
+ * unlike wp_kses() with an empty allowlist, which matches any `<...>` span against its tag grammar
+ * (accepting a bare digit run like `10` as a tag name) and silently destroys it to `5  15`.
+ *
+ * The (string) cast is required because several call sites may pass null or an array element.
+ * Callers that hand the result to another escaper must make sure it does not re-encode the entities
+ * produced here.
+ *
+ * @since 2.0.1
+ *
+ * @param mixed $value Value to neutralize.
+ *
+ * @return string
+ */
+function wpforms_neutralize_html_tags( $value ): string {
+
+	return esc_html( wp_strip_all_tags( (string) $value ) );
+}
+
+/**
+ * Determine whether an entry field value may legitimately contain an iframe.
+ *
+ * Only the Rich Text and Geolocation Map values are rendered as an iframe, and the plugin builds
+ * that markup itself from a URL it escapes. Every other field value is stored submission data, so
+ * granting the allowance per field instead of per screen keeps a stored iframe from surviving to the
+ * entry screens, where the field-value script copies `data-src` into `src`.
+ *
+ * @since 2.0.1
+ *
+ * @param array $field Entry field data.
+ *
+ * @return bool
+ */
+function wpforms_is_entry_field_value_iframe_allowed( array $field ): bool {
+
+	$types = [ 'richtext', 'map' ];
+
+	/**
+	 * Filter the field types whose entry value may contain an iframe.
+	 *
+	 * Addons that render an entry field value through an iframe must register their field type here,
+	 * otherwise the iframe is stripped on the entry View and Print screens.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param array $types Field types allowed to render an iframe.
+	 * @param array $field Entry field data.
+	 */
+	$types = (array) apply_filters( 'wpforms_is_entry_field_value_iframe_allowed_types', $types, $field );
+
+	return in_array( $field['type'] ?? '', $types, true );
+}
+
+/**
+ * Allow additional tags for the entry field value sanitization.
+ *
+ * The `data-src` attribute is safe to allow only because the sink URL-validates it: the calling
+ * context registers wpforms_add_data_src_uri_attribute() so kses rejects unsafe protocols in it.
+ *
+ * @since 2.0.1
+ *
+ * @param array|mixed $tags    List of allowed HTML.
+ * @param string      $context Context name.
+ *
+ * @return array
+ */
+function wpforms_get_allowed_html_tags_for_entry_field_value( $tags, string $context ): array {
+
+	$tags = (array) $tags;
+
+	if ( $context !== 'post' ) {
+		return $tags;
+	}
+
+	$tags['iframe'] = [
+		'data-src' => [],
+		'class'    => [],
+	];
+
+	return $tags;
+}
+
+/**
  * Decode HTML entities in a string.
  * Do it cycle to decode all possible entities, including cases like `&amp;lt;`.
  *
@@ -630,4 +798,108 @@ function wpforms_get_html_purifier(): HTMLPurifier {
 	$purifier = new HTMLPurifier( $config );
 
 	return $purifier;
+}
+
+/**
+ * Sanitize an SVG file in place, stripping scripts, event handlers and other
+ * potentially malicious markup.
+ *
+ * Non-SVG files are left untouched. Sites that explicitly enable SVG support
+ * would otherwise store SVG uploads unsanitized, allowing stored XSS. To stay
+ * safe by default, this function fails closed: when the SVG sanitizer is
+ * unavailable or sanitization fails, it returns false so the caller can reject
+ * the file rather than store it unsanitized.
+ *
+ * Gzipped SVG variants (e.g. .svgz) cannot be parsed as plain XML, so they fail
+ * sanitization and are rejected rather than stored unsanitized.
+ *
+ * @since 1.10.1.1
+ *
+ * @param string $file_path Absolute path to the file to sanitize.
+ * @param string $file_name Optional. Original file name used to determine the extension when
+ *                          the path itself has none (e.g. a PHP upload temp file). Default ''.
+ *
+ * @return bool True if the file is not an SVG or was sanitized successfully, false on failure.
+ */
+function wpforms_sanitize_svg_file( string $file_path, string $file_name = '' ): bool {
+
+	if ( ! is_file( $file_path ) ) {
+		return false;
+	}
+
+	// Derive the extension from the original name when provided, otherwise from the path.
+	$name_for_ext = $file_name !== '' ? $file_name : $file_path;
+	$extension    = strtolower( pathinfo( $name_for_ext, PATHINFO_EXTENSION ) );
+
+	// Bail early for anything that is not an SVG. Nothing to sanitize.
+	if ( ! in_array( $extension, [ 'svg', 'svgz' ], true ) ) {
+		return true;
+	}
+
+	$contents = file_get_contents( $file_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+
+	if ( empty( $contents ) ) {
+		return false;
+	}
+
+	$sanitized = wpforms_sanitize_svg_markup( $contents );
+
+	if ( $sanitized === false ) {
+		return false;
+	}
+
+	// phpcs:ignore WordPress.WP.AlternativeFunctions
+	return file_put_contents( $file_path, $sanitized ) !== false;
+}
+
+/**
+ * Sanitize an SVG markup string, stripping scripts, event handlers and other
+ * potentially malicious markup.
+ *
+ * Fails closed: returns false when the sanitizer library is unavailable or when
+ * the markup cannot be sanitized (e.g. it is not valid SVG XML).
+ *
+ * @since 1.10.1.1
+ *
+ * @param string $markup SVG markup to sanitize.
+ *
+ * @return string|false Sanitized markup, or false on failure.
+ */
+function wpforms_sanitize_svg_markup( string $markup ) {
+
+	// Fail closed if the sanitizer library is not available.
+	if ( ! class_exists( Sanitizer::class ) ) {
+		return false;
+	}
+
+	$sanitizer = new Sanitizer();
+
+	// Block references to remote resources to prevent SSRF and data exfiltration.
+	$sanitizer->removeRemoteReferences( true );
+
+	$sanitized = $sanitizer->sanitize( $markup );
+
+	if ( $sanitized === false ) {
+		return false;
+	}
+
+	// The sanitizer library only strips remote references wrapped in quotes, e.g. url( 'http://...' ).
+	// Bare references such as fill="url(http://...)" slip through, so strip remote url() targets here.
+	// Local references like url(#gradient) and data: URIs have no // and are intentionally left intact.
+	$sanitized = (string) preg_replace(
+		'~url\(\s*[\'"]?\s*(?:(?:https?|ftp|file):)?//[^)]*\)~i',
+		'url()',
+		$sanitized
+	);
+
+	// The library's removeRemoteReferences() only matches url()-wrapped values, and its href allow-list
+	// explicitly permits bare http(s) URLs. So elements like <image>, <pattern> and <marker> keep a remote
+	// href/xlink:href and silently load the resource (tracking pixel risk) when the file is opened. Strip
+	// any href/xlink:href whose value is a remote reference (scheme://... or protocol-relative //...).
+	// Local fragment references (#id), relative paths (/path) and data: URIs have no // and are kept intact.
+	return (string) preg_replace(
+		'~\s(?:xlink:)?href\s*=\s*([\'"])\s*(?:(?:https?|ftp|file):)?//.*?\1~is',
+		'',
+		$sanitized
+	);
 }

@@ -2,9 +2,9 @@
 
 if (!defined('AIO_WP_SECURITY_PATH')) die('No direct access allowed');
 
-if (!class_exists('Updraft_Notices_1_2')) require_once(AIO_WP_SECURITY_PATH.'/vendor/team-updraft/common-libs/src/updraft-notices/updraft-notices.php');
+if (!class_exists('Updraft_Notices_1_3')) require_once(AIO_WP_SECURITY_PATH.'/vendor/team-updraft/common-libs/src/updraft-notices/updraft-notices.php');
 
-class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
+class AIOWPSecurity_Notices extends Updraft_Notices_1_3 {
 
 	private $initialized = false;
 
@@ -13,7 +13,7 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	// protected $self_affiliate_id = null;
 
 	/**
-	 * Safely formats translatable strings to prevent errors due to mis-translations.
+	 * Safely formats translatable strings to prevent errors due to mistranslations.
 	 *
 	 * @param string $text    Translatable text with placeholders.
 	 * @param mixed  ...$args Arguments to fill placeholders.
@@ -158,12 +158,12 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 				'supported_positions' => array('load-firewall-resources-failed'),
 				'validity_function' => 'should_show_load_firewall_resources_failed_notice',
 			),
-			'end-of-support-php-56' => array(
-				'title'		  => esc_html__('AIOS PHP 5.6 support will end soon', 'all-in-one-wp-security-and-firewall'),
-				'text' 		  => $this->get_end_of_support_php_56_text(),
-				'dismiss_time' => 'php_56_eol_dismiss_forever',
-				'supported_positions' => array('end-of-support-php-56'),
-				'validity_function' => 'should_show_end_of_support_php_56',
+			'end-of-support-php-73' => array(
+				'title'		  => esc_html__('AIOS PHP 7.3 and below support will end soon', 'all-in-one-wp-security-and-firewall'),
+				'text' 		  => $this->get_end_of_support_php_73_text(),
+				'dismiss_time' => 'php_73_eol_dismiss_forever',
+				'supported_positions' => array('end-of-support-php-73'),
+				'validity_function' => 'should_show_end_of_support_php_73',
 			),
 			'upgrade-firewall-tab-rules' => array(
 				'title'		  => esc_html__('Important: Disabled firewall settings', 'all-in-one-wp-security-and-firewall'),
@@ -213,7 +213,16 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 				'validity_function' => 'should_show_login_whitelist_disabled_on_upgrade_notice',
 			),
 			'rate_plugin' => array(
-				'text' => $this->safe_sprintf(esc_html__('We noticed AIOS has kept your site safe for a while.', 'all-in-one-wp-security-and-firewall') . ' ' . esc_html__('If you like us, please consider leaving a positive review.', 'all-in-one-wp-security-and-firewall'). ' ' . esc_html__('If you have any issues or questions, please contact %s.', 'all-in-one-wp-security-and-firewall'), '<a href="https://wordpress.org/support/plugin/all-in-one-wp-security-and-firewall/" target="_blank">' . esc_html__('support', 'all-in-one-wp-security-and-firewall').'</a>') . '<br>' . esc_html__('Thank you so much!', 'all-in-one-wp-security-and-firewall') . '<br><br>- <b>' . esc_html__('All-In-One Security (AIOS)', 'all-in-one-wp-security-and-firewall').'</b>',
+				'text' => $this->safe_sprintf(
+					/* translators: %1$s is the opening link tag to the support page, %2$s is the closing link tag */
+					esc_html__('Hey - We noticed All-In-One Security has kept your site safe for a while.', 'all-in-one-wp-security-and-firewall')
+					. ' ' . esc_html__('If you like us, please consider leaving a positive review to spread the word.', 'all-in-one-wp-security-and-firewall')
+					. ' ' . esc_html__('Or if you have any issues or questions please leave us a support message %1$shere%2$s.', 'all-in-one-wp-security-and-firewall'),
+					'<a href="https://wordpress.org/support/plugin/all-in-one-wp-security-and-firewall/" target="_blank">',
+					'</a>'
+				)
+				 . '<br>' . esc_html__('Thank you so much!', 'all-in-one-wp-security-and-firewall')
+				 . '<br><br>- <strong>' . esc_html__('Team All-In-One Security', 'all-in-one-wp-security-and-firewall') . '</strong>',
 				'image' => 'plugin-logos/aios-icon.png',
 				'button_link' => 'https://wordpress.org/support/plugin/all-in-one-wp-security-and-firewall/reviews/?rate=5#new-post',
 				'button_meta' => 'review',
@@ -224,8 +233,8 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 			'updraftplus' => array(
 				'prefix' => '',
 				'title' => esc_html__('Enhance your security even more by backing up your site', 'all-in-one-wp-security-and-firewall'),
-				'text' => esc_html__('UpdraftPlus is the world\'s most trusted backup plugin.', 'all-in-one-wp-security-and-firewall') . ' ' . esc_html__('From the owners of All-In-One Security (AIOS).', 'all-in-one-wp-security-and-firewall'),
-				'image' => 'plugin-logos/updraftplus-icon.png',
+				'text' => esc_html__('UpdraftPlus is the world\'s most trusted backup plugin from the owners of All-In-One Security', 'all-in-one-wp-security-and-firewall'),
+				'image' => 'plugin-logos/updraft_logo.png',
 				'button_link' => 'https://wordpress.org/plugins/updraftplus/',
 				'button_meta' => 'updraftplus',
 				'dismiss_time' => 'dismiss_page_notice_until',
@@ -301,25 +310,25 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 	}
 
 	/**
-	 * Determines whether to show the PHP 5.6 end of support notice
+	 * Determines whether to show the PHP 7.3 end of support notice
 	 *
 	 * @return boolean
 	 */
-	protected function should_show_end_of_support_php_56() {
-		return version_compare(PHP_VERSION, '7.0.0', '<');
+	protected function should_show_end_of_support_php_73() {
+		return version_compare(PHP_VERSION, '7.4.0', '<');
 	}
 
 	/**
-	 * Gets the text to display with the PHP 5.6 end of support notice
+	 * Gets the text to display with the PHP 7.3 end of support notice
 	 *
 	 * @return string
 	 */
-	protected function get_end_of_support_php_56_text() {
-		$text = '<p>' . esc_html__('AIOS will end support for PHP 5.6 on the 1st September 2025.', 'all-in-one-wp-security-and-firewall') . '</p>';
+	protected function get_end_of_support_php_73_text() {
+		$text = '<p>' . esc_html__('AIOS will end support for PHP 7.3 and lower on 31st May 2026.', 'all-in-one-wp-security-and-firewall') . '</p>';
 
-		$text .= '<p>' . esc_html__('PHP 5.6 is outdated and no longer receives security updates.', 'all-in-one-wp-security-and-firewall') . ' ' . esc_html__('To keep things secure and compatible with modern WordPress standards, AIOS will move to a minimum requirement of PHP 7.0.', 'all-in-one-wp-security-and-firewall') . '</p>';
+		$text .= '<p>' . esc_html__('PHP 7.3 and below are outdated and no longer receives security updates.', 'all-in-one-wp-security-and-firewall') . ' ' . esc_html__('To keep things secure and compatible with modern WordPress standards, AIOS will move to a minimum requirement of PHP 7.4.', 'all-in-one-wp-security-and-firewall') . '</p>';
 
-		$text .= '<p>' . esc_html__('After the 1st September 2025, AIOS may not operate correctly on PHP versions below 7.0.', 'all-in-one-wp-security-and-firewall') . '</p>';
+		$text .= '<p>' . esc_html__('After the 31st of May 2026, AIOS may not operate correctly on PHP versions below 7.4.', 'all-in-one-wp-security-and-firewall') . '</p>';
 
 		$text .= '<p>' . esc_html__('If you require help upgrading your PHP version, please contact your hosting provider.', 'all-in-one-wp-security-and-firewall') . '</p>';
 
@@ -735,5 +744,13 @@ class AIOWPSecurity_Notices extends Updraft_Notices_1_2 {
 
 		global $aio_wp_security;
 		return $aio_wp_security->include_template('notices/'.$template_file, $return_instead_of_echo, $advert_information);
+	}
+
+	/**
+	 * This function will enqueue the WordPress dashboard widget styles or scripts.
+	 *
+	 * @return void
+	 */
+	protected function widget_enqueue() {
 	}
 }

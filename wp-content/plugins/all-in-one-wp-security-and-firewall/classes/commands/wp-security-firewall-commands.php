@@ -294,6 +294,7 @@ trait AIOWPSecurity_Firewall_Commands_Trait {
 
 		$result = 1;
 		$aiowps_enable_blacklisting = isset($data["aiowps_enable_blacklisting"]) ? '1' : '';
+		$aiowps_firewall_config->set_value('aiowps_enable_blacklisting', $aiowps_enable_blacklisting);
 
 		if (!empty($data['aiowps_banned_ip_addresses'])) {
 			$ip_addresses = sanitize_textarea_field(stripslashes($data['aiowps_banned_ip_addresses']));
@@ -505,7 +506,7 @@ trait AIOWPSecurity_Firewall_Commands_Trait {
 
 		if (!empty($upgrade_unsafe_http_calls_url_exceptions)) {
 			foreach (preg_split('/\R/', $upgrade_unsafe_http_calls_url_exceptions) as $url) {
-				$url = sanitize_url($url);
+				$url = esc_url_raw($url);
 
 				if (empty($url)) {
 					continue;

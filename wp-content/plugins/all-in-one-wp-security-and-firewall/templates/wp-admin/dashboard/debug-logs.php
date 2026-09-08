@@ -4,7 +4,7 @@
 		<h3 class="hndle"><label for="title"><?php esc_html_e('Debug log options', 'all-in-one-wp-security-and-firewall');?></label></h3>
 		<div class="inside">
 			<form action="" id="aios-clear-debug-logs" method="POST">
-				<input name="aiowpsec_clear_logs" type="submit" value="<?php esc_attr_e('Clear logs', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary aios-clear-debug-logs" data-message="<?php echo esc_js(__('Are you sure you want to clear all the debug logs?', 'all-in-one-wp-security-and-firewall')); ?>">
+				<input name="aiowpsec_clear_logs" type="submit" value="<?php esc_attr_e('Clear logs', 'all-in-one-wp-security-and-firewall'); ?>" class="button-primary aios-clear-debug-logs" data-message="<?php esc_attr_e('Are you sure you want to clear all the debug logs?', 'all-in-one-wp-security-and-firewall'); ?>">
 			</form>
 		</div>
 	</div>

@@ -3,9 +3,9 @@ Contributors: ivorysearch, vinod dalvi
 Donate link: https://ivorysearch.com/pricing/
 Tags: search, woocommerce search, image search, ajax search, file search
 Requires at least: 3.9
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 5.2.4
-Stable tag: 5.5.14
+Stable tag: 5.5.18
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -196,6 +196,21 @@ Yes we do. We try our best to help free users with customisation requests and we
 8. Plugin Settings
 
 == Changelog ==
+
+= 5.5.18 =
+* Fixed - Incompatibility with WooCommerce features (e.g. High-Performance Order Storage / custom order tables)
+
+= 5.5.17 =
+* Updated - Freemius SDK 2.13.4
+* Fixed - Function _load_textdomain_just_in_time was called incorrectly
+
+= 5.5.16 =
+* Updated - Freemius SDK 2.13.2
+* Fixed - Stored Cross-Site Scripting via Settings
+
+= 5.5.15 =
+* Updated - Freemius SDK 2.13.1
+* Fixed - Class "IS_Admin" is missing error
 
 = 5.5.14 =
 * Improved - Plugin translation

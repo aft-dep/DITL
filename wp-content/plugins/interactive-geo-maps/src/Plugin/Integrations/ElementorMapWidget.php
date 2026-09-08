@@ -76,11 +76,10 @@ class ElementorMapWidget extends \Elementor\Widget_Base {
      */
     protected function register_controls() {
         $args = [
-            'posts_per_page'   => -1,
-            'post_type'        => 'igmap',
-            'suppress_filters' => true,
-            'orderby'          => 'ID',
-            'order'            => 'DESC',
+            'posts_per_page' => -1,
+            'post_type'      => 'igmap',
+            'orderby'        => 'ID',
+            'order'          => 'DESC',
         ];
 
         $maps = get_posts( $args );
@@ -130,17 +129,18 @@ class ElementorMapWidget extends \Elementor\Widget_Base {
             if ( $map_id && $map_id !== 'default' ) {
                 $image_meta = get_post_meta( $map_id, 'map_image', true );
                 $image      = isset( $image_meta['mapImage'] ) && $image_meta['mapImage'] !== '' ? $image_meta['mapImage'] : '';
-                $html       = sprintf( '<img src="%s">', $image );
-                $html .= '<br><div style="text-align:center; font-size:0.8em;">' . __( 'Preview Only', 'interactive-geo-maps' ) . '</div>';
+                $html       = sprintf( '<img src="%s">', esc_url( $image ) );
+                $html .= '<br><div style="text-align:center; font-size:0.8em;">' . esc_html__( 'Preview Only', 'interactive-geo-maps' ) . '</div>';
             } else {
-                $html = __( 'Please select a map', 'interactive-geo-maps' );
+                $html = esc_html__( 'Please select a map', 'interactive-geo-maps' );
             }
         } else {
-            $html = do_shortcode( '[display-map id="' . $map_id . '"]' );
+            $html = do_shortcode( '[display-map id="' . (int) $map_id . '"]' );
         }
 
         echo '<div class="igmap-elementor-widget">';
 
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup built internally from escaped components and shortcode output.
         echo $html;
 
         echo '</div>';

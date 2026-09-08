@@ -502,7 +502,7 @@ class AIOWPSecurity_Utility_File {
 	 * Read the larger file and get last 100 lines etc in an efficient way
 	 *
 	 * @param string  $filepath - file path
-	 * @param integer $offset   - offest to start reading the file from that line
+	 * @param integer $offset   - offset to start reading the file from that line
 	 * @param integer $num      - number of lines to read
 	 * @param boolean $reverse  - return in reverse order
 	 *
@@ -525,5 +525,45 @@ class AIOWPSecurity_Utility_File {
 			$aio_wp_security->debug_logger->log_debug("AIOS - Unable to read file: ". $filepath . " - " .$e->getMessage(), 4);
 		}
 		return false;
+	}
+
+	/**
+	 * Get scanner data
+	 *
+	 * @global $aio_wp_security
+	 *
+	 * @return array - scanner data
+	 */
+	public static function get_scanner_data() {
+		global $aio_wp_security;
+
+		$fcd_data = AIOWPSecurity_File_Scanner::get_fcd_data();
+		$previous_scan = isset($fcd_data['last_scan_result']);
+
+		$next_fcd_scan_time = AIOWPSecurity_File_Scanner::get_next_scheduled_scan();
+
+		$aiowps_fcds_change_detected = $aio_wp_security->configs->get_value('aiowps_fcds_change_detected');
+		$aiowps_enable_automated_fcd_scan = $aio_wp_security->configs->get_value('aiowps_enable_automated_fcd_scan');
+		$aiowps_fcd_scan_frequency = $aio_wp_security->configs->get_value('aiowps_fcd_scan_frequency');
+		$aiowps_fcd_scan_interval = $aio_wp_security->configs->get_value('aiowps_fcd_scan_interval');
+		$aiowps_fcd_exclude_filetypes = $aio_wp_security->configs->get_value('aiowps_fcd_exclude_filetypes');
+		$aiowps_fcd_exclude_files = $aio_wp_security->configs->get_value('aiowps_fcd_exclude_files');
+		$aiowps_send_fcd_scan_email = $aio_wp_security->configs->get_value('aiowps_send_fcd_scan_email');
+		$aiowps_fcd_scan_email_address = $aio_wp_security->configs->get_value('aiowps_fcd_scan_email_address');
+		$aiowps_last_scan_time = $aio_wp_security->configs->get_value('aiowps_last_scan_time');
+
+		return array(
+			'previous_scan' => $previous_scan,
+			'next_fcd_scan_time' => false === $next_fcd_scan_time ? '' : AIOWPSecurity_Utility::convert_timestamp($next_fcd_scan_time, 'D, F j, Y H:i'),
+			'aiowps_fcds_change_detected' => $aiowps_fcds_change_detected,
+			'aiowps_enable_automated_fcd_scan' => $aiowps_enable_automated_fcd_scan,
+			'aiowps_fcd_scan_frequency' => $aiowps_fcd_scan_frequency,
+			'aiowps_fcd_scan_interval' => $aiowps_fcd_scan_interval,
+			'aiowps_fcd_exclude_filetypes' => $aiowps_fcd_exclude_filetypes,
+			'aiowps_fcd_exclude_files' => $aiowps_fcd_exclude_files,
+			'aiowps_send_fcd_scan_email' => $aiowps_send_fcd_scan_email,
+			'aiowps_fcd_scan_email_address' => $aiowps_fcd_scan_email_address,
+			'aiowps_last_scan_time' => AIOWPSecurity_Utility::convert_timestamp($aiowps_last_scan_time, 'D, F j, Y H:i'),
+		);
 	}
 }

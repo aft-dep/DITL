@@ -90,7 +90,7 @@ class AIOWPSecurity_Comment {
 	public static function is_comment_spam_detected() {
 		$return = false;
 		if (!is_user_logged_in()) {
-			if (empty($_SERVER['HTTP_REFERER']) || false === stristr(sanitize_url(wp_unslash($_SERVER['HTTP_REFERER'])), wp_parse_url(home_url(), PHP_URL_HOST)) || empty($_SERVER['HTTP_USER_AGENT'])) {
+			if (empty($_SERVER['HTTP_REFERER']) || false === stristr(esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])), wp_parse_url(home_url(), PHP_URL_HOST)) || empty($_SERVER['HTTP_USER_AGENT'])) {
 				$return = true;
 			} elseif (self::is_bot_detected()) {
 				$return = true;

@@ -4,8 +4,8 @@ Donate link: https://david.dw-perspective.org.uk/donate
 Tags: security, malware scanning, two factor authentication, firewall, login security
 Requires PHP: 5.6
 Requires at least: 5.0
-Tested up to: 6.9
-Stable tag: 5.4.6
+Tested up to: 7.1
+Stable tag: 5.4.9
 License: GPLv3 or later
 
 Protect your website investment with All-In-One Security (AIOS) – a comprehensive and easy to use security plugin designed especially for WordPress. Featuring login security tools, a cutting-edge firewall and much more.
@@ -244,6 +244,52 @@ Go to the settings menu after you activate the plugin and follow the instruction
 1. Features list.
 
 == Changelog ==
+
+= 5.4.9 - 5/Jun/2026 =
+
+* TWEAK: Added a filter that validates POST requests containing UDRPC messages
+* TWEAK: Update the internal common libs package to latest version
+
+
+= 5.4.8 - 2/Jun/2026 =
+
+* SECURITY: Escaped debug log messages before rendering them in the admin area to prevent a stored XSS vulnerability. Thanks to Dmitrii Ignatyev for disclosing this defect. (This issue required both the debug logging feature and the "Disallow unauthorized REST API requests" setting to be enabled. Under those conditions, an attacker could inject malicious scripts into the debug logs via specially crafted requests, which could execute when viewed by an administrator on the AIOS debug logs page).
+* FEATURE: Add notification method to reporting class to handle mails
+* FEATURE: Added bulk actions to audit log table for blacklisting IPs
+* FIX: Fixed minor bug when setting up TFA with the Onboarding wizard where correct codes are rejected if they are entered more than once.
+* FIX: Log out button/link not working immediately after enabling the rename login feature
+* FIX: On the dashboard page, the login summary for a subsite in a multisite environment incorrectly shows details from the main site. 
+* FIX: PHP Warning:  Undefined global variable $hook_suffix in class-wp-screen.php when doing ajax table actions.
+* FIX: Properly decode the URI for the 'advanced character filter' in order to handle UTF-8 encoded URIs.
+* FIX: Resolve spammer IP address bulk block action not working issue.
+* TWEAK: Introduced .htaccess versioning to update only when needed during AIOS upgrades.
+* TWEAK: Prevent empty CSV download when no audit logs are available for export.
+* TWEAK: Removed jQuery dependency on front end when "Enforce strong password" is enabled
+* TWEAK: The audit log list now includes the executed 2FA WP-CLI command.
+* TWEAK: Update the 404 log table to work with AJAX
+* TWEAK: Update permanent block IP table to work with AJAX
+* TWEAK: Usernames containing URLs in site lockout notification emails are prevented from being auto-linked by mail clients.
+
+= 5.4.7 - 27/Apr/2026 =
+
+* FEATURE: Added a dashboard widget for the top 5 failed login attempts by IP & username and a chart for the number of failed logins over the last 7 days.
+* FIX: WordPress 7.0 admin UI compatibility issues resolved.
+* FIX: Blacklist IP and User Agent firewalls could still be active when turned off.
+* FIX: Table sorting indicators not being shown on WordPress version 6.3 and above.
+* FIX: "Set up IP address detection settings" button not working in setup notice.
+* FIX: Bulk actions and filter missing from tables on mobile resolutions.
+* FIX: Resolved an issue where HTML tags were appearing in the "Rename Login Page" description.
+* FIX: 404 events no longer logged for genuine search bots (e.g. Google/Bing/Yahoo).
+* FIX: Used esc_url_raw() instead of sanitize_url() to resolve the deprecation notice in WordPress 5.0.
+* FIX: Fixed "ReflectionMethod::setAccessible is deprecated as of PHP 8.5" notice.
+* FIX: PHP Notice on WP < 5.5.0 when installing from zip. Undefined property: Plugin_Upgrader::$new_plugin_data
+* FIX: Resolved PHP warning - WPCF7_TagGenerator::add(): Use of tag generator instances older than version 2 is deprecated.
+* TWEAK: Improved password strength tool readability by using zxcvbn library included in WordPress.
+* TWEAK: Various text improvements/updates for better clarity and explanation of features.
+* TWEAK: Updated the Googlebot IP range API URL.
+* TWEAK: Updated the UI for the security points breakdown widget
+* TWEAK: Hash HTTP Authentication password.
+* TWEAK: Add a notice for PHP 7.3 and below end of support.
 
 = 5.4.6 - 27/Jan/2026 =
 
@@ -1308,7 +1354,7 @@ was not working on some servers due to timestamp difference between PHP current_
 
 = 3.9.7 =
 - Added new feature which allows custom .htaccess rules. (See "Custom Rules" tab in Firewall menu). You can now use this to add custom rules to block access to various resources on your site.
-- Added a new feature to block access to the wp-content/debug.log file (WordPress creates this file if you enabled debug loggin option in the config file).
+- Added a new feature to block access to the wp-content/debug.log file (WordPress creates this file if you enabled debug logging option in the config file).
 - Removed the "v" from version number of the plugin.
 - Completed testing with WordPress 4.3.
 
@@ -1464,7 +1510,7 @@ was not working on some servers due to timestamp difference between PHP current_
 - Added Brazilian language translation. The translation was submitted by Sergio Siqueira.
 - Added two new action hooks for plugin activation and deactivation time.
 - Improved the get_user_ip_address() function so it handles cases when multiple addresses are returned due to proxy.
-- Fixed the mis-alignment of login page which was broken by WP3.9 when rename login feature is used.
+- Fixed the misalignment of login page which was broken by WP3.9 when rename login feature is used.
 - WordPress 3.9 compatibility
 
 = 3.7.2 =
@@ -1575,7 +1621,7 @@ All other IP addresses trying to access your WP login page which are not in the 
 - Removed the word "config" from the list of bad query strings check (to add compatibility with a few more plugins)
 - Added a notice in the dashboard menu to show you if there are any recent file changes that the plugin detected.
 - Fixed bug with php File Editing feature. Code now also handles older style wp-config.php files which have the php end tag "?>"
-- Fixed bug with "Disable All Security Features" button functionality. When clicked, this will now also make the appropriate changes to the .htacces and wp-config.php files if necessary.
+- Fixed bug with "Disable All Security Features" button functionality. When clicked, this will now also make the appropriate changes to the .htaccess and wp-config.php files if necessary.
 - Changed the storage of backup files from the plugin's directory to the uploads directory. Also added a .htaccess file for security.
 - Fixed the way user-agent strings were written to the .htacess file from the Blacklist feature. The code now will correctly identify and represent spaces and escaped chars.
 - Fixed a bug related to sending backup to correct email address.
@@ -1665,4 +1711,5 @@ those who want to enable the basic firewall but do not have "AllowOverride" opti
 - First commit to the WP repository.
 
 == Upgrade Notice ==
-* 5.4.6: Fixes some bugs in relation to the new onboarding wizard. A recommended update for all.
+* 5.4.9: Added a filter that validates POST requests containing UDRPC messages and updated internal common libs package. A recommended update for all.
+

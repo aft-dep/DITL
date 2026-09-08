@@ -77,7 +77,7 @@ class AIOS_Helper {
 		// Check if multiple IPs were given - these will be present as comma-separated list
 		if (preg_match('/^([^,]+),/', $visitor_ip, $matches)) $visitor_ip = $matches[1];
 
-		// Now remove port portion if ipv4 address with port, for ipv6 it was making issue so using fiter_var valid ip checked first.
+		// Now remove port portion if ipv4 address with port, for ipv6 it was making issue so using filter_var valid ip checked first.
 		if (!filter_var($visitor_ip, FILTER_VALIDATE_IP) && preg_match('/(.+):\d+$/', $visitor_ip, $matches)) $visitor_ip = $matches[1];
 
 		if (!filter_var($visitor_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && !filter_var($visitor_ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
@@ -287,7 +287,7 @@ class AIOS_Helper {
 
 		return $reverse_lookup_data;
 	}
-	
+
 	/**
 	 * Gets hash of given string using auth Authentication scheme
 	 *
@@ -295,11 +295,11 @@ class AIOS_Helper {
 	 *
 	 * @return string - Hash of $data
 	 */
-	 public static function get_hash($data) {
+	public static function get_hash($data) {
 		$aiowps_firewall_constants = AIOS_Firewall_Resource::request(AIOS_Firewall_Resource::CONSTANTS);
 		$salt = $aiowps_firewall_constants->AUTH_KEY.$aiowps_firewall_constants->AUTH_SALT;
 		return hash_hmac('md5', $data, $salt);
-	 }
+	}
 
 	/**
 	 * Set a message for a specific context.
@@ -310,29 +310,29 @@ class AIOS_Helper {
 	 *
 	 * @return void
 	 */
-	 public static function set_message($context, $message, $type = 'info') {
+	public static function set_message($context, $message, $type = 'info') {
 		self::$messages[$context] = array('message' => $message, 'type' => $type);
-	 }
+	}
 
-	 /**
-	  * Get a message for a specific context.
-	  *
-	  * @param string $context The unique context identifier for the message.
-	  *
-	  * @return array|null The message for the given context, or null if not found.
-	  */
-	 public static function get_message($context) {
+	/**
+	 * Get a message for a specific context.
+	 *
+	 * @param string $context The unique context identifier for the message.
+	 *
+	 * @return array|null The message for the given context, or null if not found.
+	 */
+	public static function get_message($context) {
 		return isset(self::$messages[$context]) ? self::$messages[$context] : null;
-	 }
+	}
 
-	 /**
-	  * Clear messages (optional, for cleanup purposes).
-	  *
-	  * @return void
-	  */
-	 public static function clear_messages() {
+	/**
+	 * Clear messages (optional, for cleanup purposes).
+	 *
+	 * @return void
+	 */
+	public static function clear_messages() {
 		self::$messages = array();
-	 }
+	}
 
 	/**
 	 * This function checks if the current request is an UpdraftCentral request by looking for a specific constant.

@@ -3,9 +3,9 @@ Contributors: Chouby, manooweb, raaaahman, marianne38, sebastienserre, greglone,
 Donate link: https://polylang.pro
 Tags: multilingual, translate, translation, language, localization
 Requires at least: 6.5
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 3.8
+Stable tag: 3.8.8
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -58,10 +58,9 @@ Helps optimizing the time spent translating your site with some very useful extr
 * Ability to use the WooCommerce REST API (available with Polylang Pro).
 * **Access to a Premium Support for personalized assistance.**
 
-= Our other free plugins =
+= Switching from WPML? =
 
-* [WPML to Polylang](https://wordpress.org/plugins/wpml-to-polylang/) allows migrating from WPML to Polylang.
-* [Site Editor Classic Features](https://wordpress.org/plugins/fse-classic/) allows to use classic widgets (including the Polylang language switcher) and menus in the site editor (FSE).
+* [WPML to Polylang](https://wordpress.org/plugins/wpml-to-polylang/) allows migrating from WPML to Polylang in a few clicks.
 
 = Credits =
 
@@ -105,6 +104,69 @@ Wherever third party code has been used, credit has been given in the code’s c
 
 == Changelog ==
 
+= 3.8.8 (2026-09-07) =
+
+* Security: Fix exposure of some draft posts metadata to non-authorized users. Reported by Patchstack.
+* Pro: Allow plugins requiring Polylang to be installed when Polylang Pro is active #3051 #3116
+* Pro: Fix warning `WP_Post conversion to int` with WooCommerce #3101
+* Pro: Fix creation of translation in block editor for WP < 6.7 #3105
+* Fix duplicated posts page #1992
+
+= 3.8.7 (2026-08-17) =
+
+* Pro: Add the translation of new blocks introduced by WP 7.1 #3048
+* Fix quick edit parent page dropdown for hierarchical custom post types #1947
+* Fix wp-editor script enqueued together with the new widgets editor #1968
+
+= 3.8.6 (2026-07-20) =
+
+* Pro: Security: Ensure the user has the required capability for ACF fields when switching language in the editor #3029
+* Security: Fix exposure of some private posts metadata to non-authorized users. Reported by Patchstack.
+* Security: Fix server side default language encoding for the block editor
+* Fix 404 for post type or taxonomy sitemap when its name ends with a language code #1909
+
+= 3.8.5 (2026-06-16) =
+
+* Pro: Fix language switcher block error in Widget screen #1905
+* Pro: Fix "edit" button wrongly disabled in the languages sidebar in the block editor #3011
+* Fix edited images files deleted when deleting the first media translation #1887
+* Fix error in AJAX context when the parameter `lang` is passed a locale instead of a language code #1896
+
+= 3.8.4 (2026-05-18) =
+
+* Security: Fix an XSS in the multilingual biography
+* Pro: Fix draft post translations not shown in the languages sidebar in the block editor #3006
+* Pro: Fix compatibility with libxml 2.15.1 #2920
+* Pro: Fix Allowed memory size exhausted with Divi 5 #3008
+* Improve accessibility of the multilingual biography on user profile page #1869
+* Prevent using unsupported block fields in wpml-config.xml #1868
+
+= 3.8.3 (2026-04-27) =
+
+* Pro: Improve performance of the languages sidebar in the block editor #2989
+* Pro: Fix impossibility to add more than one translation at once from the block editor sidebar #2985
+* Pro: Fix HTML entities displayed in translation inputs in the block editor sidebar #2984
+* Pro: Fix error when editing a pattern from the post editor #2990
+* Pro: Fix sync icon incorrectly shown as active on new posts #2995
+* Pro: Fix `pll_sync_post` REST API field returning an empty array instead of an empty object #2995
+* Pro: Fix ACF fields in a repeater nested in a flexible content overwritten with wrong values #2975
+* Fix language switcher block error in Widget screen #1856
+* Fix PHP warning in site health #1862
+* Fix wrong cookie sent in some cases #1863
+* Fix error with WordPress Importer when the imported file has synchronized posts #1853
+
+= 3.8.2 (2026-04-07) =
+
+* Pro: Fix refresh issues in block editor languages panel #2965
+* Pro: Fix error when unlinking 2 translations in block editor #2970
+* Pro: Fix fatal error when a repeater is previously created in ACF Pro but ACF is active #2972
+* Fix settings redirect in Playground #1840
+* Fix possible fatal error when the default language has been corrupted in DB #1843
+
+= 3.8.1 (2026-03-19) =
+
+* Fix fatal error when the cache is suspended #1837 #1839
+
 = 3.8 (2026-03-17) =
 
 * Requires PHP 7.4 and WP 6.5 as minimum version
@@ -141,117 +203,5 @@ Wherever third party code has been used, credit has been given in the code’s c
 * Fix strings translations import with WP Importer #1637
 * Fix edge cases leading to wrong languages order #1777
 * Fix a fatal error with the plugin Groups #1834
-
-= 3.7.8 (2026-02-23) =
-
-* Pro: Add 'pll_create_post_translation' filter #2890
-* Pro: Fix ACF's layout fields instructions #2889
-
-= 3.7.7 (2026-01-26) =
-
-* Pro: Add DeepL support for 70 new languages. #1793 #2871
-* Fix advanced menu properties not displayed in customizer. Props Viktor Szépe. #1722
-* Fix incorrect slug when changing the language of a term. #1790
-
-= 3.7.6 (2026-01-06) =
-
-* Pro: Add support for WP 6.9 new blocks #2790
-* Pro: Fix insertion of navigation language switcher block in WP 6.9 #2847
-* Pro: Fix current post URL in site editor for WP 6.8+ #2843
-* Pro: Fix a conflict with Sensei LMS #2845
-* Fix categories not filtered per post language in quick edit #1785
-
-= 3.7.5 (2025-11-10) =
-
-* Pro: Updated DeepL supported languages list
-* Pro: Fix a regression in cross domain login
-* Pro: Fix post object field not correctly translated
-* Pro: Fix a fatal error in EDD plugin updater when the request to the server fails
-* Pro: Fix locale fallback in WP 6.8+
-* Pro: Add `pll_enable_acf_labels_translation` filter allowing to disable the translation of ACF labels
-* Pro: Fix ACF image field not correctly translated when media translation is active
-* Pro: Fix ACF image field in repeater not copied
-* Pro: Fix ACF ajax request unexpectedly filtered by language when editing a field group
-* Pro: Fix ACF blocks not translated when included inside a non-ACF block
-* Pro: Add compatibility of the duplicate tool with Divi
-* Fix Undefined array key "terms" in canonical.php #1691
-* Fix some regressions in the WPML API used by YITH WooCommerce Wishlist #1684
-* Fix LinkedIn site title preview with Yoast SEO #1686
-* Fix HTML language attribute on login page #1601
-* Fix conflict with WP Job Manager Application #1749
-
-= 3.7.4 (2025-10-28) =
-
-* Pro: Security: Fix a ReDoS vulnerability reported by Janine Moreira.
-* Security: Fix deserialization of untrusted data reported by Phat RiO – BlueRock via Patchstack.
-
-= 3.7.3 (2025-06-16) =
-
-* Pro: Always display ACF translation settings for field groups formerly translated in versions older than 3.7
-* Pro: Fix translation displayed in child fields of ACF layout fields when they should not
-* Pro: Fix translation of the ACF field "Choice" when the translation is set to "Copy once" or "Synchronize"
-* Pro: Fix a PHP warning when translating some blocks
-* Pro: Fix impossibility to change the language of an empty post in the block editor
-* Fix duplicate values in options #1672
-* Fix JS error in media library (grid view) #1674
-* Fix language dropdown not present in the media modal accessible from the media library grid view #1675
-* Fix DB error introduce by WooCommerce 9.9 #1681
-
-= 3.7.2 (2025-05-27) =
-
-* Pro: Require ACF 6.0+ to activate the integration to avoid fatal errors with older versions
-* Pro: Add a new ACF field group setting to decide if translations instructions must be displayed
-* Pro: Fix a fatal error when using ACF blocks with ACF < 6.3.0
-* Pro: Fix regression preventing to translate Oembed, URL and Email ACF fields
-* Pro: Fix ACF fields not translated when they have a default value
-* Pro: Fix empty ACF fields values not copied when the field has a default value
-* Pro: Fix ACF field default values not translated when copying a post
-* Pro: Fix possible fatal error if invalid types of data are sent for machine translation
-* Pro: Fix term meta removed when a term is machine translated
-* Fix nav menu locations not saved if invalid data are stored in database #1659
-* Fix parent relationship removed when a new translated term is created without parent #1671
-
-= 3.7.1 (2025-05-05) =
-
-* Pro: Do not display ACF fields translations settings when language location is set.
-* Pro: Fix ACF taxonomy field terms not synchronized when "Save Terms" and "load terms" settings are activated.
-* Pro: Fix duplicate options when using numeric keys for ACF choice fields.
-
-= 3.7 (2025-04-22) =
-
-* Requires PHP 7.2 as minimum version
-* Pro: Add DeepL machine translation for strings
-* Pro: Consider Polylang Pro as equivalent to Polylang for plugin dependencies
-* Pro: Add the details block and several labels in other blocks to XLIFF files and machine translation
-* Pro: Allow to translate metas stored as objects
-* Pro: Enhanced multilingual support of archive template hierarchy
-* Pro: Wrap the language switcher block in a nav tag
-* Pro: Support automatic IDs translation in blocks with new filters `pll_sync_block_rules_for_attributes` and `pll_sync_blocks_xpath_rules`
-* Pro: Complete rewrite of ACF integration
-* Pro: Add support for ACF blocks, post types and taxonomies.
-* Pro: Remove the possibility to translate ACF field groups
-* Pro: Add languages in ACF locations
-* Pro: Add translation of ACF labels in the strings translations page
-* Pro: Fix incorrect count of translated strings when importing strings translations
-* Pro: Fix incorrect translation when an XLIFF import updates a term sharing its slug
-* Pro: Fix term hierarchy with machine translation
-* Pro: Fix indented items of a list block not translated with machine translation
-* Pro: Fix navigation block inserted in the wrong language
-* Update plugin updater to 1.9.4
-* Add translation of widgets custom html in strings translations #1423
-* Refactor core to manage the plugin options in an object #1451
-* Refactor core to give access to languages management in all contexts #1503
-* Remove the language set from the content option for new installs #1517
-* Allow numbers in language codes #1546
-* Display empty fields in the translations table for untranslated strings (instead of duplicating the original) #1574
-* Add REST API endpoints to manage options and languages #1505 #1569
-* Improve performance by registering the language taxonomy only once #1359
-* Add new API functions to insert and update posts and terms in a given language #1500 #1520
-* Add compatibility with jQuery 4 (planned in core for WP 6.8) #1612
-* Fix translations not loaded when the language is set from the content #1395
-* Fix possible term duplication #1490
-* Fix sanitization of translated options that may impact other strings #1571
-* Fix home link block not translated #1647
-* Fix a conflict with WooCommerce Price Based on Country #1638
 
 See [changelog.txt](https://plugins.svn.wordpress.org/polylang/trunk/changelog.txt) for older changelog

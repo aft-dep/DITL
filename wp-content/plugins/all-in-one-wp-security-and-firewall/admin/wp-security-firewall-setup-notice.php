@@ -254,7 +254,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 			
 			$matches = array();
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- No nonce.
-			if (preg_match('/\?page='.AIOWPSEC_MENU_SLUG_PREFIX.'(?<page>.*)(&tab=(?<tab>.*))?$/m', sanitize_url(wp_unslash($_POST['_wp_http_referer'])), $matches)) {
+			if (preg_match('/\?page='.AIOWPSEC_MENU_SLUG_PREFIX.'(?<page>.*)(&tab=(?<tab>.*))?$/m', esc_url_raw(wp_unslash($_POST['_wp_http_referer'])), $matches)) {
 					$url = 'admin.php?page='.AIOWPSEC_MENU_SLUG_PREFIX;
 
 					if (isset($matches['page'])) {
@@ -265,7 +265,7 @@ class AIOWPSecurity_Firewall_Setup_Notice {
 						}
 					}
 					
-					AIOWPSecurity_Utility::redirect_to_url(admin_url(sanitize_url($url)));
+					AIOWPSecurity_Utility::redirect_to_url(admin_url(esc_url_raw($url)));
 			}
 
 		}

@@ -251,7 +251,7 @@ abstract class PLL_Translatable_Object {
 	 *
 	 * @param int[]  $object_ids Array of object IDs.
 	 * @param string $taxonomy   Taxonomy name.
-	 * @return array<int,WP_Term|null> Array of terms with object ID as key.
+	 * @return array<int,WP_Term> Array of terms with object ID as key.
 	 */
 	protected function get_object_terms( array $object_ids, string $taxonomy ) {
 		$object_ids = $this->sanitize_int_ids_list( $object_ids );
@@ -261,22 +261,14 @@ abstract class PLL_Translatable_Object {
 
 		$cached_values = $this->get_from_object_term_cache( $object_ids, $taxonomy );
 
-		// Flatten the array to prime the terms cache.
-		$all_term_ids = array();
-		foreach ( $cached_values as $term_ids ) {
-			$all_term_ids = array_merge( $all_term_ids, $term_ids );
-		}
+		$all_term_ids = array_values( $cached_values );
 		_prime_term_caches( $all_term_ids, false );
 
 		$terms = array();
-		foreach ( $cached_values as $object_id => $term_ids ) {
-			if ( ! empty( $term_ids ) ) {
-				$term_id = reset( $term_ids ); // There is only one term for language or translation groups.
-
-				/** @var WP_Term $term */
-				$term                = get_term( $term_id );
-				$terms[ $object_id ] = $term;
-			}
+		foreach ( $cached_values as $object_id => $term_id ) {
+			/** @var WP_Term $term */
+			$term                = get_term( $term_id );
+			$terms[ $object_id ] = $term;
 		}
 
 		return $terms;
@@ -285,20 +277,20 @@ abstract class PLL_Translatable_Object {
 	/**
 	 * Caches all object-relationship terms.
 	 *
-	 * @since 3.8
+	 * @since 3.8.1
 	 *
 	 * @param int[] $object_ids Array of object IDs.
 	 *
-	 * @return void
+	 * @return int[][][]
 	 */
-	protected function prime_object_term_cache( array $object_ids ) {
+	protected function update_object_term_cache( array $object_ids ) {
 		$non_cached_ids = array();
 		foreach ( $this->tax_to_cache as $tax ) {
 			$non_cached_ids = array_merge( $non_cached_ids, _get_non_cached_ids( $object_ids, "{$tax}_relationships" ) );
 		}
 
 		if ( empty( $non_cached_ids ) ) {
-			return;
+			return array();
 		}
 
 		$terms = wp_get_object_terms(
@@ -311,7 +303,7 @@ abstract class PLL_Translatable_Object {
 		);
 
 		if ( ! is_array( $terms ) ) {
-			return;
+			return array();
 		}
 
 		$object_terms = array();
@@ -330,6 +322,8 @@ abstract class PLL_Translatable_Object {
 		foreach ( $object_terms as $tax => $data ) {
 			wp_cache_add_multiple( $data, "{$tax}_relationships" );
 		}
+
+		return $object_terms;
 	}
 
 	/**
@@ -340,13 +334,33 @@ abstract class PLL_Translatable_Object {
 	 * @param int[]  $object_ids Array of object IDs to retrieve terms for.
 	 * @param string $taxonomy   Taxonomy name.
 	 *
-	 * @return int[][]
+	 * @return int[] Array of term IDs with object ID as key.
 	 */
-	protected function get_from_object_term_cache( array $object_ids, string $taxonomy ) {
-		$this->prime_object_term_cache( $object_ids );
-		return wp_cache_get_multiple( $object_ids, "{$taxonomy}_relationships" );
-	}
+	protected function get_from_object_term_cache( array $object_ids, string $taxonomy ): array {
+		$values = wp_cache_get_multiple( $object_ids, "{$taxonomy}_relationships" );
 
+		// If values are missing, then update the cache and replace missed values by freshly cached ones.
+		$object_terms = $this->update_object_term_cache( $object_ids );
+		if ( isset( $object_terms[ $taxonomy ] ) ) {
+			$values = array_replace( $values, $object_terms[ $taxonomy ] );
+		}
+
+		$sanitized_values = array();
+		foreach ( $values as $object_id => $term_ids ) {
+			if ( ! is_array( $term_ids ) ) {
+				continue;
+			}
+
+			$id = reset( $term_ids );
+			if ( ! is_numeric( $id ) || empty( $id ) ) {
+				continue;
+			}
+
+			$sanitized_values[ $object_id ] = (int) $id;
+		}
+
+		return $sanitized_values;
+	}
 
 	/**
 	 * Returns terms associated to the given object in the given taxonomy.

@@ -19,6 +19,7 @@ export const ModalFooter = ({
         isLastStep,
         isInstalling,
         licenseStatus,
+        settings
     } = useOnboardingStore();
 
     const upgradeUrl = get_website_url(onboardingData.upgrade, {
@@ -28,11 +29,22 @@ export const ModalFooter = ({
 
     // Decide disabled state once to reuse below
     const continueDisabled = isContinueDisabled();
-    const isLicenseAndUpdating = currentStep?.type === 'license' && licenseStatus === 'activating'
-    const isLicenseAndValid = currentStep?.type === 'license' && licenseStatus === 'activated'
+    const isLicenseStep = currentStep?.type === 'license';
+    const isLicenseAndUpdating = isLicenseStep && licenseStatus === 'activating'
+    const isLicenseAndValid = isLicenseStep && licenseStatus === 'activated'
 
     const allInstalled = onboardingData.is_all_plugins_installed;
     const isPluginStepAndAllInstalled = currentStep?.type === 'plugins' && allInstalled
+
+    const tfaField = currentStep?.fields?.find(f => f.id === 'tfa') ?? null;
+    const tfaValue = settings?.find(s => s.id === 'tfa')?.value ?? null;
+
+    const finalDisabled = isLicenseStep
+        ? (
+            continueDisabled ||
+            (tfaField && (!tfaValue || String(tfaValue).trim() === ''))
+        )
+        : continueDisabled;
 
     return (<>
             {currentStep.enable_premium_btn === true && !onboardingData.is_pro && (
@@ -95,9 +107,9 @@ export const ModalFooter = ({
                 {!isLicenseAndUpdating && currentStep.button && (
                 <ButtonInput
                     className="burst-continue flex justify-center items-center outline-none px-2 py-[5px] relative w-full"
-                    btnVariant={continueDisabled ? "transparent-disabled" : "secondary"}
+                    btnVariant={finalDisabled ? "transparent-disabled" : "secondary"}
                     size="lg"
-                    disabled={continueDisabled}
+                    disabled={finalDisabled}
                     onClick={(e) => validateAndContinue(e)}
                     key={currentStep.id + "continue"}
                 >

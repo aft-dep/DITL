@@ -29,7 +29,7 @@
 	</table>
 </div>
 <h3><?php esc_html_e('Other settings', 'all-in-one-wp-security-and-firewall'); ?></h3>
-<span data-tooltip="<?php esc_attr_e('The 6G firewall provides other settings for blocking malicious query strings, request strings, referers and user-agents; you can configure their settings below.', 'all-in-one-wp-security-and-firewall'); ?>">
+<span data-tooltip="<?php esc_attr_e('The 6G firewall provides other settings for blocking malicious query strings, request strings, referrers and user-agents; you can configure their settings below.', 'all-in-one-wp-security-and-firewall'); ?>">
 	<span class="dashicons dashicons-editor-help"></span>
 </span>
 <div class="options">
@@ -51,10 +51,10 @@
 			</td>
 		</tr>
 		<tr>
-			<th><?php esc_html_e('Block referers', 'all-in-one-wp-security-and-firewall');?>:</th>
+			<th><?php esc_html_e('Block referrers', 'all-in-one-wp-security-and-firewall');?>:</th>
 			<td>
 				<div class="aiowps_switch_container">
-					<?php AIOWPSecurity_Utility_UI::setting_checkbox(esc_html__('Enable this to block all referers recommended by 6G', 'all-in-one-wp-security-and-firewall'), 'aiowps_block_refs', $blocked_referrers); ?>
+					<?php AIOWPSecurity_Utility_UI::setting_checkbox(esc_html__('Enable this to block all referrers recommended by 6G', 'all-in-one-wp-security-and-firewall'), 'aiowps_block_refs', $blocked_referrers); ?>
 				</div>
 			</td>
 		</tr>

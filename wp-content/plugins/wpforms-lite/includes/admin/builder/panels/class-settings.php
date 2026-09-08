@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use WPForms\Admin\Forms\Tags;
+use WPForms\Integrations\AiMcp\AiMcp;
 
 /**
  * Settings management panel.
@@ -57,9 +58,9 @@ class WPForms_Builder_Panel_Settings extends WPForms_Builder_Panel {
 		$sections = [
 			'general'       => esc_html__( 'General', 'wpforms-lite' ),
 			'anti_spam'     => esc_html__( 'Spam Protection and Security', 'wpforms-lite' ),
-			'themes'        => esc_html__( 'Themes', 'wpforms-lite' ),
-			'notifications' => esc_html__( 'Notifications', 'wpforms-lite' ),
 			'confirmation'  => esc_html__( 'Confirmations', 'wpforms-lite' ),
+			'notifications' => esc_html__( 'Notifications', 'wpforms-lite' ),
+			'themes'        => esc_html__( 'Themes', 'wpforms-lite' ),
 		];
 
 		/**
@@ -217,7 +218,18 @@ class WPForms_Builder_Panel_Settings extends WPForms_Builder_Panel {
 				]
 			);
 
+			/**
+			 * Fires after the main General settings fields, before the Advanced group.
+			 *
+			 * @since 2.0.1
+			 *
+			 * @param WPForms_Builder_Panel_Settings $settings Current settings.
+			 */
+			do_action( 'wpforms_form_settings_general_main_after', $this ); // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
+
 			$this->general_setting_advanced();
+
+			$this->ai_mcp_section();
 
 		echo '</div>';
 
@@ -377,6 +389,45 @@ class WPForms_Builder_Panel_Settings extends WPForms_Builder_Panel {
 				'unfoldable' => true,
 				'group'      => 'settings_advanced',
 				'title'      => esc_html__( 'Advanced', 'wpforms-lite' ),
+				'title_attr' => __( 'Toggle Advanced Settings', 'wpforms-lite' ),
+			]
+		);
+	}
+
+	/**
+	 * Output the AI MCP section.
+	 *
+	 * Promotes the WordPress Abilities API + WPForms MCP bridge and exposes the write-access
+	 * toggle inside the builder, mirroring the Tools → AI MCP tab. The toggle input is
+	 * intentionally name-less, so it never enters the serialized form state and cannot be
+	 * picked up by the form save / undo-redo flow — it is a site setting, not form data.
+	 *
+	 * @since 1.10.2.1
+	 */
+	private function ai_mcp_section() {
+
+		// Without the Abilities API (WP 6.9+) no WPForms ability registers, so the toggle would gate nothing.
+		if ( ! wpforms_current_user_can() || ! function_exists( 'wp_register_ability' ) ) {
+			return;
+		}
+
+		$inner = wpforms_render(
+			'admin/tools/ai-mcp',
+			AiMcp::get_template_data( 'wpforms-ai-mcp-page-builder' ),
+			true
+		);
+
+		// Open by default for the initial release; a later release will ship it collapsed.
+		wpforms_panel_fields_group(
+			$inner,
+			[
+				'borders'     => [ 'top' ],
+				'unfoldable'  => true,
+				'group'       => 'settings_ai_mcp',
+				'title'       => esc_html__( 'AI MCP', 'wpforms-lite' ),
+				'title_attr'  => __( 'Toggle AI MCP Settings', 'wpforms-lite' ),
+				'title_badge' => '<span class="wpforms-badge wpforms-badge-sm wpforms-badge-inline wpforms-badge-rounded wpforms-badge-green">' . esc_html__( 'New', 'wpforms-lite' ) . '</span>',
+				'default'     => 'opened',
 			]
 		);
 	}

@@ -471,7 +471,15 @@ function retrieve_password() {
 	 */
 	$message = apply_filters('retrieve_password_message', $message, $key, $user_login, $user_data);
 
-	if ($message && ! wp_mail($user_email, wp_specialchars_decode($title), $message)) {
+	$mail_data = array(
+		'to' => $user_email,
+		'subject' => wp_specialchars_decode($title),
+		'message' => $message,
+	);
+
+	$send_mail = AIOWPSecurity_Reporting::notification($mail_data);
+
+	if ($message && !$send_mail) {
 		$errors->add(
 			'retrieve_password_email_failure',
 			sprintf(

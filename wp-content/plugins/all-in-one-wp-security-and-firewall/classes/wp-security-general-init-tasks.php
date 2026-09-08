@@ -335,7 +335,7 @@ class AIOWPSecurity_General_Init_Tasks {
 
 		// for enforcing strong passwords
 		if ('1' == $aio_wp_security->configs->get_value('aiowps_enforce_strong_password')) {
-			wp_register_script('remove-weak-pw', AIO_WP_SECURITY_URL.'/js/remove-weak-pw.js', array('jquery'), AIO_WP_SECURITY_VERSION, true);
+			wp_register_script('remove-weak-pw', AIO_WP_SECURITY_URL.'/js/remove-weak-pw.js', array(), AIO_WP_SECURITY_VERSION, true);
 			wp_enqueue_script('remove-weak-pw');
 		}
 		
@@ -616,8 +616,15 @@ class AIOWPSecurity_General_Init_Tasks {
 		return new WP_Error('aiowps_captcha_error', __('<strong>ERROR</strong>: Your answer was incorrect - please try again.', 'all-in-one-wp-security-and-firewall'));
 	}
 
+	/**
+	 * Check whether the query a 404 error and log the event accordingly.
+	 *
+	 * @return void
+	 */
 	public function check_404_event() {
 		if (is_404()) {
+			// 404 event should not be logged for genuine search bot google/bing/yahoo
+			if (AIOWPSecurity_Utility::is_genuine_search_bot()) return;
 			//This means a 404 event has occurred - let's log it!
 			AIOWPSecurity_Utility::event_logger('404');
 		}
@@ -683,20 +690,21 @@ class AIOWPSecurity_General_Init_Tasks {
 
 		$username = $aio_wp_security->configs->get_value('aiowps_http_authentication_username');
 		$password = $aio_wp_security->configs->get_value('aiowps_http_authentication_password');
+		
+		$auth_user = isset($_SERVER['PHP_AUTH_USER']) ? sanitize_text_field(wp_unslash($_SERVER['PHP_AUTH_USER'])) : '';
+		$auth_pw = isset($_SERVER['PHP_AUTH_PW']) ? wp_unslash($_SERVER['PHP_AUTH_PW']) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitize_text_field would corrupt passwords containing HTML entities.
 
-		// Check that the user hasn't already logged in with credentials.
-		if (!(isset($_SERVER['PHP_AUTH_USER']) && $_SERVER['PHP_AUTH_USER'] == $username && isset($_SERVER['PHP_AUTH_PW']) && $_SERVER['PHP_AUTH_PW'] == $password)) {
-			header('WWW-Authenticate: Basic charset="UTF-8"');
-			header('HTTP/1.0 401 Unauthorized');
-
+		if ($auth_user !== $username || !wp_check_password($auth_pw, $password)) {
+			//RFC 7617 says it's required to include realm
+			header('WWW-Authenticate: Basic realm="' . esc_attr(get_bloginfo('name')) . '" charset="UTF-8"');
+			status_header(401);
 			// Show failure message when the user clicks on the cancel button of the login prompt.
-			$aiowps_failure_message = $aio_wp_security->configs->get_value('aiowps_http_authentication_failure_message');
-			$aiowps_failure_message_raw = html_entity_decode($aiowps_failure_message, ENT_COMPAT, 'UTF-8');
-			echo $aiowps_failure_message_raw;
+			$failure_message = $aio_wp_security->configs->get_value('aiowps_http_authentication_failure_message');
+			echo html_entity_decode($failure_message, ENT_COMPAT, 'UTF-8'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content is stored encoded via htmlentities, decoded here for display.
 			exit;
 		}
 	}
-
+	
 	/**
 	 * Filters whether to pass URLs through wp_http_validate_url() in an HTTP request based on whether the url is in the url exceptions config.
 	 *
@@ -728,7 +736,7 @@ class AIOWPSecurity_General_Init_Tasks {
 
 		if (!empty($upgrade_unsafe_http_calls_url_exceptions)) {
 			foreach (preg_split('/\R/', $upgrade_unsafe_http_calls_url_exceptions) as $exempt_url) {
-				$exempt_url = sanitize_url($exempt_url);
+				$exempt_url = esc_url_raw($exempt_url);
 
 				if (empty($exempt_url)) {
 					continue;

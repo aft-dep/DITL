@@ -1,8 +1,14 @@
-<?php
-defined( 'ABSPATH' ) or die( 'you do not have access to this page!' );
+<?php //phpcs:ignore WordPress.Files.FileName.InvalidClassFileName
+defined( 'ABSPATH' ) || die( 'you do not have access to this page!' );
 
 if ( ! class_exists( 'cmplz_sync' ) ) {
-	class cmplz_sync {
+	/**
+	 * Class cmplz_sync
+	 *
+	 * Handles syncing of cookies and services with cookiedatabase.org
+	 *
+	 */
+	class cmplz_sync { // phpcs:ignore PEAR.NamingConventions.ValidClassName.StartWithCapital, PEAR.NamingConventions.ValidClassName.Invalid
 		private static $_this;
 		public $position;
 		public $cookies         = array();
@@ -11,9 +17,11 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 		function __construct() {
 			if ( isset( self::$_this ) ) {
 				wp_die(
-					sprintf(
-						'%s is a singleton class and you cannot create a second instance.',
-						get_class( $this )
+					esc_html(
+						sprintf(
+							'%s is a singleton class and you cannot create a second instance.',
+							get_class( $this )
+						)
 					)
 				);
 			}
@@ -58,11 +66,12 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 
 			$languages = COMPLIANZ::$banner_loader->get_supported_languages();
 			foreach ( $languages as $language ) {
-				if ( $language === 'en' ) {
+				if ( 'en' === $language ) {
 					continue;
 				}
 
 				// Make sure each cookie is available in all languages.
+				$created = false;
 				foreach ( $en_cookies as $en_cookie_data ) {
 					$en_cookie         = new CMPLZ_COOKIE( $en_cookie_data->ID );
 					$translated_cookie = new CMPLZ_COOKIE( $en_cookie->name, $language );
@@ -78,14 +87,28 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 						$translated_cookie->slug              = $en_cookie->slug;
 						$translated_cookie->ignored           = $en_cookie->ignored;
 						$translated_cookie->lastAddDate       = time();
-						// Copy field values from parent.
-						$translated_cookie->retention             = $en_cookie->retention;
-						$translated_cookie->cookieFunction        = $en_cookie->cookieFunction;
-						$translated_cookie->purpose               = $en_cookie->purpose;
-						$translated_cookie->type                  = $en_cookie->type;
-						$translated_cookie->collectedPersonalData = $en_cookie->collectedPersonalData;
+						// type is structural (not language-specific), always copy.
+						$translated_cookie->type = $en_cookie->type;
+						// For custom (non-synced) cookies, copy content fields since the CDB won't
+						// provide translations. For CDB-synced cookies, leave empty so the CDB can
+						// fill in the correct translated values; empty fields fall back to the English
+						// parent via the fallback mechanism in CMPLZ_COOKIE::get().
+						if ( ! $en_cookie->sync ) {
+							$translated_cookie->retention             = $en_cookie->retention;
+							$translated_cookie->cookieFunction        = $en_cookie->cookieFunction;
+							$translated_cookie->purpose               = $en_cookie->purpose;
+							$translated_cookie->collectedPersonalData = $en_cookie->collectedPersonalData;
+						}
 						$translated_cookie->save();
+						$created = true;
 					}
+				}
+
+				if ( $created ) {
+					// Flush the cookie list cache so the newly created translations are
+					// visible to the subsequent CDB sync request in the same PHP process.
+					delete_transient( 'cmplz_cookies' );
+					COMPLIANZ::$banner_loader->cookies = array();
 				}
 			}
 		}
@@ -113,7 +136,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 
 			$languages = COMPLIANZ::$banner_loader->get_supported_languages();
 			foreach ( $languages as $language ) {
-				if ( $language === 'en' ) {
+				if ( "en" === $language ) {
 					continue;
 				}
 
@@ -144,9 +167,9 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 		/**
 		 * Helper: Migrate empty translation fields from parent
 		 *
-		 * @param string $table Table name (cmplz_cookies or cmplz_services)
-		 * @param array  $fields Fields to check and copy
-		 * @return int Number of rows fixed
+		 * @param string $table Table name (cmplz_cookies or cmplz_services).
+		 * @param array  $fields Fields to check and copy.
+		 * @return int Number of rows fixed.
 		 */
 		private function migrate_translation_fields( $table, $fields ) {
 			global $wpdb;
@@ -159,8 +182,9 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				$fields
 			);
 
+			$select_fields      = implode( ', ', array_map( 'esc_sql', $fields ) );
 			$empty_translations = $wpdb->get_results(
-				"SELECT ID, isTranslationFrom
+				"SELECT ID, isTranslationFrom, {$select_fields}
 			FROM {$wpdb->prefix}{$table}
 			WHERE isTranslationFrom > 0
 			AND (" . implode( ' OR ', $where_conditions ) . ')'
@@ -234,7 +258,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 		}
 
 		/**
-		 * Runs once a week to check if the CDB should be synced
+		 * Runs once a week to check if the CDB should be synced.
 		 *
 		 * @param bool $running_after_services
 		 *
@@ -254,7 +278,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 			}
 
 			// if no syncable cookies are found, exit.
-			if ( $data['count'] == 0 ) {
+			if ( 0 == $data['count'] ) {
 				update_option( 'cmplz_sync_cookies_complete', true, false );
 				$msg   = '';
 				$error = true;
@@ -269,12 +293,12 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 
 			if ( ! $error ) {
 				set_transient( 'cmplz_cookiedatabase_request_active', true, MINUTE_IN_SECONDS );
-				// add the plugins list to the data
+				// add the plugins list to the data.
 				$plugins         = get_option( 'active_plugins' );
 				$data['plugins'] = '<pre>' . implode( '<br>', $plugins ) . '</pre>';
 				$data['website'] = '<a href="' . esc_url_raw( site_url() ) . '">' . esc_url_raw( site_url() ) . '</a>';
 				$data            = apply_filters( 'cmplz_api_data', $data );
-				$json            = json_encode( $data );
+				$json            = wp_json_encode( $data );
 				$endpoint        = trailingslashit( CMPLZ_COOKIEDATABASE_URL ) . 'v2/cookies/';
 				$ch              = curl_init();
 
@@ -304,7 +328,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 					update_option( 'cmplz_curl_error', $error_msg, false );
 				}
 
-				if ( $result === false ) {
+				if ( false === $result ) {
 					$error = true;
 				}
 
@@ -324,7 +348,9 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				$result = json_decode( $result );
 				// cookie creation also searches fuzzy, so we can now change the cookie name to an asterisk value
 				// on updates it will still match.
-				if ( isset( $result->data->error ) ) {
+				if ( ! is_object( $result ) || ! property_exists( $result, 'data' ) ) {
+					$error = true;
+				} elseif ( isset( $result->data->error ) ) {
 					$msg   = $result->data->error;
 					$error = true;
 				} else {
@@ -333,18 +359,18 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 			}
 
 			if ( ! $error && isset( $result->status )
-				&& $result->status !== 200
+				&& 200 !== $result->status
 			) {
 				$error = true;
 			}
 
-			// first, add "en" as base cookie, and get ID
+			// first, add "en" as base cookie, and get ID.
 			if ( ! $error ) {
-				// make sure we have an en cookie
+				// make sure we have an en cookie.
 				if ( is_object( $result ) && property_exists( $result, 'en' ) ) {
 					$services = $result->en;
 					foreach ( $services as $service => $cookies ) {
-						$service_name      = ( $service !== 'no-service-set' ) ? $service : false;
+						$service_name      = ( 'no-service-set' !== $service ) ? $service : false;
 						$isTranslationFrom = array();
 						foreach (
 							$cookies as $original_cookie_name => $cookie_object
@@ -371,12 +397,12 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 					}
 
 					foreach ( $result as $language => $services ) {
-						if ( $language === 'en' ) {
+						if ( "en" === $language ) {
 							continue;
 						}
 
 						foreach ( $services as $service => $cookies ) {
-							$service_name = ( $service !== 'no-service-set' ) ? $service : false;
+							$service_name = ( 'no-service-set' !== $service ) ? $service : false;
 							foreach (
 								$cookies as $original_cookie_name => $cookie_object
 							) {
@@ -398,7 +424,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 
 								// when there's no en cookie, create one.
 								if ( ! isset( $isTranslationFrom[ $cookie->name ] )
-									&& $language !== 'en'
+									&& "en" !== $language
 								) {
 									$parent_cookie = new CMPLZ_COOKIE( $cookie->name, 'en' );
 									$parent_cookie->save();
@@ -418,6 +444,15 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				update_option( 'cmplz_sync_cookies_after_services_complete', true, false );
 			} else {
 				update_option( 'cmplz_sync_cookies_complete', true, false );
+			}
+
+			// Flush cookie caches so the updated translations are immediately visible
+			// on the frontend without waiting for the transient to expire.
+			delete_transient( 'cmplz_cookies' );
+			COMPLIANZ::$banner_loader->cookies = array();
+			$languages = COMPLIANZ::$banner_loader->get_supported_languages();
+			foreach ( $languages as $lang ) {
+				wp_cache_delete( 'cmplz_purpose_map_' . $lang, 'complianz' );
 			}
 
 			return $msg;
@@ -487,9 +522,9 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				$index[ $language ] = 0;
 				foreach ( $cookies as $c_index => $cookie ) {
 					$c    = new CMPLZ_COOKIE( $cookie->name, $language, $cookie->service );
-					$slug = $c->slug ?: $index[ $language ];
-					// pass the type to the CDB
-					if ( $c->type === 'localstorage' ) {
+					$slug = $c->slug ? $c->slug : $index[ $language ];
+					// pass the type to the CDB.
+					if ( 'localstorage' === $c->type ) {
 						if ( ! in_array( $cookie->name, $localstorage_cookies ) ) {
 							$localstorage_cookies[] = $cookie->name;
 						}
@@ -498,7 +533,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 					if ( ! empty( $c->service ) ) {
 						$service = new CMPLZ_SERVICE( $c->service );
 
-						// deprecated as of 5.3. Use only if no own domain cookie property has ever been saved
+						// deprecated as of 5.3. Use only if no own domain cookie property has ever been saved.
 						if ( ! $hasOwnDomainCookies ) {
 							if ( $service->thirdParty || $service->secondParty ) {
 								if ( ! in_array( $cookie->name, $thirdparty_cookies, true ) ) {
@@ -532,7 +567,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				}
 			}
 
-			// now count the "EN" cookies
+			// now count the "EN" cookies.
 			if ( isset( $data['en'] ) && is_array( $data['en'] ) ) {
 				foreach ( $data['en'] as $service => $cookies ) {
 					$count_all += is_array( $cookies ) ? count( $cookies ) : 0;
@@ -554,7 +589,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				return;
 			}
 			/**
-			 * get cookies by service name
+			 * get cookies by service name.
 			 */
 			$msg   = '';
 		$result = null;
@@ -566,7 +601,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 			}
 
 			// if no syncable services found, exit.
-			if ( $data['count'] == 0 ) {
+			if ( 0 == $data['count'] ) {
 				update_option( 'cmplz_sync_services_complete', true, false );
 				$msg   = '';
 				$error = true;
@@ -592,7 +627,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 
 				// clear, for further use of this variable.
 				$data     = apply_filters( 'cmplz_api_data', $data );
-				$json     = json_encode( $data );
+				$json     = wp_json_encode( $data );
 				$endpoint = trailingslashit( CMPLZ_COOKIEDATABASE_URL )
 							. 'v1/services/';
 
@@ -619,7 +654,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 
 				$result = curl_exec( $ch );
 
-				if ( $result === false ) {
+				if ( false === $result ) {
 					$error = true;
 				}
 
@@ -639,8 +674,12 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				$result = json_decode( $result );
 				// cookie creation also searches fuzzy, so we can now change the cookie name to an asterisk value
 				// on updates it will still match.
-				if ( isset( $result->error ) ) {
+				if ( ! is_object( $result ) ) {
+					$error = true;
+				} elseif ( isset( $result->error ) ) {
 					$msg   = $result->error;
+					$error = true;
+				} elseif ( ! property_exists( $result, 'data' ) ) {
 					$error = true;
 				} else {
 					$result = $result->data;
@@ -662,7 +701,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 
 						$service_object = $service_and_cookies->service;
 
-						// sync service data
+						// sync service data.
 						if ( ! is_object( $service_object ) || ! property_exists( $service_object, 'name' ) ) {
 							continue;
 						}
@@ -695,7 +734,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				}
 
 				foreach ( $result as $language => $services ) {
-					if ( $language === 'en' ) {
+					if ( 'en' === $language ) {
 						continue;
 					}
 
@@ -801,9 +840,9 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 			if ( $social_media ) {
 				$social_media_types = cmplz_get_option( 'socialmedia_on_site' );
 				foreach ( $social_media_types as $slug => $active ) {
-					if ( $active == 1 ) {
+					if ( 1 == $active ) {
 						$service = new CMPLZ_SERVICE();
-						// add for all languages
+						// add for all languages.
 						$service_name = COMPLIANZ::$config->thirdparty_socialmedia[ $slug ];
 						$service->add( $service_name, COMPLIANZ::$banner_loader->get_supported_languages(), false, 'social' );
 					} else {
@@ -817,9 +856,9 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 			if ( $thirdparty ) {
 				$thirdparty_types = cmplz_get_option( 'thirdparty_services_on_site' );
 				foreach ( $thirdparty_types as $slug => $active ) {
-					if ( $active == 1 ) {
+					if ( 1 == $active ) {
 						$service = new CMPLZ_SERVICE();
-						// add for all languages
+						// add for all languages.
 						$service_name = COMPLIANZ::$config->thirdparty_services[ $slug ];
 						$service->add( $service_name, COMPLIANZ::$banner_loader->get_supported_languages(), false, 'service' );
 					} else {
@@ -845,7 +884,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 			if ( ! cmplz_user_can_manage() ) {
 				return array();
 			}
-			if ( $action === 'add_cookie' ) {
+			if ( 'add_cookie' === $action ) {
 				$service        = sanitize_text_field( $request->get_param( 'service' ) );
 				$name           = sanitize_text_field( $request->get_param( 'cookieName' ) );
 				$name           = __( 'New cookie', 'complianz-gdpr' ) . ' ' . $name;
@@ -862,7 +901,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				$data = array(
 					'cookies' => $new_cookies,
 				);
-			} elseif ( $action === 'update_cookie' ) {
+			} elseif ( 'update_cookie' === $action  ) {
 				$data        = array();
 				$cookie_item = $request->get_param( 'cookie' );
 				$id          = $cookie_item['ID'] ?? false;
@@ -895,7 +934,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 						$cookie->showOnPolicy = (int) $cookie_item['showOnPolicy'];
 					}
 					$cookie->save( true );
-					// update in all languages, then return all cookies to ensure they're all updated
+					// update in all languages, then return all cookies to ensure they're all updated.
 					$new_ids     = $cookie->get_translations();
 					$new_cookies = array();
 					foreach ( $new_ids as $id ) {
@@ -907,12 +946,12 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				}
 			}
 
-			if ( $action === 'update_service' ) {
+			if ( 'update_service' === $action ) {
 				$data         = array();
 				$service_item = $request->get_param( 'service' );
 				$id           = $service_item['ID'] ?? false;
 				$id           = (int) $id;
-				if ( $id !== 0 ) {
+				if ( 0 !== $id ) {
 					if ( $id < 0 ) {
 						$id = sanitize_text_field( $service_item['name'] );
 					}
@@ -937,13 +976,13 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				}
 			}
 
-			if ( $action === 'delete_cookie' ) {
+			if ( 'delete_cookie' === $action ) {
 				$id     = (int) $request->get_param( 'id' );
 				$cookie = new CMPLZ_COOKIE( $id );
 				$cookie->delete();
 				$data = array();
 			}
-			if ( $action === 'delete_service' ) {
+			if ( 'delete_service' === $action ) {
 				$id      = (int) $request->get_param( 'id' );
 				$service = new CMPLZ_SERVICE( $id );
 
@@ -962,6 +1001,13 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 			update_option( 'cmplz_sync_cookies_complete', false, false );
 			update_option( 'cmplz_sync_cookies_after_services_complete', false, false );
 			update_option( 'cmplz_sync_services_complete', false, false );
+			// Reset lastUpdatedDate for all CDB-synced cookies and services so the
+			// next sync re-processes them regardless of when they were last synced.
+			// Without this, cookies saved with English content by a previous buggy
+			// sync would be permanently excluded by the 3-month time filter.
+			global $wpdb;
+			$wpdb->query( "UPDATE {$wpdb->prefix}cmplz_cookies SET lastUpdatedDate = 0 WHERE sync = 1" );
+			$wpdb->query( "UPDATE {$wpdb->prefix}cmplz_services SET lastUpdatedDate = 0 WHERE sync = 1" );
 		}
 
 		/**
@@ -1011,23 +1057,26 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 		 */
 		public function get_sync_data( array $data, string $action, WP_REST_Request $request ) {
 
-			if ( $action === 'migrate_translations' ) {
+			if ( 'migrate_translations' === $action ) {
 				$result = $this->migrate_empty_translations();
 				$data   = $result;
 			}
-			if ( $action === 'sync' ) {
+			if ( 'sync' === $action ) {
 				$this->reset_cookies_changed();
 				$this->ensure_cookies_in_all_languages();
 				$this->ensure_services_in_all_languages();
-				// Fix any existing translations with empty fields
+				// Fix any existing translations with empty fields.
 				$this->migrate_empty_translations();
 				$scan_action = sanitize_title( $request->get_param( 'scan_action' ) );
 				$language    = cmplz_sanitize_language( $request->get_param( 'language' ) );
-				if ( $scan_action === 'restart' ) {
-					$this->resync();
+				if ( COMPLIANZ::$banner_loader->use_cdb_api() ) {
+					if ( 'restart' === $scan_action ) {
+						$this->resync();
+					}
+					$msg = $this->do_sync_batch( true );
+				} else {
+					$msg = '';
 				}
-
-				$msg               = $this->do_sync_batch( true );
 				$data_cookies      = $this->get_syncable_cookies();
 				$data_services     = $this->get_syncable_services();
 				$has_syncable_data = ( count( $data_cookies ) + count( $data_services ) ) > 0;
@@ -1044,7 +1093,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 					$service_objects[] = new CMPLZ_SERVICE( $service->ID );
 				}
 
-				// change into array
+				// change into array.
 				$data = array(
 					'cookies'             => $cookie_objects,
 					'services'            => $service_objects,
@@ -1066,7 +1115,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 		 */
 		public function do_sync_batch( $request_from_sync = false ) {
 			// we leave rest requests to the react app to handle.
-			$is_complianz_page = isset( $_GET['page'] ) && $_GET['page'] === 'complianz';
+			$is_complianz_page = isset( $_GET['page'] ) && 'complianz' === $_GET['page'];
 			if ( ! $is_complianz_page && ! wp_doing_cron() && ! cmplz_is_logged_in_rest() ) {
 				return '';
 			}
@@ -1075,7 +1124,11 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				return '';
 			}
 
-			// we only want to start the sync if the sync has been started from the react app at least once.
+			if ( ! COMPLIANZ::$banner_loader->use_cdb_api() ) {
+				return '';
+			}
+
+			// We only want to start the sync if the sync has been started from the React app at least once.
 			if ( ! $request_from_sync && ! get_option( 'cmplz_first_sync_started' ) ) {
 				return '';
 			}
@@ -1091,7 +1144,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 			$msg      = '';
 			$progress = $this->get_sync_progress();
 
-			if ( $progress === 100 ) {
+			if ( 100 === $progress ) {
 				return '';
 			}
 			if ( 0 < $progress && $progress < 20 ) {
@@ -1108,7 +1161,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 				$msg = $this->maybe_sync_services();
 			}
 
-			// after adding the cookies, do one more cookies sync
+			// after adding the cookies, do one more cookies sync.
 			if ( 80 <= $progress && $progress < 100 ) {
 				$this->maybe_sync_cookies( true );
 				COMPLIANZ::$scan->clear_double_cookienames();
@@ -1118,7 +1171,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 		}
 
 		/**
-		 * Get syn progress
+		 * Get sync progress
 		 *
 		 * @return int
 		 */
@@ -1157,7 +1210,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 		}
 
 		/**
-		 * create select html for service type
+		 * Create select html for service type
 		 *
 		 * @return array
 		 */
@@ -1177,10 +1230,13 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 					$response = wp_remote_get( $endpoint );
 					$status   = wp_remote_retrieve_response_code( $response );
 					$body     = wp_remote_retrieve_body( $response );
-					if ( $status == 200 ) {
-						$body         = json_decode( $body );
+					if ( 200 === $status ) {
+						$body = json_decode( $body );
+						if ( ! is_object( $body ) || ! property_exists( $body, 'data' ) ) {
+							continue;
+						}
 						$serviceTypes = $body->data;
-						if ( $language === 'en' ) {
+						if ( 'en' === $language ) {
 							foreach ( $serviceTypes as $serviceType ) {
 								if ( empty( $serviceType ) ) {
 									continue;
@@ -1200,7 +1256,11 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 						update_option( 'cmplz_serviceTypes_' . $language, $serviceTypes, false );
 					}
 				}
-				// unescape label
+				// If data was loaded from cache (not just fetched), ensure the stored flag is set.
+				if ( $serviceTypes ) {
+					update_option( 'cmplz_serviceTypes_stored', true, false );
+				}
+				// unescape label.
 				foreach ( $serviceTypes as $index => $serviceType ) {
 					$serviceTypes[ $index ]['label'] = html_entity_decode( $serviceType['label'], ENT_QUOTES );
 				}
@@ -1237,10 +1297,13 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 					$response = wp_remote_get( $endpoint );
 					$status   = wp_remote_retrieve_response_code( $response );
 					$body     = wp_remote_retrieve_body( $response );
-					if ( $status === 200 ) {
-						$body           = json_decode( $body );
+					if ( 200 === $status ) {
+						$body = json_decode( $body );
+						if ( ! is_object( $body ) || ! property_exists( $body, 'data' ) ) {
+							continue;
+						}
 						$cookiePurposes = $body->data;
-						if ( $language === 'en' ) {
+						if ( 'en' === $language ) {
 							foreach ( $cookiePurposes as $cookiePurpose ) {
 								if ( empty( $cookiePurpose ) ) {
 									continue;
@@ -1248,7 +1311,7 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 								cmplz_register_translation( $cookiePurpose, $cookiePurpose );
 							}
 						}
-						// convert to react compatible array
+						// convert to react compatible array.
 						$c              = $cookiePurposes;
 						$cookiePurposes = array();
 						foreach ( $c as $id => $cookiePurpose ) {
@@ -1261,7 +1324,11 @@ if ( ! class_exists( 'cmplz_sync' ) ) {
 						update_option( "cmplz_purposes_$language", $cookiePurposes, false );
 					}
 				}
-				// unescape label
+				// If data was loaded from cache (not just fetched), ensure the stored flag is set.
+				if ( $cookiePurposes ) {
+					update_option( 'cmplz_purposes_stored', true, false );
+				}
+				// unescape label.
 				foreach ( $cookiePurposes as $index => $cookiePurpose ) {
 					$cookiePurpose[ $index ]['label'] = html_entity_decode( $cookiePurpose['label'], ENT_QUOTES );
 				}

@@ -36,6 +36,7 @@ const Email = ({ field, onChange, value }) => {
         <FieldWrapper inputId={field.id} label={field.label}>
             <div className="relative w-full">
                 <TextInput
+                    id={field.id}
                     placeholder={__("Enter your e-mail address", "ONBOARDING_WIZARD_TEXT_DOMAIN")}
                     type="email"
                     field={field}

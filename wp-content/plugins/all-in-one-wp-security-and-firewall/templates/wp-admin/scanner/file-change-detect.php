@@ -7,7 +7,7 @@
 ?>
 <div class="aio_blue_box">
 	<?php
-		echo '<p>' . esc_html__('If given an opportunity hackers can insert their code or files into your system which they can then use to carry out malicious acts on your site.', 'all-in-one-wp-security-and-firewall') .'<br>' . esc_html__('Being informed of any changes in your files can be a good way to quickly prevent a hacker from causing damage to your website.', 'all-in-one-wp-security-and-firewall') .'<br>' . esc_html__('In general, WordPress core and plugin files and file types such as ".php" or ".js" should not change often and when they do, it is important that you are made aware when a change occurs and which file was affected.', 'all-in-one-wp-security-and-firewall') .'<br>' . esc_html__('The "File Change Detection Feature" will notify you of any file change which occurs on your system, including the addition and deletion of files by performing a regular automated or manual scan of your system\'s files.', 'all-in-one-wp-security-and-firewall') .'<br>' . esc_html__('This feature also allows you to exclude certain files or folders from the scan in cases where you know that they change often as part of their normal operation. (For example log files and certain caching plugin files may change often and hence you may choose to exclude such files from the file change detection scan)', 'all-in-one-wp-security-and-firewall') . '</p>';
+		echo '<p>' . esc_html__('If given an opportunity, hackers can insert their code or files into your system which they can then use to carry out malicious acts on your site.', 'all-in-one-wp-security-and-firewall') .'<br>' . esc_html__('Being informed of any changes in your files can be a good way to quickly prevent a hacker from causing damage to your website.', 'all-in-one-wp-security-and-firewall') .'<br>' . esc_html__('In general, WordPress core and plugin files and file types such as ".php" or ".js" should not change often, and when they do, it is important that you are made aware when a change occurs and which file was affected.', 'all-in-one-wp-security-and-firewall') .'<br>' . esc_html__('The "File Change Detection Feature" will notify you of any file change which occurs on your system, including the addition and deletion of files by performing a regular automated or manual scan of your system\'s files.', 'all-in-one-wp-security-and-firewall') .'<br>' . esc_html__('This feature also allows you to exclude certain files or folders from the scan in cases where you know that they change often as part of their normal operation (For example log files and certain caching plugin files may change often and hence you may choose to exclude such files from the file change detection scan).', 'all-in-one-wp-security-and-firewall') . '</p>';
 	?>
 </div>
 <div class="postbox aiowps_next_scheduled_scan_wrapper">
@@ -53,10 +53,12 @@
 	</div>
 	<div class="aiowps_scan_btn_wrapper">
 		<button id="aiowps_manual_fcd_scan" type="button" class="button button-primary button-large button-hero"><?php esc_html_e('Scan now', 'all-in-one-wp-security-and-firewall'); ?></button>
+		<p id="aiowps_manual_fcd_scan_spinner" style="display:none;"><span class="aiowps_spinner spinner visible"></span><?php esc_html_e('Processing...', 'all-in-one-wp-security-and-firewall'); ?></p>
+		<p><?php echo '<a href="#" id="aiowps_cancel_fcd_scan" style="display: none; color: red;" data-message="'.esc_attr__('Are you sure you want to stop the file scan?', 'all-in-one-wp-security-and-firewall').'">' . esc_html__('Cancel scan', 'all-in-one-wp-security-and-firewall') . '</a>'; ?></p>
 		<p><?php echo esc_html__('or schedule regular file scans below.', 'all-in-one-wp-security-and-firewall');?></p>
 	</div>
 	<div id="aiowps_activejobs_table">
-		
+		<p id="aiowps_activejobs_spinner" style="display:none;"><span class="aiowps_spinner spinner visible"></span><?php esc_html_e('Processing...', 'all-in-one-wp-security-and-firewall'); ?></p>
 	</div>
 	<div id="aiowps_previous_scan_wrapper">
 	</div>

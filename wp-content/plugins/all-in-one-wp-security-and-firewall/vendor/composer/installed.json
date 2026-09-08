@@ -76,17 +76,17 @@
         },
         {
             "name": "team-updraft/common-libs",
-            "version": "3.0.7",
-            "version_normalized": "3.0.7.0",
+            "version": "3.1.10",
+            "version_normalized": "3.1.10.0",
             "source": {
                 "type": "git",
                 "url": "ssh://git@source.updraftplus.com:20022/team-updraft/common-libs.git",
-                "reference": "30a5b39a3043cc12a6e1358183682d24376b3fdd"
+                "reference": "027214202c3dbc15a807bb3860da36e764c1a58f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://source.updraftplus.com/api/v4/projects/28/packages/composer/archives/team-updraft/common-libs.zip?sha=30a5b39a3043cc12a6e1358183682d24376b3fdd",
-                "reference": "30a5b39a3043cc12a6e1358183682d24376b3fdd",
+                "url": "https://source.updraftplus.com/api/v4/projects/28/packages/composer/archives/team-updraft/common-libs.zip?sha=027214202c3dbc15a807bb3860da36e764c1a58f",
+                "reference": "027214202c3dbc15a807bb3860da36e764c1a58f",
                 "shasum": ""
             },
             "require-dev": {
@@ -131,17 +131,17 @@
         },
         {
             "name": "team-updraft/lib-onboarding-wizard",
-            "version": "1.0.4",
-            "version_normalized": "1.0.4.0",
+            "version": "1.0.5",
+            "version_normalized": "1.0.5.0",
             "source": {
                 "type": "git",
                 "url": "ssh://git@source.updraftplus.com:20022/team-updraft/lib-onboarding-wizard.git",
-                "reference": "021f9bd1207221dc76229e77eacea77a43e65c27"
+                "reference": "b3326bd10931461479e434b34f5226892170f0eb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://source.updraftplus.com/api/v4/projects/140/packages/composer/archives/team-updraft/lib-onboarding-wizard.zip?sha=021f9bd1207221dc76229e77eacea77a43e65c27",
-                "reference": "021f9bd1207221dc76229e77eacea77a43e65c27",
+                "url": "https://source.updraftplus.com/api/v4/projects/140/packages/composer/archives/team-updraft/lib-onboarding-wizard.zip?sha=b3326bd10931461479e434b34f5226892170f0eb",
+                "reference": "b3326bd10931461479e434b34f5226892170f0eb",
                 "shasum": ""
             },
             "require": {

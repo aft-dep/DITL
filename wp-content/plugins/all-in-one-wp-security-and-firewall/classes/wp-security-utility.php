@@ -51,7 +51,7 @@ class AIOWPSecurity_Utility {
 
 		if (defined('DOING_AJAX') && DOING_AJAX) {
 			// Return the referer URL instead of the AJAX URL
-			return isset($_SERVER['HTTP_REFERER']) ? sanitize_url(wp_unslash($_SERVER['HTTP_REFERER'])) : '';
+			return isset($_SERVER['HTTP_REFERER']) ? esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])) : '';
 		}
 
 		$pageURL = 'http';
@@ -469,6 +469,11 @@ class AIOWPSecurity_Utility {
 	 */
 	public static function check_blacklist_ip($ip) {
 		global $aio_wp_security;
+
+		if ('' === $aio_wp_security->configs->get_value('aiowps_enable_blacklisting')) {
+			return false;
+		}
+
 		$blacklisted_ips = $aio_wp_security->configs->get_value('aiowps_banned_ip_addresses');
 		$blacklisted_ips_array = explode("\n", $blacklisted_ips);
 		if (in_array($ip, $blacklisted_ips_array)) {
@@ -676,27 +681,18 @@ class AIOWPSecurity_Utility {
 	}
 
 	/**
-	 * Add backquotes to tables and db-names in SQL queries. Taken from phpMyAdmin.
+	 * Quotes an identifier for use in an SQL statement. Escapes any quotes found inside the identifier.
 	 *
-	 * @param  string $a_name - the table name
-	 * @return string - the quoted table name
+	 * Does the same as the wpdb method added in WordPress 6.2 for %i in prepare: https://developer.wordpress.org/reference/classes/wpdb/quote_identifier/
+	 *
+	 * @param string $identifier
+	 *
+	 * @return string
 	 */
-	public static function backquote($a_name) {
-		if (!empty($a_name) && '*' != $a_name) {
-			if (is_array($a_name)) {
-				$result = array();
-				foreach ($a_name as $key => $val) {
-					$result[$key] = '`'.$val.'`';
-				}
-				return $result;
-			} else {
-				return '`'.$a_name.'`';
-			}
-		} else {
-			return $a_name;
-		}
+	public static function quote_identifier($identifier) {
+		return '`' . str_replace('`', '``', $identifier) . '`';
 	}
-	
+
 	/**
 	 * Replace the first, and only the first, instance within a string
 	 *
@@ -1149,7 +1145,7 @@ class AIOWPSecurity_Utility {
 	public static function is_memberpress_plugin_active() {
 		return is_plugin_active('memberpress/memberpress.php');
 	}
-	 
+
 	/**
 	 * Retrieves and returns current WP general settings date time format.
 	 *
@@ -1291,10 +1287,14 @@ class AIOWPSecurity_Utility {
 	 * @return array|WP_Error
 	 */
 	public static function get_googlebot_ip_ranges() {
-		$response = wp_safe_remote_get('https://developers.google.com/static/search/apis/ipranges/googlebot.json');
+		$response = wp_safe_remote_get('https://developers.google.com/static/crawling/ipranges/common-crawlers.json');
 
 		$body = wp_remote_retrieve_body($response);
 		$json_array = json_decode($body, true);
+
+		if (!isset($json_array['prefixes'])) {
+			return new WP_Error('invalid_json', __('The Googlebot IP ranges could not be retrieved.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Please try again later or contact support if the issue persists.', 'all-in-one-wp-security-and-firewall'));
+		}
 
 		$ip_list_array = array();
 
@@ -1305,6 +1305,30 @@ class AIOWPSecurity_Utility {
 		return AIOWPSecurity_Utility_IP::validate_ip_list($ip_list_array, 'whitelist');
 	}
 
+	/**
+	 * Updates the Bingbot IP ranges config.
+	 *
+	 * @return array|WP_Error
+	 */
+	public static function get_bingbot_ip_ranges() {
+		$response = wp_safe_remote_get('https://www.bing.com/toolbox/bingbot.json');
+
+		$body = wp_remote_retrieve_body($response);
+		$json_array = json_decode($body, true);
+
+		if (!isset($json_array['prefixes'])) {
+			return new WP_Error('invalid_json', __('The Bingbot IP ranges could not be retrieved.', 'all-in-one-wp-security-and-firewall') . ' ' . __('Please try again later or contact support if the issue persists.', 'all-in-one-wp-security-and-firewall'));
+		}
+
+		$ip_list_array = array();
+
+		foreach ($json_array['prefixes'] as $prefix) {
+			$ip_list_array[] = array_key_exists('ipv4Prefix', $prefix) ? $prefix['ipv4Prefix'] : $prefix['ipv6Prefix'];
+		}
+
+		return AIOWPSecurity_Utility_IP::validate_ip_list($ip_list_array, 'whitelist');
+	}
+	
 	/**
 	 * This function creates and outputs the csv file for download
 	 *
@@ -1384,6 +1408,7 @@ class AIOWPSecurity_Utility {
 			$aio_wp_security->configs->set_value('aiowps_banned_ip_addresses', $banned_ip_data);
 			$aio_wp_security->configs->save_config();
 
+			$aiowps_firewall_config->set_value('aiowps_enable_blacklisting', '1');
 			$aiowps_firewall_config->set_value('aiowps_blacklist_ips', $validated_ip_list_array);
 		}
 	}
@@ -1532,6 +1557,40 @@ class AIOWPSecurity_Utility {
 		}
 		return $result;
 	}
+	
+	/**
+	 * Checks if the incoming request IP is from a genuine search bot
+	 * Currently caters for Google, Bing, Yahoo
+	 *
+	 * @global AIOWPS\Firewall\Config $aiowps_firewall_config
+	 *
+	 * @return bool
+	 */
+	public static function is_genuine_search_bot() {
+		global $aiowps_firewall_config;
+		
+		$user_agent = (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : ''); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- PCP warning. Sanitizing is not required, as we validate the raw input.
+		if (empty($user_agent)) return false;
+
+		$bots = AIOS_Abstracted_Ids::get_bots();
+
+		foreach ($bots as $bot) {
+			if (preg_match('/' . $bot['user_agent'] . '/i', $user_agent)) {
+				if ('Googlebot' == $bot['user_agent']) {
+					$googlebot_ips = $aiowps_firewall_config->get_value('aiowps_googlebot_ip_ranges');
+					if (AIOS_Helper::is_user_ip_address_within_list($googlebot_ips)) return true;
+				} elseif ('bingbot' == $bot['user_agent']) {
+					$bingbot_ips = $aiowps_firewall_config->get_value('aiowps_bingbot_ip_ranges');
+					if (AIOS_Helper::is_user_ip_address_within_list($bingbot_ips)) return true;
+				}
+				$ip = AIOWPSecurity_Utility_IP::get_user_ip_address();
+				$host_name = gethostbyaddr($ip); // let's get the internet hostname using the given IP address
+				$host_ip = gethostbyname($host_name); // Reverse lookup - let's get the IP using the name
+				return ($host_ip == $ip) && (preg_match('/' . $bot['host_name'] . '/i', $host_name));
+			}
+		}
+		return false; // not one of the search bots
+	}
 
 	/**
 	 * Gets the rest route starting with namespace from the REST API endpoint
@@ -1544,7 +1603,7 @@ class AIOWPSecurity_Utility {
 		$rest_route = !empty($_GET['rest_route']) ? sanitize_text_field(stripslashes($_GET['rest_route'])) : '';
 		// If route is not found in query parameter, extract from REQUEST_URI
 		if (empty($rest_route)) {
-			$request_uri = !empty($_SERVER['REQUEST_URI']) ? urldecode($_SERVER['REQUEST_URI']) : '';
+			$request_uri = !empty($_SERVER['REQUEST_URI']) ? sanitize_text_field(urldecode($_SERVER['REQUEST_URI'])) : '';
 			$parsed_url = parse_url(trim($request_uri, '/'));
 			$path = isset($parsed_url['path']) ? $parsed_url['path'] : '';
 			if (false !== strpos($path, rest_get_url_prefix())) {
@@ -1568,8 +1627,8 @@ class AIOWPSecurity_Utility {
 		$rest_server = rest_get_server();
 		$namespaces = $rest_server->get_namespaces();
 		$rest_route_namespaces = array();
-		foreach ($namespaces as $namesapce) {
-			$rest_route_namespaces[] = explode('/', $namesapce)[0]; // Namespace 'wc' only to consider instead 'wc/v1', 'wc/v2', 'wc/v3', 'wc/store'
+		foreach ($namespaces as $namespace) {
+			$rest_route_namespaces[] = explode('/', $namespace)[0]; // Namespace 'wc' only to consider instead 'wc/v1', 'wc/v2', 'wc/v3', 'wc/store'
 		}
 		$route_namespaces = array_unique($rest_route_namespaces);
 		sort($route_namespaces);

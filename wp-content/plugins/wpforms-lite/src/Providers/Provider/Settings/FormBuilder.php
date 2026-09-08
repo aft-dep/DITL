@@ -135,9 +135,14 @@ abstract class FormBuilder implements FormBuilderInterface {
 							<# _.each( data.connection.fields_meta, function( item, meta_id ) { #>
 								<tr class="wpforms-builder-provider-connection-fields-table-row">
 									<td>
-										<# if ( ! _.isEmpty( data.provider.fields ) ) { #>
+										<?php
+											// data.hideCustomMetaInput property is used when there are no registered custom fields,
+											// but select field should be shown instead of input.
+										?>
+										<# if ( data.hideCustomMetaInput || ! _.isEmpty( data.provider.fields ) ) { #>
 											<select class="wpforms-builder-provider-connection-field-name"
-												name="providers[{{ data.provider.slug }}][{{ data.connection.id }}][fields_meta][{{ meta_id }}][name]">
+												name="providers[{{ data.provider.slug }}][{{ data.connection.id }}][fields_meta][{{ meta_id }}][name]"
+												<# if ( _.isEmpty( data.provider.fields ) ) { #>disabled<# } #>>
 												<option value=""><# if ( ! _.isEmpty( data.provider.placeholder ) ) { #>{{ data.provider.placeholder }}<# } else { #><?php esc_html_e( '--- Select Field ---', 'wpforms-lite' ); ?><# } #></option>
 
 												<# _.each( data.provider.fields, function( field_name, field_id ) { #>
@@ -180,7 +185,7 @@ abstract class FormBuilder implements FormBuilderInterface {
 										</select>
 									</td>
 									<td class="add">
-										<button class="button-secondary js-wpforms-builder-provider-connection-fields-add"
+										<button class="button-secondary js-wpforms-builder-provider-connection-fields-add <# if ( _.isEmpty( data.provider.fields ) ) { #>wpforms-disabled<# } #>"
 										        title="<?php esc_attr_e( 'Add Another', 'wpforms-lite' ); ?>">
 											<i class="fa fa-plus-circle"></i>
 										</button>
@@ -196,9 +201,10 @@ abstract class FormBuilder implements FormBuilderInterface {
 						<# } else { #>
 							<tr class="wpforms-builder-provider-connection-fields-table-row">
 								<td>
-									<# if ( ! _.isEmpty( data.provider.fields ) ) { #>
+									<# if ( data.hideCustomMetaInput || ! _.isEmpty( data.provider.fields ) ) { #>
 										<select class="wpforms-builder-provider-connection-field-name"
-											name="providers[{{ data.provider.slug }}][{{ data.connection.id }}][fields_meta][0][name]">
+											name="providers[{{ data.provider.slug }}][{{ data.connection.id }}][fields_meta][0][name]"
+											<# if ( _.isEmpty( data.provider.fields ) ) { #>disabled<# } #>>
 											<option value=""><# if ( ! _.isEmpty( data.provider.placeholder ) ) { #>{{ data.provider.placeholder }}<# } else { #><?php esc_html_e( '--- Select Field ---', 'wpforms-lite' ); ?><# } #></option>
 
 											<# _.each( data.provider.fields, function( field_name, field_id ) { #>
@@ -217,7 +223,7 @@ abstract class FormBuilder implements FormBuilderInterface {
 									<# } #>
 								</td>
 								<td>
-									<select class="wpforms-builder-provider-connection-field-value"
+									<select class="wpforms-builder-provider-connection-field-value" data-support-subfields="{{ data.isSupportSubfields }}"
 										name="providers[{{ data.provider.slug }}][{{ data.connection.id }}][fields_meta][0][field_id]">
 										<option value=""><?php esc_html_e( '--- Select Form Field ---', 'wpforms-lite' ); ?></option>
 
@@ -233,7 +239,7 @@ abstract class FormBuilder implements FormBuilderInterface {
 									</select>
 								</td>
 								<td class="add">
-									<button class="button-secondary js-wpforms-builder-provider-connection-fields-add"
+									<button class="button-secondary js-wpforms-builder-provider-connection-fields-add <# if ( _.isEmpty( data.provider.fields ) ) { #>wpforms-disabled<# } #>"
 									        title="<?php esc_attr_e( 'Add Another', 'wpforms-lite' ); ?>">
 										<i class="fa fa-plus-circle"></i>
 									</button>
@@ -302,7 +308,7 @@ abstract class FormBuilder implements FormBuilderInterface {
 	 *
 	 * @since 1.4.7
 	 */
-	public function process_ajax(): void {
+	public function process_ajax(): void { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
 
 		// Run a security check.
 		check_ajax_referer( 'wpforms-builder', 'nonce' );
@@ -346,6 +352,11 @@ abstract class FormBuilder implements FormBuilderInterface {
 			wp_send_json_error( $error );
 		}
 
+		// Object-level authorization: the caller must be able to edit this specific form.
+		if ( ! $this->current_user_can_edit_form( $form_id ) ) {
+			wp_send_json_error( $error );
+		}
+
 		$data = apply_filters( // phpcs:ignore WPForms.Comments.PHPDocHooks.RequiredHookDocumentation, WPForms.PHP.ValidateHooks.InvalidHookName
 			'wpforms_providers_settings_builder_ajax_' . $task . '_' . $this->core->slug,
 			null
@@ -360,6 +371,45 @@ abstract class FormBuilder implements FormBuilderInterface {
 		}
 
 		wp_send_json_error( $error );
+	}
+
+	/**
+	 * Determine whether the current user may edit the given form.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param int $form_id Form id to check.
+	 *
+	 * @return bool
+	 */
+	protected function current_user_can_edit_form( int $form_id ): bool {
+
+		return wpforms_current_user_can( 'edit_form_single', $form_id );
+	}
+
+	/**
+	 * Determine whether the given account id is attached to one of this form's saved
+	 * connections for the current provider.
+	 *
+	 * This is a helper method for mainly using in addons.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param string $account_id Account id to check.
+	 *
+	 * @return bool
+	 */
+	protected function account_belongs_to_form( string $account_id ): bool {
+
+		$connections = (array) ( $this->form_data['providers'][ $this->core->slug ] ?? [] );
+
+		foreach ( $connections as $connection ) {
+			if ( is_array( $connection ) && ! empty( $connection['account_id'] ) && (string) $connection['account_id'] === $account_id ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

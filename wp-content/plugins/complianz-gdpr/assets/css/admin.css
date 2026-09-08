@@ -1001,83 +1001,83 @@ button.button .cmplz-icon.cmplz-icon-loading > div {
 }
 
 .cmplz-placeholder .cmplz-placeholder-line:nth-of-type(1) {
-    width: 93%;
+    width: 72%;
 }
 
 .cmplz-placeholder .cmplz-placeholder-line:nth-of-type(2) {
-    width: 83%;
+    width: 66%;
 }
 
 .cmplz-placeholder .cmplz-placeholder-line:nth-of-type(3) {
-    width: 63%;
+    width: 80%;
 }
 
 .cmplz-placeholder .cmplz-placeholder-line:nth-of-type(4) {
-    width: 65%;
+    width: 82%;
 }
 
 .cmplz-placeholder .cmplz-placeholder-line:nth-of-type(5) {
-    width: 62%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(6) {
-    width: 63%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(7) {
-    width: 91%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(8) {
-    width: 65%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(9) {
-    width: 63%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(10) {
-    width: 68%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(11) {
-    width: 77%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(12) {
-    width: 84%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(13) {
     width: 90%;
 }
 
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(14) {
-    width: 66%;
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(6) {
+    width: 100%;
 }
 
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(15) {
-    width: 78%;
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(7) {
+    width: 71%;
 }
 
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(16) {
-    width: 89%;
-}
-
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(17) {
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(8) {
     width: 69%;
 }
 
-.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(18) {
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(9) {
+    width: 97%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(10) {
+    width: 61%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(11) {
+    width: 66%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(12) {
     width: 93%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(13) {
+    width: 74%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(14) {
+    width: 91%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(15) {
+    width: 63%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(16) {
+    width: 63%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(17) {
+    width: 63%;
+}
+
+.cmplz-placeholder .cmplz-placeholder-line:nth-of-type(18) {
+    width: 92%;
 }
 
 .cmplz-placeholder .cmplz-placeholder-line:nth-of-type(19) {
-    width: 93%;
+    width: 64%;
 }
 
 .cmplz-placeholder .cmplz-placeholder-line:nth-of-type(20) {
-    width: 66%;
+    width: 76%;
 }
 
 .cmplz-placeholder .cmplz-placeholder-line ~ .cmplz-placeholder-line {
@@ -1187,10 +1187,6 @@ button.button .cmplz-icon.cmplz-icon-loading > div {
 
 #complianz .cmplz-other-plugins-container .cmplz-other-plugins-element.cmplz-zip-recipes {
     --rsp-other-plugins-color: var(--rsp-pink);
-}
-
-#complianz .cmplz-other-plugins-container .cmplz-other-plugins-element.cmplz-burst-statistics {
-    --rsp-other-plugins-color: var(--rsp-green);
 }
 
 #complianz .cmplz-other-plugins-container .cmplz-other-plugins-element.cmplz-complianz-gdpr {
@@ -1459,27 +1455,6 @@ button.button .cmplz-icon.cmplz-icon-loading > div {
     gap: 3px;
     justify-content: center;
     font-size: var(--rsp-fs-100);
-}
-
-.cmplz-statistics-select-item span .burst-icon-live {
-    animation-name: pulse;
-    animation-duration: 1.5s;
-    animation-timing-function: ease-in;
-    animation-direction: alternate;
-    animation-iteration-count: infinite;
-    animation-play-state: running;
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(0.9);
-        opacity: 0.2;
-    }
-
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
 }
 
 .cmplz-statistics-list {
@@ -4219,10 +4194,6 @@ nav.rdt_Pagination > div > svg {
     gap: var(--rsp-spacing-xs);
     padding-inline: var(--rsp-spacing-s);
     padding-block: var(--rsp-spacing-xs);
-}
-
-.dashboard_page_burst .shepherd-modal-overlay-container {
-    display: none;
 }
 
 .shepherd-modal-overlay-container {

@@ -4,7 +4,7 @@
 	<div class="inside">
 			<?php
 			if ('1' == $aio_wp_security->configs->get_value('aiowps_enable_autoblock_spam_ip') && '1' != $aio_wp_security->configs->get_value('aiowps_enable_spambot_detecting')) {
-				$comment_spam_detect_link = "<a href='".esc_url(admin_url(sanitize_url(sprintf('admin.php?page=%s&tab=%s', AIOWPSEC_SPAM_MENU_SLUG, 'comment-spam'))))."'>" . esc_html__('spam comment detection', 'all-in-one-wp-security-and-firewall') . "</a>";
+				$comment_spam_detect_link = "<a href='".admin_url(esc_url_raw(sprintf('admin.php?page=%s&tab=%s', AIOWPSEC_SPAM_MENU_SLUG, 'comment-spam')))."'>" . esc_html__('spam comment detection', 'all-in-one-wp-security-and-firewall') . "</a>";
 				/* translators: %s: Feature URL. */
 				$info_msg = sprintf(esc_html__('This feature has detected that %s is not active.', 'all-in-one-wp-security-and-firewall'), $comment_spam_detect_link) . ' ' . esc_html__('It is highly recommended that you activate to make the most of this feature.', 'all-in-one-wp-security-and-firewall');
 				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Variable already escaped.

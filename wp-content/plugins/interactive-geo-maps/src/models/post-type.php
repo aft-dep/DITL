@@ -1,5 +1,10 @@
 <?php
 
+// If this file is called directly, quit.
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 use Saltus\WP\Plugin\Saltus\InteractiveMaps\Plugin\MapList;
 
 function igmaps_maps() {
@@ -69,7 +74,7 @@ function igmaps_model() {
                         $image      = isset( $image_meta['mapImage'] ) && $image_meta['mapImage'] !== '' ? $image_meta['mapImage'] : '';
 
                         if ( '' !== $image ) {
-                            echo sprintf( '<img style="max-width:100%%;" src="%1$s">', $image );
+                            echo sprintf( '<img style="max-width:100%%;" src="%1$s">', esc_url( $image ) );
                         }
 
                         echo '';
@@ -137,14 +142,19 @@ function igmaps_model() {
                 ],
                 'bulk_messages' => [
                     'updated_singular'   => __( 'Map updated.', 'interactive-geo-maps' ),
+                    /* translators: %s: number of maps */
                     'updated_plural'     => __( '%s Maps updated.', 'interactive-geo-maps' ),
                     'locked_singular'    => __( 'Map not updated, somebody is editing it.', 'interactive-geo-maps' ),
+                    /* translators: %s: number of maps */
                     'locked_plural'      => __( '%s Map not updated, somebody is editing them.', 'interactive-geo-maps' ),
                     'deleted_singular'   => __( 'Map permanently deleted.', 'interactive-geo-maps' ),
+                    /* translators: %s: number of maps */
                     'deleted_plural'     => __( '%s Map permanently deleted.', 'interactive-geo-maps' ),
                     'trashed_singular'   => __( 'Map moved to the trash.', 'interactive-geo-maps' ),
+                    /* translators: %s: number of maps */
                     'trashed_plural'     => __( '%s Maps moved to the trash.', 'interactive-geo-maps' ),
                     'untrashed_singular' => __( 'Map recovered from trash.', 'interactive-geo-maps' ),
+                    /* translators: %s: number of maps */
                     'untrashed_plural'   => __( '%s Maps recovered from trash', 'interactive-geo-maps' ),
                 ],
                 'ui'            => [
@@ -887,7 +897,7 @@ function igmaps_model() {
     } else {
         if ( isset( $_GET['post'] ) && ! is_array( $_GET['post'] ) ) {
             global $post;
-            $model['meta']['shortcode']['fields']['shortcode']['content'] = sprintf( '<textarea style="width:100%%;" readonly>[display-map id=\'%s\']</textarea>', sanitize_key( esc_attr( $_GET['post'] ) ) );
+            $model['meta']['shortcode']['fields']['shortcode']['content'] = sprintf( '<textarea style="width:100%%;" readonly>[display-map id=\'%s\']</textarea>', (int) wp_unslash( $_GET['post'] ) );
         }
     }
 

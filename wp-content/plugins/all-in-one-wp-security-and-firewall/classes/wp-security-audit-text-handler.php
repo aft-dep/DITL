@@ -235,4 +235,17 @@ class AIOWPSecurity_Audit_Text_Handler {
 			return sprintf(__('User account: `%1$s` with ID: `%2$s` has been removed from the blog with ID: `%3$s` and all content has been reassigned to user with  ID: `%4$s`', 'all-in-one-wp-security-and-firewall'), $info['user_login'], $info['user_id'], $info['blog_id'], $info['reassign']);
 		}
 	}
+	
+	/**
+	 * Return the text version of 'wpcli_command' event
+	 *
+	 * @param array $info
+	 * @return string
+	 */
+	public static function wpcli_command_to_text($info) {
+		if (!empty($info['command'])) {
+			/* translators: %s: Command-line command */
+			return sprintf(__('Command : "%s" has been executed', 'all-in-one-wp-security-and-firewall'), $info['command']);
+		}
+	}
 }

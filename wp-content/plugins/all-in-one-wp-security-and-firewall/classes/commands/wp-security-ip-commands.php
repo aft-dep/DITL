@@ -87,20 +87,24 @@ trait AIOWPSecurity_Ip_Commands_Trait {
 	 * @return array
 	 */
 	public function lock_ip($data) {
-
 		if (!isset($data['ip'])) {
-			return $this->handle_response(false, __('No IP provided.', 'all-in-one-wp-security-and-firewall'));
+			return $this->handle_response(false, __('No IP address has been provided.', 'all-in-one-wp-security-and-firewall'));
 		}
 
-		if (!filter_var($data['ip'], FILTER_VALIDATE_IP)) {
-			return $this->handle_response(false, __('Invalid IP provided.', 'all-in-one-wp-security-and-firewall'));
+		$ip = sanitize_text_field($data['ip']);
+
+		if (AIOWPSecurity_Utility_IP::get_user_ip_address() == $ip) {
+			return $this->handle_response(false, __('You cannot lock your own IP address:', 'all-in-one-wp-security-and-firewall') . ' ' . $ip);
 		}
 
-		if (!isset($data['lock_reason'])) {
-			return $this->handle_response(false, __('No lockout reason provided.', 'all-in-one-wp-security-and-firewall'));
+		if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+			return $this->handle_response(false, __('The provided IP address is not valid:', 'all-in-one-wp-security-and-firewall') . ' ' . $ip);
 		}
 
-		AIOWPSecurity_Utility::lock_ip($data['ip'], $data['lock_reason']);
+		$reason = isset($data['lock_reason']) ? sanitize_text_field($data['lock_reason']) : '';
+		$username = isset($data['username']) ? sanitize_user($data['username']) : '';
+
+		AIOWPSecurity_Utility::lock_ip($ip, $reason, $username);
 
 		return $this->handle_response(true, __('The selected IP address is now temporarily locked.', 'all-in-one-wp-security-and-firewall'));
 	}

@@ -2,6 +2,8 @@
 
 namespace WPForms\Requirements;
 
+use WPForms\Helpers\Plugin;
+
 /**
  * Requirements management.
  *
@@ -275,6 +277,9 @@ class Requirements {
 		'wpforms-hubspot/wpforms-hubspot.php'                           => [
 			self::LICENSE => self::TOP,
 		],
+		'wpforms-klaviyo/wpforms-klaviyo.php'                           => [
+			self::LICENSE => self::PLUS_PRO_AND_TOP,
+		],
 		'wpforms-lead-forms/wpforms-lead-forms.php'                     => [],
 		'wpforms-mailchimp/wpforms-mailchimp.php'                       => [
 			self::EXT     => 'curl',
@@ -287,6 +292,7 @@ class Requirements {
 			self::LICENSE => self::PLUS_PRO_AND_TOP,
 		],
 		'wpforms-make/wpforms-make.php'                                 => [],
+		'wpforms-mercado-pago/wpforms-mercado-pago.php'                 => [],
 		'wpforms-n8n/wpforms-n8n.php'                                   => [
 			self::LICENSE => self::PRO_AND_TOP,
 		],
@@ -307,6 +313,9 @@ class Requirements {
 		'wpforms-save-resume/wpforms-save-resume.php'                   => [
 			self::LICENSE => self::PLUS_PRO_AND_TOP,
 		],
+		'wpforms-sendgrid/wpforms-sendgrid.php'                         => [
+			self::LICENSE => self::PLUS_PRO_AND_TOP,
+		],
 		'wpforms-sendinblue/wpforms-sendinblue.php'                     => [
 			self::LICENSE => self::PLUS_PRO_AND_TOP,
 		],
@@ -320,7 +329,7 @@ class Requirements {
 		'wpforms-square/wpforms-square.php'                             => [],
 		'wpforms-stripe/wpforms-stripe.php'                             => [],
 		'wpforms-surveys-polls/wpforms-surveys-polls.php'               => [
-			self::ADDON => '1.15.0',
+			self::ADDON => '1.20.0',
 		],
 		'wpforms-twilio/wpforms-twilio.php'                             => [
 			self::LICENSE => self::PLUS_PRO_AND_TOP,
@@ -489,7 +498,7 @@ class Requirements {
 			return false;
 		}
 
-		if ( ! $this->is_wpforms_addon( $basename ) ) {
+		if ( ! Plugin::is_wpforms_addon( $basename ) ) {
 			// No more actions if it is not a wpforms addon.
 			return true;
 		}
@@ -551,7 +560,7 @@ class Requirements {
 			return false;
 		}
 
-		if ( ! $this->is_wpforms_addon( $plugin ) ) {
+		if ( ! Plugin::is_wpforms_addon( $plugin ) ) {
 			// No more actions if it is not a wpforms addon.
 			return false;
 		}
@@ -573,30 +582,21 @@ class Requirements {
 	}
 
 	/**
-	 * Check whether a plugin is a wpforms addon.
+	 * Check whether a basename belongs to the core WPForms plugin (Lite or Pro).
 	 *
-	 * @since 1.8.2.2
+	 * Only `wpforms/wpforms.php` and `wpforms-lite/wpforms.php` contain the `wpforms.php`
+	 * substring; addon basenames (e.g. `wpforms-entry-automation/wpforms-entry-automation.php`)
+	 * do not.
 	 *
-	 * @param string $plugin Path to the plugin file relative to the plugins' directory.
+	 * @since 1.10.2
+	 *
+	 * @param string $basename Plugin basename.
 	 *
 	 * @return bool
 	 */
-	private function is_wpforms_addon( string $plugin ): bool {
+	private function is_core_plugin( string $basename ): bool {
 
-		if ( strpos( $plugin, 'wpforms-' ) !== 0 ) {
-			// No more actions for the general plugin.
-			return false;
-		}
-
-		/**
-		 * There are some forks of our plugins having the 'wpforms-' prefix.
-		 * We have to check the Author name in the plugin header.
-		 */
-		$plugin_data   = $this->get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin );
-		$plugin_author = isset( $plugin_data['Author'] ) ? strtolower( $plugin_data['AuthorName'] ) : '';
-
-		// No more actions on forks.
-		return $plugin_author === 'wpforms';
+		return strpos( $basename, 'wpforms.php' ) !== false;
 	}
 
 	/**
@@ -967,7 +967,38 @@ class Requirements {
 			return;
 		}
 
+		// Only show requirements notices to users who can act on them (update the plugin).
+		if ( ! $this->current_user_can_see_notice() ) {
+			return;
+		}
+
 		$this->show_notice( '<p>' . implode( '</p><p>', $notices ) . '</p>' );
+	}
+
+	/**
+	 * Determine whether the current user should see requirements admin notices.
+	 *
+	 * The notices ask the user to update the plugin, so by default they are shown
+	 * only to users who can update plugins. The capability is filterable so a site
+	 * can choose to also surface the notice to other WPForms-capable users.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return bool
+	 */
+	private function current_user_can_see_notice(): bool {
+
+		/**
+		 * Filters whether the current user may see WPForms requirements notices.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param bool $can_see Whether the current user can see the notice. Defaults to the `update_plugins` capability.
+		 */
+		return (bool) apply_filters(
+			'wpforms_requirements_current_user_can_see_notice',
+			current_user_can( 'update_plugins' )
+		);
 	}
 
 	/**
@@ -986,6 +1017,12 @@ class Requirements {
 		}
 
 		foreach ( $this->not_validated as $basename => $errors ) {
+			// Addon requirement notices are Pro-only. On Lite, addons cannot run regardless of
+			// their version, so the "requires WPForms X" notice is non-actionable and is suppressed.
+			if ( ! $this->is_core_plugin( $basename ) && ! wpforms_is_pro() ) {
+				continue;
+			}
+
 			$notice = $this->get_notice( $basename );
 
 			if ( ! $notice ) {

@@ -326,15 +326,6 @@ class IS_Admin_Public {
 		return $html;
 	}
 
-    /*
-     * Declare support for WooCommerce features
-     */
-    public function declare_wc_features_support() {
-        if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
-            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', IS_PLUGIN_FILE, true );
-        }
-    }
-
 	/**
 	 * Displays search form by processing shortcode.
 	 */

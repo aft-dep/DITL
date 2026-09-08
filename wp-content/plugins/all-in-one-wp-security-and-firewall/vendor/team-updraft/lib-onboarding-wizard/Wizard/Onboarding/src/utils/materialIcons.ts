@@ -146,7 +146,8 @@ const materialIcons = {
     info: InfoOutlinedIcon,
     expand: ExpandMoreIcon,
     success: CheckCircleOutlineRoundedIcon,
-    lock:LockOutlinedIcon
+    lock:LockOutlinedIcon,
+    close: CloseIcon
 };
 
 export default materialIcons;

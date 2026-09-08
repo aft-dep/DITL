@@ -9,28 +9,28 @@ use WPFormsGeolocation\Admin\Settings\Settings;
 /**
  * Map field.
  *
- * @since 1.9.9.3
+ * @since 1.10.0
  */
 class Field extends WPForms_Field {
 
 	/**
 	 * Find Nearby Locations option key.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 */
 	protected const NEARBY_LOCATIONS_KEY = 'wpforms_geolocation_find_nearby_locations';
 
 	/**
 	 * Search Radius option key.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 */
 	protected const NEARBY_LOCATIONS_RADIUS_KEY = 'wpforms_geolocation_search_radius';
 
 	/**
 	 * Default search radius.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 */
 	protected const DEFAULT_SEARCH_RADIUS = 25;
 
@@ -39,7 +39,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Whether the addon is active.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @var bool
 	 */
@@ -48,7 +48,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Determine if we should display the field options notice.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @var bool
 	 */
@@ -57,7 +57,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Init class.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @noinspection ReturnTypeCanBeDeclaredInspection
 	 */
@@ -93,14 +93,14 @@ class Field extends WPForms_Field {
 	/**
 	 * Define field hooks.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 */
 	protected function hooks(): void {}
 
 	/**
 	 * Define additional field options.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $field Field data and settings.
 	 *
@@ -115,7 +115,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Basic field options.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $field Field settings.
 	 *
@@ -276,7 +276,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Advanced field options.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $field Field settings.
 	 *
@@ -506,7 +506,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Get active provider slug.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 */
 	protected function get_active_provider_slug(): string {
 
@@ -520,7 +520,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Field preview inside the builder.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $field Field data.
 	 *
@@ -550,27 +550,24 @@ class Field extends WPForms_Field {
 	/**
 	 * Print map HTML.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
-	 * @param string $size     Field size.
-	 * @param int    $field_id Field ID.
-	 *
-	 * @noinspection UnnecessaryCastingInspection
-	 * @noinspection PhpCastIsUnnecessaryInspection
+	 * @param string     $size     Field size.
+	 * @param int|string $field_id Field ID. May be a string for Repeater child fields (e.g. "5_0").
 	 */
-	protected function print_map( string $size, int $field_id ): void {
+	protected function print_map( string $size, $field_id ): void {
 
 		printf(
-			'<div class="wpforms-field-row wpforms-field-%1$s wpforms-geolocation-map" id="wpforms-field-%2$d-map"></div>',
+			'<div class="wpforms-field-row wpforms-field-%1$s wpforms-geolocation-map" id="wpforms-field-%2$s-map"></div>',
 			esc_attr( $size ),
-			(int) $field_id
+			esc_attr( wpforms_validate_field_id( $field_id ) )
 		);
 	}
 
 	/**
 	 * Print location list preview.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $field Field settings.
 	 *
@@ -608,7 +605,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Determine if the current choice is a valid marker.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $choice Choice data.
 	 */
@@ -639,7 +636,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Field display on the form front-end.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $field      Field settings.
 	 * @param array $deprecated Deprecated array.
@@ -653,7 +650,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Get Locations options HTML template.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $field Field settings.
 	 *
@@ -697,7 +694,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Print Locations options row.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @param array $location       Location data.
 	 * @param int   $location_index Index.
@@ -785,7 +782,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Get search radius options in kilometers.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @return array
 	 */
@@ -802,7 +799,7 @@ class Field extends WPForms_Field {
 	/**
 	 * Get search radius options in miles.
 	 *
-	 * @since 1.9.9.3
+	 * @since 1.10.0
 	 *
 	 * @return array
 	 */

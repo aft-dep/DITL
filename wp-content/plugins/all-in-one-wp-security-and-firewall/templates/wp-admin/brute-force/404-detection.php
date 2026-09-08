@@ -3,7 +3,7 @@
 <div class="aio_blue_box">
 	<?php
 	echo '<p>'. esc_html__('A 404 or Not Found error occurs when somebody tries to access a non-existent page on your website.', 'all-in-one-wp-security-and-firewall') . '
-		<br />' . esc_html__('Typically, most 404 errors happen quite innocently when people have mis-typed a URL or used an old link to page which doesn\'t exist anymore.', 'all-in-one-wp-security-and-firewall').'
+		<br />' . esc_html__('Typically, most 404 errors happen quite innocently when people have mistyped a URL or used an old link to page which doesn\'t exist anymore.', 'all-in-one-wp-security-and-firewall').'
 		<br />' . esc_html__('However, in some cases you may find many repeated 404 errors which occur in a relatively short space of time and from the same IP address which are all attempting to access a variety of non-existent page URLs.', 'all-in-one-wp-security-and-firewall').'
 		<br />' . esc_html__('Such behaviour can mean that a hacker might be trying to find a particular page or URL for sinister reasons.', 'all-in-one-wp-security-and-firewall');
 	// translators: %1$s - Open strong tag, %2$s - Close strong tag.
@@ -60,13 +60,13 @@ if (!defined('AIOWPSECURITY_NOADS_B') || !AIOWPSECURITY_NOADS_B) {
 			<tr valign="top">
 				<th scope="row"><label for="aiowps_404_lockout_time_length"><?php esc_html_e('Time length of 404 lockout (minutes)', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
 				<td><input id="aiowps_404_lockout_time_length" type="text" size="5" name="aiowps_404_lockout_time_length" value="<?php echo esc_attr($aio_wp_security->configs->get_value('aiowps_404_lockout_time_length')); ?>" />
-				<span class="description"><?php esc_html_e('Set the length of time for which a blocked IP address will be prevented from visiting your site', 'all-in-one-wp-security-and-firewall'); ?></span>
+				<span class="description"><?php esc_html_e('Set the length of time for which a locked IP address will be prevented from visiting your site.', 'all-in-one-wp-security-and-firewall'); ?></span>
 				</td>
 			</tr>
 			<tr valign="top">
 				<th scope="row"><label for="aiowps_404_lock_redirect_url"><?php esc_html_e('404 lockout redirect URL', 'all-in-one-wp-security-and-firewall'); ?>:</label></th>
 				<td><input id="aiowps_404_lock_redirect_url" type="text" size="50" name="aiowps_404_lock_redirect_url" value="<?php echo esc_url($aio_wp_security->configs->get_value('aiowps_404_lock_redirect_url'), array('http', 'https')); ?>" />
-				<span class="description"><?php esc_html_e('A blocked visitor will be automatically redirected to this URL.', 'all-in-one-wp-security-and-firewall'); ?></span>
+				<span class="description"><?php esc_html_e('A locked visitor will be automatically redirected to this URL.', 'all-in-one-wp-security-and-firewall'); ?></span>
 				</td>
 			</tr>
 		</table>
@@ -75,9 +75,9 @@ if (!defined('AIOWPSECURITY_NOADS_B') || !AIOWPSECURITY_NOADS_B) {
 	</div>
 </div>
 <div class="aios-404-detection-container <?php if ('1' !== $aio_wp_security->configs->get_value('aiowps_enable_404_IP_lockout')) echo 'aio_hidden'; ?>">
-<div class="postbox" id="aios-404-event-logs-table">
+<div class="postbox">
 	<h3 class="hndle"><label for="title"><?php esc_html_e('404 event logs', 'all-in-one-wp-security-and-firewall'); ?></label></h3>
-	<div class="inside">
+	<div class="inside" id="404-log-list-table">
 		<?php
 		// translators: %1$d - Purge event records after number of days.
 		echo '<p>' . esc_html__('This list displays the 404 event logs when somebody tries to access a non-existent page on your website.', 'all-in-one-wp-security-and-firewall').'<br/><strong>'.sprintf(esc_html__('404 event logs that are older than %1$d days are purged automatically.', 'all-in-one-wp-security-and-firewall'), esc_html(apply_filters('aios_purge_events_records_after_days', AIOS_PURGE_EVENTS_RECORDS_AFTER_DAYS))).'</strong></p>';

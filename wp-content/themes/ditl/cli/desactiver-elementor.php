@@ -28,9 +28,11 @@
  * d'Elementor. Le script le verifie et l'affiche avant de desactiver
  * (controle informatif, il n'interrompt pas l'execution).
  *
- * Mode annulation : reactive les trois extensions et restaure l'ancienne
- * valeur de l'option d'upload depuis la sauvegarde (qui est alors
- * supprimee). Les options du mode sans echec ne sont PAS recreees : si le
+ * Mode annulation : reactive Elementor et Ultimate Post Kit (pas
+ * post-grid-elementor-addon, supprime le 08/09/2026 par
+ * cli/rationaliser-extensions.php : voir le commentaire du mode annuler)
+ * et restaure l'ancienne valeur de l'option d'upload depuis la sauvegarde
+ * (qui est alors supprimee). Les options du mode sans echec ne sont PAS recreees : si le
  * mode sans echec redevenait necessaire apres reactivation, Elementor
  * regenere un jeton frais de lui-meme.
  *
@@ -100,7 +102,17 @@ if ( $ditl_annuler ) {
 
 	WP_CLI::log( '--- Annulation : reactivation d\'Elementor et de ses addons ---' );
 
-	foreach ( $ditl_extensions as $ditl_fichier => $ditl_nom ) {
+	// post-grid-elementor-addon a ete SUPPRIME le 08/09/2026 (fichiers
+	// desinstalles et retires du depot par cli/rationaliser-extensions.php :
+	// 0 widget post-grid dans les contenus, y compris les pages ES/PT/DE non
+	// migrees). Il n'y a donc plus rien a reactiver pour lui : on l'ecarte
+	// de la boucle plutot que d'afficher un avertissement "fichier absent"
+	// trompeur a chaque annulation. Il reste dans $ditl_extensions pour le
+	// mode normal (retrait d'active_plugins si un vieux checkout le listait).
+	$ditl_extensions_reactivables = $ditl_extensions;
+	unset( $ditl_extensions_reactivables['post-grid-elementor-addon/post-grid-elementor-addon.php'] );
+
+	foreach ( $ditl_extensions_reactivables as $ditl_fichier => $ditl_nom ) {
 		if ( is_plugin_active( $ditl_fichier ) ) {
 			WP_CLI::log( sprintf( '  %s : deja active, rien a faire.', $ditl_nom ) );
 			continue;

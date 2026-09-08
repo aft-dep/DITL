@@ -52,9 +52,12 @@ const SelectContent = React.forwardRef<
     >
       <SelectPrimitive.Viewport
         className={cn(
-          "p-1",
+          // Make the options list scrollable and prevent it from exceeding the view.
+          // 60 = 240px (~5 items). When options exceed this, the list scrolls.
+          "p-1 max-h-60 overflow-y-auto custom-scrollbar [scrollbar-gutter:stable]", // show scrollbar gutter + styled scrollbar
+
           position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+            "w-full min-w-[var(--radix-select-trigger-width)]"
         )}
       >
         {children}

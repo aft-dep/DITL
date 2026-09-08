@@ -219,7 +219,7 @@ class IS_Public {
                         $temp .= '<svg width="20" height="20" class="search-icon" role="img" viewBox="2 9 20 5" focusable="false" aria-label="' . __( "Search", "add-search-to-menu" ) . '">
 						<path class="search-icon-path" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>';
                     } else {
-                        $temp .= $title;
+                        $temp .= esc_html( $title );
                     }
                     $temp .= '</a>';
                 }
@@ -260,7 +260,7 @@ class IS_Public {
                     $items .= '<svg width="20" height="20" class="search-icon" role="img" viewBox="2 9 20 5" focusable="false" aria-label="' . __( "Search", "add-search-to-menu" ) . '">
 					<path class="search-icon-path" d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>';
                 } else {
-                    $items .= $title;
+                    $items .= esc_html( $title );
                 }
                 $items .= '</a>';
             }
@@ -1196,9 +1196,9 @@ class IS_Public {
     function wp_head() {
         if ( isset( $this->opt['menu_style'] ) && 'default' !== $this->opt['menu_style'] && isset( $this->opt['menu_magnifier_color'] ) && !empty( $this->opt['menu_magnifier_color'] ) ) {
             echo '<style type="text/css" media="screen">';
-            echo '.is-menu path.search-icon-path { fill: ' . $this->opt['menu_magnifier_color'] . ';}';
-            echo 'body .popup-search-close:after, body .search-close:after { border-color: ' . $this->opt['menu_magnifier_color'] . ';}';
-            echo 'body .popup-search-close:before, body .search-close:before { border-color: ' . $this->opt['menu_magnifier_color'] . ';}';
+            echo '.is-menu path.search-icon-path { fill: ' . esc_html( sanitize_hex_color( $this->opt['menu_magnifier_color'] ) ) . ';}';
+            echo 'body .popup-search-close:after, body .search-close:after { border-color: ' . esc_html( sanitize_hex_color( $this->opt['menu_magnifier_color'] ) ) . ';}';
+            echo 'body .popup-search-close:before, body .search-close:before { border-color: ' . esc_html( sanitize_hex_color( $this->opt['menu_magnifier_color'] ) ) . ';}';
             echo '</style>';
         }
         if ( isset( $this->opt['custom_css'] ) && $this->opt['custom_css'] != '' && !preg_match( '#</?\\w+#', $this->opt['custom_css'] ) ) {

@@ -178,6 +178,88 @@ function wpforms_create_upload_dir_htaccess_file(): bool {
 }
 
 /**
+ * Create .htaccess file in the WPForms temporary upload directory.
+ *
+ * Files assembled during chunked uploads are briefly served from this directory
+ * via a public URL. Besides disabling script execution, we force the browser to
+ * download (rather than render inline) anything served from here, which prevents
+ * stored XSS via file types such as SVG on sites that have enabled SVG support.
+ *
+ * @since 1.10.1.1
+ *
+ * @param string $tmp_dir Absolute path to the temporary upload directory.
+ *
+ * @return bool True when the .htaccess file exists, false on failure.
+ */
+function wpforms_create_tmp_dir_htaccess_file( string $tmp_dir ): bool {
+
+	/**
+	 * Whether to create the temporary upload dir .htaccess file.
+	 *
+	 * @since 1.10.1.1
+	 *
+	 * @param bool $allow True or false.
+	 */
+	if ( ! apply_filters( 'wpforms_create_tmp_dir_htaccess_file', true ) ) {
+		return false;
+	}
+
+	if ( ! is_dir( $tmp_dir ) || is_link( $tmp_dir ) ) {
+		return false;
+	}
+
+	$htaccess_file = wp_normalize_path( trailingslashit( $tmp_dir ) . '.htaccess' );
+	$cache_key     = 'tmp_htaccess_file';
+
+	if ( File::is_file_updated( $htaccess_file, $cache_key ) ) {
+		return true;
+	}
+
+	if ( ! function_exists( 'insert_with_markers' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/misc.php';
+	}
+
+	/**
+	 * Filters the temporary upload dir .htaccess file content.
+	 *
+	 * @since 1.10.1.1
+	 *
+	 * @param string $contents The .htaccess file content.
+	 */
+	$contents = apply_filters(
+		'wpforms_create_tmp_dir_htaccess_file_content',
+		'# Disable PHP and Python scripts parsing.
+<Files *>
+  SetHandler none
+  SetHandler default-handler
+  RemoveHandler .cgi .php .php3 .php4 .php5 .phtml .pl .py .pyc .pyo
+  RemoveType .cgi .php .php3 .php4 .php5 .phtml .pl .py .pyc .pyo
+</Files>
+<IfModule mod_php5.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+<IfModule headers_module>
+  Header always set X-Robots-Tag "noindex"
+  Header always set Content-Disposition "attachment"
+</IfModule>'
+	);
+
+	$created = insert_with_markers( $htaccess_file, 'WPForms', $contents );
+
+	if ( $created ) {
+		File::save_file_updated_stat( $htaccess_file, $cache_key );
+	}
+
+	return $created;
+}
+
+/**
  * Create .htaccess file in the WPForms cache directory.
  *
  * @since 1.8.7
@@ -198,8 +280,9 @@ function wpforms_create_cache_dir_htaccess_file(): bool {
 	}
 
 	$htaccess_file = File::get_cache_dir() . '.htaccess';
+	$cache_key     = 'cache_htaccess_file';
 
-	if ( File::is_file_updated( $htaccess_file, 'cache_htaccess_file' ) ) {
+	if ( File::is_file_updated( $htaccess_file, $cache_key ) ) {
 		return true;
 	}
 
@@ -231,7 +314,86 @@ function wpforms_create_cache_dir_htaccess_file(): bool {
 	$created = insert_with_markers( $htaccess_file, 'WPForms', $contents );
 
 	if ( $created ) {
-		File::save_file_updated_stat( $htaccess_file );
+		// The stat has to be stored under the same key it is read with above, or every call finds
+		// nothing cached and deletes the file it has just verified before writing it again.
+		File::save_file_updated_stat( $htaccess_file, $cache_key );
+	}
+
+	return $created;
+}
+
+/**
+ * Create .htaccess file in the WPForms entries export directory.
+ *
+ * Temporary export files are written to this directory while an export is being
+ * generated, and they are delivered to the user through an authenticated PHP
+ * handler. Nothing here should ever be reachable over a direct URL, so access to
+ * the whole directory is denied.
+ *
+ * @since 2.0.1
+ *
+ * @param string $export_dir Absolute path to the entries export directory.
+ *
+ * @return bool True when the .htaccess file exists, false on failure.
+ */
+function wpforms_create_export_dir_htaccess_file( string $export_dir ): bool {
+
+	/**
+	 * Whether to create the entries export dir .htaccess file.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param bool $allow True or false.
+	 */
+	if ( ! apply_filters( 'wpforms_create_export_dir_htaccess_file', true ) ) {
+		return false;
+	}
+
+	if ( ! is_dir( $export_dir ) || is_link( $export_dir ) ) {
+		return false;
+	}
+
+	$htaccess_file = wp_normalize_path( trailingslashit( $export_dir ) . '.htaccess' );
+
+	// More than one directory reaches this function: the export directory itself, and whatever
+	// the get_tmpdir filter points at. The key is therefore derived from the path, because a
+	// shared one makes is_file_updated() compare one directory's file against another's stat
+	// and delete the file it has just found. The path is hashed to keep the option name short.
+	$cache_key = 'export_htaccess_file_' . md5( $htaccess_file );
+
+	if ( File::is_file_updated( $htaccess_file, $cache_key ) ) {
+		return true;
+	}
+
+	if ( ! function_exists( 'insert_with_markers' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/misc.php';
+	}
+
+	/**
+	 * Filters the entries export dir .htaccess file content.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param string $contents The .htaccess file content.
+	 */
+	$contents = apply_filters(
+		'wpforms_create_export_dir_htaccess_file_content',
+		'# Disable access for any file in the export dir.
+# Apache 2.2
+<IfModule !authz_core_module>
+	Deny from all
+</IfModule>
+
+# Apache 2.4+
+<IfModule authz_core_module>
+	Require all denied
+</IfModule>'
+	);
+
+	$created = insert_with_markers( $htaccess_file, 'WPForms', $contents );
+
+	if ( $created ) {
+		File::save_file_updated_stat( $htaccess_file, $cache_key );
 	}
 
 	return $created;
