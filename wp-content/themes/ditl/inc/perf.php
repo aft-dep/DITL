@@ -11,9 +11,10 @@
  * - emojis WordPress (aucun emoji dans les contenus, remplacement client
  *   twemoji superflu) ;
  * - jquery-migrate (aucun script charge n'utilise d'API jQuery supprimee :
- *   seul consommateur jQuery, ivory-search.min.js n'emploie que .click(),
- *   toujours present en jQuery 3.7 ; jquery.validate 1.21 et WPForms 1.9.9
- *   supportent jQuery 3 sans migrate) ;
+ *   jquery.validate et WPForms supportent jQuery 3 sans migrate. Depuis le
+ *   remplacement de la recherche d'en-tete par le composant natif du theme
+ *   (inc/recherche.php, 08/09/2026), WPForms est le seul consommateur de
+ *   jQuery et il ne reste charge que sur les pages a formulaire) ;
  * - feuille commune des blocs wp-block-library (aucun consommateur : le
  *   body n'utilise ni .wp-element-button, ni classes .has-*, ni variables
  *   --wp--preset-- ; les feuilles PAR BLOC reellement consommees

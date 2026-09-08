@@ -393,9 +393,18 @@ function ditl_a11y_wpforms_champs_autocomplete() {
 		),
 	);
 
+	// Version francaise du formulaire de contact : meme structure de champs,
+	// mais un identifiant propre a chaque environnement (le formulaire est
+	// cree par cli/traduire-formulaire-contact.php, qui enregistre son
+	// identifiant dans l'option ci-dessous).
+	$francais = (int) get_option( 'ditl_contact_formulaire_fr', 0 );
+
+	if ( $francais > 0 && ! isset( $champs[ $francais ] ) ) {
+		$champs[ $francais ] = $champs[6];
+	}
+
 	/**
-	 * Permet d'ajouter un formulaire (par exemple la version francaise
-	 * dupliquee) sans toucher au theme.
+	 * Permet d'ajouter un formulaire sans toucher au theme.
 	 *
 	 * @param array $champs Tableau formulaire => ( champ => valeur autocomplete ).
 	 */

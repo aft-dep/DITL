@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.19.0' );
+define( 'DITL_THEME_VERSION', '0.20.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -52,6 +52,12 @@ require_once get_stylesheet_directory() . '/inc/connexion.php';
  * document), sans effet visuel.
  */
 require_once get_stylesheet_directory() . '/inc/a11y.php';
+
+/*
+ * Recherche de l'en-tete : composant natif remplacant l'extension Ivory
+ * Search (menu principal, motif Disclosure accessible, rendu iso-design).
+ */
+require_once get_stylesheet_directory() . '/inc/recherche.php';
 
 /*
  * Reglages d'extensions tierces sans option equivalente (hooks, constantes).

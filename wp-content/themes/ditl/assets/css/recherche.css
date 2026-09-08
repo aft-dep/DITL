@@ -1,0 +1,327 @@
+/**
+ * Recherche de l'en-tete : rendu du composant natif du theme.
+ *
+ * Reproduit au pixel le rendu de l'extension Ivory Search remplacee par
+ * inc/recherche.php (geometrie, couleurs et animation relevees par mesure CDP
+ * le 08/09/2026 : bouton 20x22 centre dans un element de menu de 100 px,
+ * formulaire absolu de 310x36 sous la barre, champ blanc borde #ccc, bouton
+ * d'envoi gris #ededed, croix de fermeture de 20 px a 22 px a droite du
+ * formulaire, fondu de 400 ms).
+ *
+ * Les selecteurs sont volontairement composes (.ditl-recherche + classe ou
+ * balise) : ils doivent depasser les regles Astra sur input, button et label
+ * sans recourir a !important. La feuille est chargee en dernier (dependance
+ * ditl-a11y).
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Conteneur
+ *
+ * L'element de liste garde la mise en forme Astra .main-header-menu
+ * .menu-item (flex colonne centre, position relative). Le conteneur
+ * role="search" reste sans position propre : le formulaire et la croix se
+ * positionnent par rapport a l'element de menu, comme avant.
+ * ------------------------------------------------------------------------ */
+
+.ditl-recherche-item {
+	position: relative;
+}
+
+.ditl-recherche {
+	position: static;
+}
+
+/* ---------------------------------------------------------------------------
+ * Bouton d'ouverture
+ *
+ * Remplace le <a> d'Ivory Search : memes dimensions et meme place. Les
+ * proprietes propres au bouton (fond, bordure, remplissage, police, cadrage
+ * du texte) sont ramenees a celles heritees par un lien pour que la boite
+ * conserve exactement 20x22 px.
+ * ------------------------------------------------------------------------ */
+
+.ditl-recherche .ditl-recherche__bascule {
+	display: block;
+	width: auto;
+	height: auto;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: inherit;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: inherit;
+	line-height: 1;
+	text-align: inherit;
+	text-transform: inherit;
+	cursor: pointer;
+	outline: 0;
+	overflow: visible;
+	-webkit-appearance: none;
+	appearance: none;
+	transition: 0.2s linear;
+}
+
+.ditl-recherche .ditl-recherche__bascule:hover,
+.ditl-recherche .ditl-recherche__bascule:focus,
+.ditl-recherche .ditl-recherche__bascule:active {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	color: inherit;
+}
+
+.ditl-recherche .ditl-recherche__loupe-trace {
+	fill: #848484;
+}
+
+/* ---------------------------------------------------------------------------
+ * Formulaire
+ *
+ * Deroulant ancre sous la barre d'en-tete, aligne a droite. Masque au repos :
+ * display:none le retire aussi de l'ordre de tabulation et de l'arbre
+ * d'accessibilite. Le fondu de 400 ms reprend celui de jQuery (fadeIn) : la
+ * classe --ouvert pose l'affichage, la classe --visible declenche la
+ * transition d'opacite a la trame suivante (voir ditl-recherche.js).
+ * ------------------------------------------------------------------------ */
+
+.ditl-recherche .ditl-recherche__formulaire {
+	display: none;
+	position: absolute;
+	top: 100%;
+	right: 0;
+	z-index: 9;
+	min-width: 310px;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	line-height: 1;
+	opacity: 0;
+	transition: opacity 400ms ease-in-out;
+}
+
+.ditl-recherche--ouvert .ditl-recherche__formulaire {
+	display: block;
+}
+
+.ditl-recherche--visible .ditl-recherche__formulaire {
+	opacity: 1;
+}
+
+@media screen and ( max-width: 910px ) {
+
+	/* Sous 910 px, le deroulant s'ancre a gauche (regle reprise de
+	 * l'extension remplacee) : la croix passe donc a droite du formulaire,
+	 * avec le meme retrait de 2 px qu'en desktop. Sans cela elle sortirait
+	 * de l'ecran ; l'extension ne s'en apercevait pas, son deroulant ne
+	 * s'ouvrant jamais dans le menu hors ecran : le clic sur son lien
+	 * refermait le menu d'Astra avant que le formulaire soit visible.
+	 */
+	.ditl-recherche .ditl-recherche__formulaire {
+		left: 0;
+		right: auto;
+		min-width: 50%;
+	}
+
+	.ditl-recherche button.ditl-recherche__fermer {
+		left: calc( 50% + 2px );
+		right: auto;
+	}
+}
+
+/* Etiquette du champ : occupe la largeur du formulaire moins le bouton. */
+.ditl-recherche .ditl-recherche__etiquette {
+	display: inline-block;
+	width: calc( 100% - 36px );
+	margin: 0;
+	padding: 0;
+	line-height: 1;
+	vertical-align: middle;
+}
+
+.ditl-recherche input.ditl-recherche__champ {
+	width: 100%;
+	height: 36px;
+	min-height: 0;
+	margin: 0;
+	padding: 0 12px;
+	border: solid 1px #ccc;
+	border-right: 0;
+	border-radius: 0;
+	background: #fff;
+	background-image: none;
+	box-shadow: none;
+	color: #333;
+	font-family: arial;
+	font-size: 14px;
+	line-height: 1;
+	outline: 0;
+	box-sizing: border-box;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.ditl-recherche input.ditl-recherche__champ:focus {
+	border: solid 1px #ccc;
+	border-right: 0;
+	background: #fff;
+	box-shadow: none;
+	color: #333;
+}
+
+/* Chrome et Edge : la croix native de vidage n'existait pas non plus avant. */
+.ditl-recherche input.ditl-recherche__champ::-webkit-search-cancel-button,
+.ditl-recherche input.ditl-recherche__champ::-webkit-search-decoration {
+	display: none;
+	-webkit-appearance: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Bouton d'envoi
+ *
+ * Le bouton lui-meme est transparent : le carre gris borde est le span
+ * interieur, comme dans le formulaire d'origine.
+ * ------------------------------------------------------------------------ */
+
+.ditl-recherche button.ditl-recherche__envoyer {
+	width: 36px;
+	height: 36px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: none;
+	box-shadow: none;
+	line-height: 0;
+	opacity: 1;
+	outline: 0;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.ditl-recherche .ditl-recherche__envoyer-icone {
+	display: inline-block;
+	width: 36px;
+	height: 36px;
+	margin: 0;
+	padding-top: 6px;
+	border: 1px solid #ccc;
+	border-radius: 0;
+	background: #ededed;
+	box-shadow: none;
+	color: #666;
+	font-size: 14px;
+	line-height: 1;
+	outline: 0;
+	text-transform: capitalize;
+	vertical-align: middle;
+	box-sizing: border-box;
+	transition: background-color 100ms ease-in-out;
+}
+
+.ditl-recherche button.ditl-recherche__envoyer:hover .ditl-recherche__envoyer-icone {
+	background: #dcdcdc;
+}
+
+.ditl-recherche .ditl-recherche__envoyer-icone svg {
+	display: inline;
+	width: 22px;
+}
+
+.ditl-recherche .ditl-recherche__envoyer-icone svg path {
+	fill: #555;
+}
+
+/* ---------------------------------------------------------------------------
+ * Bouton de fermeture
+ *
+ * Remplace le <div class="search-close"> non focalisable par un vrai bouton
+ * de meme boite (20x20 a 22 px a droite du formulaire) ; la croix reste
+ * dessinee par deux pseudo-elements pivotes. Il n'apparait qu'une fois le
+ * fondu d'ouverture termine, comme avant.
+ * ------------------------------------------------------------------------ */
+
+.ditl-recherche button.ditl-recherche__fermer {
+	display: none;
+	position: absolute;
+	top: calc( 100% + 7px );
+	right: -22px;
+	z-index: 99999;
+	width: 20px;
+	height: 20px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: inherit;
+	font-size: inherit;
+	line-height: inherit;
+	outline: 0;
+	overflow: visible;
+	cursor: pointer;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.ditl-recherche--complet button.ditl-recherche__fermer {
+	display: block;
+}
+
+.ditl-recherche button.ditl-recherche__fermer:hover,
+.ditl-recherche button.ditl-recherche__fermer:focus,
+.ditl-recherche button.ditl-recherche__fermer:active {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+}
+
+.ditl-recherche button.ditl-recherche__fermer::before,
+.ditl-recherche button.ditl-recherche__fermer::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 9px;
+	height: 20px;
+	border-left: 2px solid #848484;
+}
+
+.ditl-recherche button.ditl-recherche__fermer::before {
+	transform: rotate( -45deg );
+}
+
+.ditl-recherche button.ditl-recherche__fermer::after {
+	transform: rotate( 45deg );
+}
+
+/* Mouvement reduit : l'affichage reste instantane, sans fondu. */
+@media ( prefers-reduced-motion: reduce ) {
+
+	.ditl-recherche .ditl-recherche__formulaire {
+		transition: none;
+	}
+}
+
+/*
+ * Focus clavier visible (RGAA 10.7).
+ *
+ * Le composant remplace un lien qui heritait de l'indicateur de focus
+ * d'Astra : sans cette regle, la mise a zero des styles de bouton le
+ * ferait disparaitre. :focus-visible n'affecte que la navigation au
+ * clavier, le rendu a la souris est inchange. La couleur reprend le bleu
+ * des liens du menu ; son harmonisation avec le reste du site est traitee
+ * au chantier des contrastes.
+ */
+.ditl-recherche .ditl-recherche__bascule:focus-visible,
+.ditl-recherche input.ditl-recherche__champ:focus-visible,
+.ditl-recherche button.ditl-recherche__envoyer:focus-visible,
+.ditl-recherche button.ditl-recherche__fermer:focus-visible {
+	outline: 2px solid #1e448f;
+	outline-offset: 2px;
+}
