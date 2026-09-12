@@ -2,14 +2,14 @@
 # This file is distributed under the same license as the Complianz | GDPR/CCPA Cookie Consent plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Complianz | GDPR/CCPA Cookie Consent 7.5.4\n"
+"Project-Id-Version: Complianz | GDPR/CCPA Cookie Consent 7.5.5\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/complianz-gdpr\n"
 "Last-Translator: Complianz <support@complianz.io>\n"
 "Language-Team: Complianz <support@complianz.io>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-31T10:24:04+00:00\n"
+"POT-Creation-Date: 2026-09-08T10:49:46+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.11.0\n"
 "X-Domain: complianz-gdpr\n"
@@ -3113,15 +3113,15 @@ msgstr ""
 msgid "Read more about these purposes"
 msgstr ""
 
-#: DNSMPD/class-admin-DNSMPD.php:139
+#: DNSMPD/class-admin-DNSMPD.php:143
 msgid "You have open data requests."
 msgstr ""
 
-#: DNSMPD/class-admin-DNSMPD.php:139
+#: DNSMPD/class-admin-DNSMPD.php:143
 msgid "Please check the data requests <a href=\"%s\">overview page</a>."
 msgstr ""
 
-#: DNSMPD/class-admin-DNSMPD.php:377
+#: DNSMPD/class-admin-DNSMPD.php:407
 #: settings/build/1624.9d702c7e6ca31b8faac0.js:1
 #: settings/build/3068.8435f38def8428448d03.js:1
 #: settings/build/7234.37457fa62ef571d96d6c.js:1
@@ -3129,7 +3129,7 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
-#: DNSMPD/class-admin-DNSMPD.php:391
+#: DNSMPD/class-admin-DNSMPD.php:421
 msgid "No date available"
 msgstr ""
 
@@ -3881,16 +3881,14 @@ msgid "Attention: please review your cookie configuration"
 msgstr ""
 
 #: settings/config/fields-notices.php:200
-msgid ""
-"Currently, the only active cookie category is Functional. In some regions, when only one category is available, the cookie banner may not be \n"
-"\tdisplayed. We recommend double-checking your settings and, if needed, following this guide to force the banner display."
+msgid "Currently, the only active cookie category is Functional. In some regions, when only one category is available, the cookie banner may not be displayed. We recommend double-checking your settings and, if needed, following this guide on why cookie banners sometimes don't show, and how to force the banner to display."
 msgstr ""
 
-#: settings/config/fields-notices.php:214
+#: settings/config/fields-notices.php:213
 msgid "Clarity Consent Mode V2"
 msgstr ""
 
-#: settings/config/fields-notices.php:215
+#: settings/config/fields-notices.php:214
 msgid "Enforced from October 31st 2025; see how it works."
 msgstr ""
 

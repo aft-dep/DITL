@@ -3026,7 +3026,7 @@ if ( ! function_exists( 'cmplz_site_has_high_post_count' ) ) {
 			 AND post_type IN ('post', 'page')"
 		);
 
-		$threshold = 200;
+		$threshold = 50;
 		$result    = $count > $threshold;
 		set_transient( 'cmplz_scan_high_post_count', $result ? '1' : '0', DAY_IN_SECONDS );
 		set_transient( 'cmplz_scan_post_count', $count, DAY_IN_SECONDS );
