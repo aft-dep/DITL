@@ -1,10 +1,13 @@
 /**
  * Corrections d'accessibilite : styles d'accompagnement des hooks de inc/a11y.php.
  *
- * Charge sur toutes les pages (le menu principal est partout). Aucune de ces
- * regles ne change un pixel a l'etat de repos : elles rendent focusable un
- * bouton deja present dans le DOM et neutralisent la mise en forme par defaut
- * des listes introduites a la place de blocs (navigation d'article, pagination).
+ * Charge sur toutes les pages (le menu principal est partout). Les regles
+ * des premieres sections ne changent pas un pixel a l'etat de repos : elles
+ * rendent focusable un bouton deja present dans le DOM et neutralisent la
+ * mise en forme par defaut des listes introduites a la place de blocs
+ * (navigation d'article, pagination). Seul le soulignement des liens dans
+ * le texte (RGAA 10.6, fin de fichier) modifie volontairement le rendu au
+ * repos ; l'anneau de focus (RGAA 10.7) n'apparait qu'au clavier.
  *
  * @package DiTL
  */
@@ -18,8 +21,9 @@
  * du lien = 1em, fleche = svg .6em + marge 10px), transparent et sans glyphe
  * propre : rien ne change visuellement, la souris continue de traverser vers
  * le lien (pointer-events), seul le clavier / les technologies d'assistance
- * l'atteignent. L'anneau de focus d'Astra (outline) reste visible autour de
- * la fleche. Comportement : assets/js/ditl-menu.js.
+ * l'atteignent. Au clavier, il recoit l'anneau de focus commun du theme
+ * (RGAA 10.7, fin de fichier) autour de la fleche. Comportement :
+ * assets/js/ditl-menu.js.
  * ------------------------------------------------------------------------ */
 
 #ast-desktop-header .main-header-menu > .menu-item-has-children > .ast-menu-toggle {
@@ -99,4 +103,94 @@
 
 .ast-pagination .nav-links > li > .next.page-numbers {
 	display: inline-block;
+}
+
+/* ---------------------------------------------------------------------------
+ * Liens dans le texte (RGAA 10.6)
+ *
+ * Astra donne aux liens la couleur du texte et retire le soulignement : un
+ * lien au fil d'un paragraphe n'etait reperable que par le curseur. Les liens
+ * places dans un bloc de texte du contenu editorial (paragraphes, listes,
+ * tableaux, citations, legendes ; contenu classique des articles et des
+ * pages, contenus riches des gabarits) sont soulignes. Couleur inchangee :
+ * le trait prend la couleur du lien. Au survol et au focus, le trait
+ * s'epaissit (la couleur de survol d'Astra reste celle d'origine).
+ *
+ * Hors regle : boutons (classes *bouton* et *button*), titres de cartes
+ * (.ditl-souligne-anime a son propre effet ; exclusion defensive, la classe
+ * n'est aujourd'hui posee que dans des h3), meta et liens des cartes
+ * d'actualites, "Lire la suite" des listes d'articles. En-tete, menus et
+ * pied de page sont hors de .entry-content.
+ * ------------------------------------------------------------------------ */
+
+.entry-content :where(p, li, dd, dt, td, th, blockquote, figcaption) a:where(:not([class*="bouton"]):not([class*="button"]):not(.ditl-souligne-anime)) {
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: .15em;
+}
+
+.entry-content :where(p, li, dd, dt, td, th, blockquote, figcaption) a:where(:not([class*="bouton"]):not([class*="button"]):not(.ditl-souligne-anime)):is(:hover, :focus) {
+	text-decoration-thickness: 2px;
+}
+
+/*
+ * Cartes et listes d'articles : leurs liens ne sont pas du texte courant.
+ * :where() maintient les regles ci-dessus a la specificite (0,1,1) (celle
+ * de "a:where(...) {text-decoration:none}" du coeur, plus une classe) : la
+ * remise a zero l'emporte avec une seule classe de plus.
+ */
+.entry-content :is(.ditl-actu-item, .ditl-actu-card, .read-more) a {
+	text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Focus visible au clavier (RGAA 10.7)
+ *
+ * Un seul indicateur pour tous les elements interactifs : anneau plein de
+ * 3 px, bleu #1E448F (9,2:1 sur blanc), decolle de 2 px. :focus-visible le
+ * reserve a la navigation au clavier : un clic souris n'affiche rien.
+ * Il remplace les pointilles fins d'Astra (qui heritaient de la couleur de
+ * survol #ECA500, 2,1:1 sur blanc) et retablit un indicateur la ou il avait
+ * ete supprime (champs et bouton du formulaire de contact, boutons du
+ * carrousel et du bandeau de cookies). Specificite (0,3,0), portee par
+ * l'argument le plus fort de :is() ([tabindex]:not(...)) plus :focus-visible :
+ * au-dessus de "button:focus {outline:0}" et "input {outline:none}" d'Astra,
+ * sans !important. Une regle de composant qui ajuste l'anneau doit peser au
+ * moins autant et venir apres, ou peser davantage. Les elements en tabindex="-1" (cibles de focus par script)
+ * gardent le rendu du navigateur.
+ * ------------------------------------------------------------------------ */
+
+:is(a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+	outline: 3px solid #1e448f;
+	outline-offset: 2px;
+}
+
+/*
+ * Lien d'evitement : Astra le cible en (0,3,0), a egalite avec la regle
+ * generale. Regle explicite pour ne pas dependre de l'ordre de chargement.
+ */
+.site .skip-link:focus-visible {
+	outline: 3px solid #1e448f;
+	outline-offset: 2px;
+}
+
+/*
+ * Fonds images ou colores (cartes d'actualites : titre, categorie, auteur
+ * poses sur la photo ou son voile ; bouton pause pose sur le carrousel) :
+ * double anneau. Un lisere blanc de 2 px
+ * remplit l'espace entre l'element et l'anneau bleu ; l'un des deux
+ * contraste toujours avec le fond, quel qu'il soit (technique WCAG C40).
+ */
+:is(.ditl-actu-item, .ditl-actu-card) a[href]:focus-visible,
+.ditl-carousel .ditl-carousel__pause:focus-visible {
+	box-shadow: 0 0 0 2px #fff;
+}
+
+/*
+ * Menu mobile : les liens occupent toute la largeur de l'ecran, un anneau
+ * exterieur sortirait du viewport sur les cotes et passerait sous l'element
+ * voisin. L'anneau est pose a l'interieur du lien (fond #F9F9F9 : 8,7:1).
+ */
+#ast-mobile-header .main-header-menu .menu-link:focus-visible {
+	outline-offset: -3px;
 }

@@ -314,14 +314,15 @@
  * Le composant remplace un lien qui heritait de l'indicateur de focus
  * d'Astra : sans cette regle, la mise a zero des styles de bouton le
  * ferait disparaitre. :focus-visible n'affecte que la navigation au
- * clavier, le rendu a la souris est inchange. La couleur reprend le bleu
- * des liens du menu ; son harmonisation avec le reste du site est traitee
- * au chantier des contrastes.
+ * clavier, le rendu a la souris est inchange. Meme anneau que le reste du
+ * site (a11y.css, RGAA 10.7) : 3 px bleu #1E448F decolle de 2 px. La regle
+ * generale (0,3,0) l'emporte deja sur les remises a zero ci-dessus ; celle-ci
+ * est gardee pour que le composant reste correct meme sans a11y.css.
  */
 .ditl-recherche .ditl-recherche__bascule:focus-visible,
 .ditl-recherche input.ditl-recherche__champ:focus-visible,
 .ditl-recherche button.ditl-recherche__envoyer:focus-visible,
 .ditl-recherche button.ditl-recherche__fermer:focus-visible {
-	outline: 2px solid #1e448f;
+	outline: 3px solid #1e448f;
 	outline-offset: 2px;
 }
