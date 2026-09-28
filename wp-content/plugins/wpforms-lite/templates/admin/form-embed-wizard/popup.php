@@ -181,7 +181,8 @@ $render_education_card = static function ( array $item, bool $is_lite ): void {
 				<p class="secondary wpforms-admin-form-embed-wizard-qr-promo">
 					<?php
 					printf(
-						'<i class="fa fa-qrcode" aria-hidden="true"></i>%s',
+						// The span keeps the sentence a single flex item, so its mid-sentence link is not reordered in RTL.
+						'<i class="fa fa-qrcode" aria-hidden="true"></i><span>%s</span>',
 						wp_kses(
 							__( 'You can also <a href="#" id="wpforms-admin-form-embed-wizard-qr-link">generate a QR Code</a> that can be used to share your form.', 'wpforms-lite' ),
 							[

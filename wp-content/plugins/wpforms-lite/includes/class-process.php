@@ -6,6 +6,7 @@
 // phpcs:enable Generic.Commenting.DocComment.MissingShort
 
 // phpcs:ignore WPForms.PHP.UseStatement.UnusedUseStatement
+use WPForms\Admin\Settings\Captcha\ConfigurationError;
 use WPForms\Emails\Mailer;
 use WPForms\Emails\Notifications;
 
@@ -532,7 +533,7 @@ class WPForms_Process {
 			}
 
 			// Check if the form was submitted too quickly.
-			$this->time_limit_check();
+			$this->time_limit_check( $entry );
 
 			// Check for spam.
 			$this->process_spam_check( $entry );
@@ -634,6 +635,15 @@ class WPForms_Process {
 			'url_referer' => isset( $_POST['url_referer'] ) ? esc_url_raw( wp_unslash( $_POST['url_referer'] ) ) : '',
 			'user_id'     => get_current_user_id(),
 		];
+
+		$language = wpforms_is_collecting_ip_allowed( $this->form_data ) ? wpforms_get_visitor_language() : '';
+
+		// The visitor's language is request telemetry like the IP and the User Agent, so it
+		// follows the same GDPR switch. Stored only when the request carries it, otherwise
+		// every entry would keep an empty row.
+		if ( $language !== '' ) {
+			$this->form_data['entry_meta']['language'] = $language;
+		}
 
 		// Save meta data.
 		$this->save_meta( $this->entry_id, $this->form_data['id'] );
@@ -957,8 +967,11 @@ class WPForms_Process {
 	 * Check if the form was submitted too quickly.
 	 *
 	 * @since 1.8.3
+	 * @since 2.0.2 Added the `$entry` argument, which carries the signed render time token.
+	 *
+	 * @param array $entry Submitted form data.
 	 */
-	private function time_limit_check() {
+	private function time_limit_check( array $entry ) {
 
 		/**
 		 * Allow bypassing the time limit check.
@@ -984,27 +997,20 @@ class WPForms_Process {
 			return;
 		}
 
-		//phpcs:disable WordPress.Security.NonceVerification.Missing
-		$start = ! empty( $_POST['start_timestamp'] ) ? absint( $_POST['start_timestamp'] ) : 0;
-		$end   = ! empty( $_POST['end_timestamp'] ) ? absint( $_POST['end_timestamp'] ) : 0;
-		//phpcs:enable WordPress.Security.NonceVerification.Missing
-
-		// Filter out empty fields.
-		$fields = array_filter(
-			$this->fields,
-			static function ( $field ) {
-
-				return ! empty( $field['value'] );
-			}
-		);
-
-		// Skip the time limit check if the form was submitted with prefilled values.
-		if ( $start === 0 && ! empty( $fields ) ) {
+		// AMP pages run no plugin JavaScript and an AMP cache can serve the same document for days,
+		// so the render time such a page carries can never be refreshed. The antispam token check
+		// skips AMP for the same reason.
+		if ( wpforms_is_amp() ) {
 			return;
 		}
 
-		// If the form was submitted too quickly, add an error.
-		if ( ( $end - $start ) < $duration || $start === 0 ) {
+		$time_token = sanitize_text_field( $entry['time_token'] ?? '' );
+
+		// The render time comes from the signed token, so it cannot be forged on the client.
+		$start = wpforms()->obj( 'token' )->verify_time_token( $time_token, absint( $this->form_data['id'] ) );
+
+		// If the render time is unknown or the form was submitted too quickly, add an error.
+		if ( $start === 0 || ( time() - $start ) < $duration ) {
 			$this->errors[ $this->form_data['id'] ]['header'] = esc_html__( 'Please wait a little longer before submitting. We’re running a quick security check.', 'wpforms-lite' );
 		}
 	}
@@ -1057,8 +1063,11 @@ class WPForms_Process {
 	 */
 	public function process_spam_check( $entry ) {
 
-		// CAPTCHA check.
-		$this->process_captcha( $entry );
+		// CAPTCHA check. A CAPTCHA configuration error is a hard form error, and letting Akismet run after it
+		// would allow its spam error to overwrite that error once spam entries are not stored.
+		if ( $this->process_captcha( $entry ) ) {
+			return;
+		}
 
 		if ( $this->spam_reason ) {
 			return;
@@ -1106,22 +1115,23 @@ class WPForms_Process {
 	 *
 	 * @since 1.8.0
 	 * @since 1.8.3 Removed $captcha_settings parameter.
+	 * @since 2.0.2 Returns whether the CAPTCHA provider reported a configuration error.
 	 *
 	 * @param array $entry Form submission raw data ($_POST).
 	 *
-	 * @return void
+	 * @return bool True when the provider rejected the site's secret key or could not be reached.
 	 */
-	private function process_captcha( $entry ) { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
+	private function process_captcha( $entry ): bool { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
 
 		// Skip if spam was already detected.
 		if ( $this->spam_reason ) {
-			return;
+			return false;
 		}
 
 		$captcha_settings = wpforms_get_captcha_settings();
 
 		if ( ! $this->allow_process_captcha( $entry, $captcha_settings ) ) {
-			return;
+			return false;
 		}
 
 		$provider = $captcha_settings['provider'];
@@ -1129,7 +1139,7 @@ class WPForms_Process {
 		$current_captcha = $this->get_captcha( $provider );
 
 		if ( empty( $current_captcha ) ) {
-			return;
+			return false;
 		}
 
 		$verify_url_raw   = $current_captcha['verify_url_raw'];
@@ -1158,7 +1168,7 @@ class WPForms_Process {
 		if ( ! $token ) {
 			$this->errors[ $this->form_data['id'] ]['recaptcha'] = $error;
 
-			return;
+			return false;
 		}
 
 		/*
@@ -1198,6 +1208,22 @@ class WPForms_Process {
 
 		$response_body = json_decode( wp_remote_retrieve_body( $response ), false );
 
+		$config_error = $this->get_captcha_config_error( $response, $response_body );
+
+		if ( $config_error !== '' ) {
+			// The visitor did nothing wrong here, so the submission is blocked with a regular form error
+			// and is never recorded as spam. The site owner is informed by the admin notice instead.
+			$this->errors[ $this->form_data['id'] ]['recaptcha'] = $error;
+
+			return $this->handle_captcha_config_error( $config_error, $response, $response_body, $captcha_settings );
+		}
+
+		// The provider accepted the secret key, so a stored configuration error is outdated.
+		// The call does not write anything when nothing is flagged.
+		if ( ! empty( $response_body->success ) ) {
+			ConfigurationError::clear();
+		}
+
 		if (
 			empty( $response_body->success ) ||
 			( $is_recaptcha_v3 && $response_body->score <= wpforms_setting( 'recaptcha-v3-threshold', '0.4' ) )
@@ -1212,6 +1238,95 @@ class WPForms_Process {
 
 			$this->spam_reason = $captcha_provider;
 		}
+
+		return false;
+	}
+
+	/**
+	 * Log a CAPTCHA site configuration problem and flag it for the site owner.
+	 *
+	 * @since 2.0.2
+	 *
+	 * @param string         $config_error     Configuration problem detected in the response.
+	 * @param array|WP_Error $response         Response of the CAPTCHA verification request.
+	 * @param mixed          $response_body    Decoded response body.
+	 * @param array          $captcha_settings CAPTCHA settings the verification request was made with.
+	 *
+	 * @return bool Always true, telling the caller a configuration error was handled.
+	 */
+	private function handle_captcha_config_error( string $config_error, $response, $response_body, array $captcha_settings ): bool {
+
+		$captcha_provider = $this->get_captcha( $captcha_settings['provider'] )['provider'] ?? '';
+		$error_codes      = $this->get_captcha_error_codes( $response_body );
+
+		if ( $error_codes ) {
+			// The provider's own codes are the whole diagnostic, so they are logged as they came.
+			$details = $error_codes;
+		} elseif ( is_wp_error( $response ) ) {
+			$details = $response->get_error_message();
+		} else {
+			// An unrecognized payload is logged as it is, minus the secret key the request echoes.
+			$details = str_replace( $captcha_settings['secret_key'], '[redacted]', wp_remote_retrieve_body( $response ) );
+		}
+
+		wpforms_log(
+			'CAPTCHA Configuration Error',
+			[
+				'provider' => $captcha_provider,
+				'reason'   => $config_error,
+				'response' => $details,
+			],
+			[
+				'type'    => [ 'error' ],
+				'form_id' => $this->form_data['id'],
+			]
+		);
+
+		ConfigurationError::flag( $config_error, $captcha_provider );
+
+		return true;
+	}
+
+	/**
+	 * Retrieve the error codes a CAPTCHA verification response reports.
+	 *
+	 * @since 2.0.2
+	 *
+	 * @param mixed $response_body Decoded response body.
+	 *
+	 * @return array Error codes as the provider sent them, empty when the optional field is absent.
+	 */
+	private function get_captcha_error_codes( $response_body ): array {
+
+		return isset( $response_body->{'error-codes'} ) ? (array) $response_body->{'error-codes'} : [];
+	}
+
+	/**
+	 * Detect whether a CAPTCHA verification response reports a site configuration problem.
+	 *
+	 * A provider rejecting the site's secret key, or not answering at all, tells nothing about the
+	 * visitor, so such a response must not end up as a spam verdict.
+	 *
+	 * @since 2.0.2
+	 *
+	 * @param array|WP_Error $response      Response of the CAPTCHA verification request.
+	 * @param mixed          $response_body Decoded response body.
+	 *
+	 * @return string One of 'invalid-secret', 'unreachable', or an empty string when the response
+	 *                carries no sign of a configuration problem.
+	 */
+	private function get_captcha_config_error( $response, $response_body ): string {
+
+		if ( is_wp_error( $response ) || ! is_object( $response_body ) ) {
+			return 'unreachable';
+		}
+
+		// None of the supported providers uses any of these codes for anything but a secret key problem,
+		// which is why a single provider-agnostic set is enough. The field itself is optional everywhere.
+		$secret_error_codes = [ 'invalid-input-secret', 'missing-input-secret', 'sitekey-secret-mismatch' ];
+		$error_codes        = array_filter( $this->get_captcha_error_codes( $response_body ), 'is_string' );
+
+		return array_intersect( $secret_error_codes, $error_codes ) ? 'invalid-secret' : '';
 	}
 
 	/**
@@ -2325,6 +2440,7 @@ class WPForms_Process {
 	 * Validate action value for ajax form submission.
 	 *
 	 * @since 1.9.3
+	 * @since 2.0.2.1 Added the wp_doing_ajax() requirement.
 	 *
 	 * @return bool
 	 */
@@ -2335,8 +2451,10 @@ class WPForms_Process {
 			return true;
 		}
 
+		// The action parameter alone is supplied by the request, so a native POST can forge it.
+		// Only the AJAX endpoint reaches process() through wp_ajax_wpforms_submit.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
-		return ! empty( $_POST['action'] ) && $_POST['action'] === 'wpforms_submit';
+		return wp_doing_ajax() && ! empty( $_POST['action'] ) && $_POST['action'] === 'wpforms_submit';
 	}
 
 	/**

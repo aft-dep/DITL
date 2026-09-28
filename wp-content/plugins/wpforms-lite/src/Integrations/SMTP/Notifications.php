@@ -186,10 +186,7 @@ class Notifications implements IntegrationInterface {
 		$install_wp_mail_smtp_text = '';
 
 		// If WP Mail SMTP is not active, show a message to install it.
-		if (
-			! is_plugin_active( 'wp-mail-smtp-pro/wp_mail_smtp.php' ) &&
-			! is_plugin_active( 'wp-mail-smtp/wp_mail_smtp.php' )
-		) {
+		if ( ! Helpers::is_active() ) {
 			$install_wp_mail_smtp_text .= sprintf(
 				wp_kses( /* translators: %1$s - WP Mail SMTP install page URL. */
 					__(

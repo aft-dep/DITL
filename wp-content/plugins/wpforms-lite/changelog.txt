@@ -1,5 +1,36 @@
 == Changelog ==
 
+= 2.0.2.1 =
+- Changed: The Keyboard Shortcuts modal in the Form Builder was reorganized into a single two-column list that pairs related shortcuts side by side, and widened so no shortcut wraps onto a second line.
+- Fixed: Values submitted to a form embedded with the WPForms block were echoed back into the re-rendered form with shortcode delimiters intact.
+- Fixed: A Smart Tag placed inside an HTML attribute in a Confirmation message, a form description, a field description or a User Registration message could alter the markup around it, or turn a link into a script, once its value contained a quote or an unsafe URL.
+
+= 2.0.2 =
+- Added: New Dashboard that displays form views and recommended next steps across all forms at a glance is now the first page you see when opening WPForms.
+- Added: Links in AI Chat responses are now clickable and open in a new tab.
+- Added: The AI form editing chat can now restore the form to its previous state when asked — reverting the most recent change, the same way as pressing Undo.
+- Added: The `{all_fields}` smart tag now accepts an `exclude` parameter to omit specific fields by ID from notification emails, e.g. `{all_fields exclude="4,5"}`.
+- Added: Suggested privacy policy text for the AI features now appears on the WordPress Privacy Policy Guide screen (Settings > Privacy > Policy Guide), so site owners can adopt it into their own policy.
+- Changed: The "Minimum time to submit" spam protection is now measured on the server, so it can no longer be bypassed by bots.
+- Changed: The Form Builder no longer saves the form and creates a revision when a WPForms AI editing prompt makes no changes to the form.
+- Fixed: Installing an addon or plugin from WPForms was reported as failed when it printed a message during activation, even though it was successfully installed and active.
+- Fixed: A Cloudflare Turnstile warning appeared in the browser console after a form was successfully submitted.
+- Fixed: On right-to-left sites, the back arrow and card arrows in the Form Embed Wizard's Add to a New Page popup pointed the wrong way, and the QR Code icon was separated from its accompanying text.
+- Fixed: Form submissions were silently marked as spam when the CAPTCHA provider rejected the site's secret key. An admin notice now reports the problem so it can be corrected, and the notice disappears once the CAPTCHA is reconfigured or disabled.
+- Fixed: The Form Builder opened from the Get Started button in the WPForms block stayed stuck on a loading spinner on some sites and could not be saved or closed.
+- Fixed: Saving a form showed a popup warning that AJAX form submissions are required for the PayPal Commerce field even after that field had been deleted.
+- Fixed: The submit button did not switch to the processing text and stayed unchanged while a PayPal Commerce card payment was being processed.
+- Fixed: The Email Summary email contained no form entries or trends data on sites running MySQL 5.7.
+- Fixed: The Email Summary showed a blank trend percentage for a form that received exactly one entry in the previous week.
+- Fixed: Security hardening for the Stripe payment refund process.
+- Fixed: The AI chat displayed raw technical error messages (such as browser exceptions and connection timeouts) instead of user-friendly error notices.
+- Fixed: On right-to-left sites, the AI chat window opened anchored to the wrong side of the screen instead of mirroring to the left, and the stop button lost its padding and stuck to the corner of the message field during response generation.
+- Fixed: Undo and Redo controls in the Form Builder could disappear after two quick changes to the same setting.
+- Fixed: The standard Submit button appeared next to the PayPal Commerce payment buttons in the Form Builder preview after editing a form with the AI Smart Form Editor.
+- Fixed: Adding or removing a row in the Stripe Custom Meta table in the Form Builder was not tracked by Undo and Redo.
+- Fixed: Email Summaries in some cases sent the same info block every week instead of rotating through the available blocks.
+- Fixed: Extra small padding was displayed on the right side of the AI chat when using a Mac browser.
+
 = 2.0.1.1 =
 - Added: New QR Code setting generates a downloadable code for a chosen page or URL.
 - Added: New Add Media button in the Confirmation Message editor allows inserting images from the Media Library.

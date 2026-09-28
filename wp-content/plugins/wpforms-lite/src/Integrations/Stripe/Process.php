@@ -1353,12 +1353,23 @@ class Process {
 			]
 		);
 
+		if ( empty( $intent ) ) {
+			return false;
+		}
+
+		// The identifier arrives with the submission, so it can name any object on the connected Stripe account.
+		if ( ! $this->is_own_payment_intent( $intent ) ) {
+			wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = esc_html__( 'Secondary form submission was declined.', 'wpforms-lite' );
+
+			return true;
+		}
+
 		// Round to the nearest whole number because $this->amount can contain a number close to,
 		// but slightly under it, due to how it is stored in the memory.
 		$submitted_amount = round( $this->amount * wpforms_get_currency_multiplier() );
 
 		// Prevent form submission if a mismatch of the payment amount is detected.
-		if ( ! empty( $intent ) && (int) $submitted_amount !== (int) $intent->amount ) {
+		if ( (int) $submitted_amount !== (int) $intent->amount ) {
 			wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = esc_html__( 'Irregular activity detected. Your submission has been declined and payment refunded.', 'wpforms-lite' );
 
 			$args = [
@@ -1386,6 +1397,22 @@ class Process {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Determine whether the PaymentIntent was created by this form.
+	 *
+	 * @since 2.0.2
+	 *
+	 * @param object $intent PaymentIntent retrieved from Stripe.
+	 *
+	 * @return bool
+	 */
+	private function is_own_payment_intent( object $intent ): bool {
+
+		$form_id = $intent->metadata['form_id'] ?? $intent->invoice->subscription->metadata['form_id'] ?? 0;
+
+		return (int) $form_id === (int) $this->form_id;
 	}
 
 	/**

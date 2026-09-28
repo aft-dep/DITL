@@ -736,6 +736,7 @@ class WPForms_Builder {
 				'jquery-confirm',
 				'choicesjs',
 				'wpforms-builder-choicesjs',
+				'wp-a11y',
 			],
 			WPFORMS_VERSION,
 			false
@@ -893,6 +894,12 @@ class WPForms_Builder {
 			'field_locked_msg'                        => esc_html__( 'This field cannot be deleted or duplicated.', 'wpforms-lite' ),
 			'field_locked_no_delete_msg'              => esc_html__( 'This field cannot be deleted.', 'wpforms-lite' ),
 			'field_locked_no_duplicate_msg'           => esc_html__( 'This field cannot be duplicated.', 'wpforms-lite' ),
+			/* translators: %s - field label. */
+			'field_move_at_end'                       => esc_html__( '%s is already at the end.', 'wpforms-lite' ),
+			/* translators: %s - field label. */
+			'field_move_at_start'                     => esc_html__( '%s is already at the start.', 'wpforms-lite' ),
+			/* translators: %1$s - field label, %2$d - new field position, %3$d - total number of fields. */
+			'field_moved'                             => esc_html__( '%1$s moved to position %2$d of %3$d.', 'wpforms-lite' ),
 			'fields_available'                        => esc_html__( 'Available Fields', 'wpforms-lite' ),
 			'fields_unavailable'                      => esc_html__( 'No fields available', 'wpforms-lite' ),
 			'heads_up'                                => esc_html__( 'Heads up!', 'wpforms-lite' ),
@@ -1202,6 +1209,7 @@ class WPForms_Builder {
 			'Captcha'                           => "captcha$min.js",
 			'SaveExit'                          => "save-exit$min.js",
 			'KeyboardShortcuts'                 => "keyboard-shortcuts$min.js",
+			'FieldMover'                        => "field-mover$min.js",
 			'DragFields'                        => "drag-fields$min.js",
 			'DragFieldsMultiSelect'             => "drag-fields-multi-select$min.js",
 			'UndoRedoHelpers'                   => "undo-redo/helpers$min.js",

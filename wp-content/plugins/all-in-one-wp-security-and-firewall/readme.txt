@@ -5,7 +5,7 @@ Tags: security, malware scanning, two factor authentication, firewall, login sec
 Requires PHP: 5.6
 Requires at least: 5.0
 Tested up to: 7.1
-Stable tag: 5.4.9
+Stable tag: 5.4.10
 License: GPLv3 or later
 
 Protect your website investment with All-In-One Security (AIOS) – a comprehensive and easy to use security plugin designed especially for WordPress. Featuring login security tools, a cutting-edge firewall and much more.
@@ -244,6 +244,11 @@ Go to the settings menu after you activate the plugin and follow the instruction
 1. Features list.
 
 == Changelog ==
+
+= 5.4.10 - 16/Sep/2026 =
+
+* SECURITY: Login lockout unlock requests allowed users to unlock another account's lockout because they were validated based only on the IP address, without checking the user account. Thanks to Ananda Dhakal for disclosing this defect. (This would allow an attacker sharing the same IP address as a user with an active lockout to clear that user's lockout.)
+
 
 = 5.4.9 - 5/Jun/2026 =
 
@@ -1711,5 +1716,5 @@ those who want to enable the basic firewall but do not have "AllowOverride" opti
 - First commit to the WP repository.
 
 == Upgrade Notice ==
-* 5.4.9: Added a filter that validates POST requests containing UDRPC messages and updated internal common libs package. A recommended update for all.
+* 5.4.10: Fixed login lockout unlock requests allowing users to unlock another account's lockout when sharing the same IP address.
 

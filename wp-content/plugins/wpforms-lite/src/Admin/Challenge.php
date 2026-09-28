@@ -361,6 +361,16 @@ class Challenge {
 		$option = ! $option || ! is_array( $option ) ? $schema : $option;
 
 		update_option( 'wpforms_challenge', array_merge( $option, $replace ) );
+
+		/**
+		 * Fires after Challenge parameters were saved.
+		 *
+		 * @since 2.0.2.1
+		 *
+		 * @param array $replace Parameters written, sanitized, keyed by schema key.
+		 * @param array $option  Challenge option as it was before this write.
+		 */
+		do_action( 'wpforms_admin_challenge_set_challenge_option', $replace, $option );
 	}
 
 	/**
@@ -497,6 +507,15 @@ class Challenge {
 
 		// The challenge should not start if this is the Forms' Overview page.
 		if ( wpforms_is_admin_page( 'overview' ) ) {
+			$can_start = false;
+
+			// No need to check something else in this case.
+			return false;
+		}
+
+		// The challenge should not start on the Dashboard page: it initiates when the
+		// user creates their first form instead.
+		if ( wpforms_is_admin_page( 'dashboard' ) ) {
 			$can_start = false;
 
 			// No need to check something else in this case.

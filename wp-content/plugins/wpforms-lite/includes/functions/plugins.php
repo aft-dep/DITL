@@ -130,7 +130,7 @@ function wpforms_activate_plugin( string $plugin ) {
 
 	$activate = activate_plugin( $plugin );
 
-	if ( is_wp_error( $activate ) ) {
+	if ( wpforms_is_plugin_activation_failed( $activate ) ) {
 		return $activate;
 	}
 
@@ -185,4 +185,21 @@ function wpforms_version_compare( $version1, $version2, $operator ): bool {
 		wpforms_normalize_version( $version2 ),
 		$operator
 	);
+}
+
+/**
+ * Determine whether a plugin activation result represents a failure.
+ *
+ * @since 2.0.2
+ *
+ * @param mixed $result Result of an activation call: null on a clean activation, WP_Error otherwise.
+ *
+ * @return bool
+ */
+function wpforms_is_plugin_activation_failed( $result ): bool {
+
+	// The `unexpected_output` error only means the plugin printed something while loading:
+	// core has already stored `active_plugins` by the time it inspects the output buffer,
+	// so the plugin is active and the activation succeeded.
+	return is_wp_error( $result ) && $result->get_error_code() !== 'unexpected_output';
 }

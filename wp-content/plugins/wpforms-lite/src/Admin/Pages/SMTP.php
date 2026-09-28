@@ -2,6 +2,8 @@
 
 namespace WPForms\Admin\Pages;
 
+use WPForms\Integrations\SMTP\Helpers as SMTPHelpers;
+
 /**
  * SMTP Sub-page.
  *
@@ -343,7 +345,7 @@ class SMTP extends Page {
 	 */
 	protected function is_smtp_activated(): bool {
 
-		return function_exists( 'wp_mail_smtp' ) && ( is_plugin_active( $this->config['lite_plugin'] ) || is_plugin_active( $this->config['pro_plugin'] ) );
+		return SMTPHelpers::is_active();
 	}
 
 	/**

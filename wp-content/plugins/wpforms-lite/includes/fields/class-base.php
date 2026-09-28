@@ -7,6 +7,7 @@
 
 use WPForms\Forms\Fields\Base\Frontend as FrontendBase;
 use WPForms\Forms\Fields\Helpers\RequirementsAlerts;
+use WPForms\Forms\Fields\Traits\MoveButtons as MoveButtonsTrait;
 use WPForms\Forms\Fields\Traits\MultiFieldMenu as MultiFieldMenuTrait;
 use WPForms\Forms\Fields\Traits\ReadOnlyField as ReadOnlyFieldTrait;
 use WPForms\Forms\IconChoices;
@@ -19,6 +20,7 @@ use WPForms\Integrations\AI\Helpers as AIHelpers;
  */
 abstract class WPForms_Field {
 
+	use MoveButtonsTrait;
 	use MultiFieldMenuTrait;
 	use ReadOnlyFieldTrait;
 
@@ -407,6 +409,8 @@ abstract class WPForms_Field {
 			return $properties;
 		}
 
+		$original = $properties;
+
 		// Iterate over each GET key, parse, and scrap data from there.
 		foreach ( $_GET as $key => $raw_value ) { // phpcs:ignore
 			preg_match( '/wpf(\d+)_(\d+)(.*)/i', $key, $matches );
@@ -475,7 +479,7 @@ abstract class WPForms_Field {
 			}
 		}
 
-		return $properties;
+		return $this->encode_shortcode_delimiters( $properties, $original );
 	}
 
 	/**
@@ -793,6 +797,8 @@ abstract class WPForms_Field {
 			return $properties;
 		}
 
+		$original = $properties;
+
 		// We got user submitted raw data (not processed, will be done later).
 		$raw_value = $_POST['wpforms']['fields'][ $field['id'] ]; // phpcs:ignore
 		$input     = 'primary';
@@ -812,6 +818,39 @@ abstract class WPForms_Field {
 			}
 		} else {
 			$properties = $this->get_field_populated_single_property_value( $raw_value, sanitize_key( $input ), $properties, $field );
+		}
+
+		return $this->encode_shortcode_delimiters( $properties, $original );
+	}
+
+	/**
+	 * Encode shortcode delimiters in the input values that population has changed.
+	 *
+	 * A form rendered before do_shortcode() runs on the_content has its markup re-scanned,
+	 * so a raw `[` in a submitted value executes. Browsers decode the entities back.
+	 *
+	 * @since 2.0.2.1
+	 *
+	 * @param array $properties Field properties after population.
+	 * @param array $original   Field properties before population.
+	 *
+	 * @return array Modified field properties.
+	 */
+	protected function encode_shortcode_delimiters( array $properties, array $original ): array {
+
+		if ( empty( $properties['inputs'] ) || ! is_array( $properties['inputs'] ) ) {
+			return $properties;
+		}
+
+		foreach ( $properties['inputs'] as $key => $input ) {
+			$value = $input['attr']['value'] ?? null;
+
+			// Admin-defined values are left alone: AMP choice bindings compare them as JSON strings.
+			if ( ! is_string( $value ) || $value === ( $original['inputs'][ $key ]['attr']['value'] ?? null ) ) {
+				continue;
+			}
+
+			$properties['inputs'][ $key ]['attr']['value'] = wpforms_encode_shortcode_delimiters( $value );
 		}
 
 		return $properties;
@@ -3525,12 +3564,14 @@ abstract class WPForms_Field {
 
 		$prev    = ob_get_clean();
 		$preview = sprintf(
-			'<div class="wpforms-field wpforms-field-%1$s %2$s %3$s" id="wpforms-field-%4$s" data-field-id="%4$s" data-field-type="%1$s">',
+			'<div class="wpforms-field wpforms-field-%1$s %2$s %3$s" id="wpforms-field-%4$s" data-field-id="%4$s" data-field-type="%1$s" tabindex="0">',
 			esc_attr( $field_type ),
 			esc_attr( $field_required ),
 			esc_attr( $field_class ),
 			$field_id
 		);
+
+		$preview .= $this->get_move_buttons_html();
 
 		/**
 		 * Allow the duplicate button to be hidden.
@@ -3542,13 +3583,13 @@ abstract class WPForms_Field {
 		 */
 		if ( (bool) apply_filters( 'wpforms_field_new_display_duplicate_button', true, $field ) ) { // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
 			$preview .= sprintf(
-				'<a href="#" class="wpforms-field-duplicate" title="%s"><i class="fa fa-files-o" aria-hidden="true"></i></a>',
+				'<a href="#" role="button" tabindex="-1" class="wpforms-field-duplicate" title="%1$s" aria-label="%1$s"><i class="fa fa-files-o" aria-hidden="true"></i></a>',
 				esc_attr__( 'Duplicate Field', 'wpforms-lite' )
 			);
 		}
 
 		$preview .= sprintf(
-			'<a href="#" class="wpforms-field-delete" title="%s"><i class="fa fa-trash-o"></i></a>',
+			'<a href="#" role="button" tabindex="-1" class="wpforms-field-delete" title="%1$s" aria-label="%1$s"><i class="fa fa-trash-o" aria-hidden="true"></i></a>',
 			esc_attr__( 'Delete Field', 'wpforms-lite' )
 		);
 

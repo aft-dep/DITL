@@ -235,7 +235,11 @@ function wpforms_current_user_can( $caps = [], $id = 0 ): bool {
 
 	$id       = (int) $id;
 	$caps_str = is_array( $caps ) ? implode( ' ', $caps ) : (string) $caps;
-	$hash     = md5( $caps_str . $id );
+
+	// Key by the current user: the result is user-specific, so a process that swaps the
+	// current user (batch user processing, integration tests) must not read a prior
+	// user's cached result.
+	$hash = md5( $caps_str . '|' . $id . '|' . get_current_user_id() ); // NOSONAR.
 
 	// Return a cached result.
 	if ( isset( $results[ $hash ] ) ) {

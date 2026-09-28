@@ -456,19 +456,24 @@ class AIOWPSecurity_User_Login {
 	 *
 	 * @global type $wpdb
 	 * @global AIO_WP_Security $aio_wp_security
+	 *
 	 * @param type $ip_range
+	 * @param int  $user_id
+	 *
 	 * @return string or false on failure
 	 */
-	public static function generate_unlock_request_link($ip_range) {
+	public static function generate_unlock_request_link($ip_range, $user_id) {
 		//Get the locked user row from locout table
 		global $wpdb, $aio_wp_security;
 		$unlock_link = '';
 		$lockout_table_name = AIOWPSEC_TBL_LOGIN_LOCKOUT;
 		$secret_rand_key = (md5(uniqid(wp_rand(), true)));
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery -- PCP wanting. Ignore.
-		$res = $wpdb->query($wpdb->prepare("UPDATE $lockout_table_name SET unlock_key = %s WHERE released > UNIX_TIMESTAMP() AND failed_login_ip LIKE %s", $secret_rand_key,  "%" . esc_sql($ip_range) . "%"));
-		if (null == $res) {
-			$aio_wp_security->debug_logger->log_debug("No locked user found with IP range ".$ip_range, 4);
+		$res = $wpdb->query($wpdb->prepare("UPDATE $lockout_table_name SET unlock_key = %s WHERE released > UNIX_TIMESTAMP() AND failed_login_ip LIKE %s AND user_id = %d", $secret_rand_key,  "%" . esc_sql($ip_range) . "%", $user_id));
+		if (!$res) { // 0 or false will be returned by $wpdb->query
+			$locked_user_data = get_userdata($user_id);
+			$locked_user_email = $locked_user_data ? $locked_user_data->user_email : '';
+			$aio_wp_security->debug_logger->log_debug("No locked entry was found in the database matching your IP address range " . $ip_range . " and user account " . $locked_user_email, 4);
 			return false;
 		} else {
 			// Check if unlock request or submitted from a WooCommerce account login page

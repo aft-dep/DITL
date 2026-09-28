@@ -68,20 +68,21 @@ if (isset($_POST['aiowps_wp_submit_unlock_request'])) {
 		} else {
 			//Process unlock request
 			//Generate a special code and unlock url
+			$aios_locked_user_id = $locked_user->ID;
 			$ip = AIOWPSecurity_Utility_IP::get_user_ip_address(); //Get the IP address of user
 			if (empty($ip)) {
-				$unlock_url = false;
+				$aios_unlock_url = false;
 			} else {
-				$unlock_url = AIOWPSecurity_User_Login::generate_unlock_request_link($ip);
+				$aios_unlock_url = AIOWPSecurity_User_Login::generate_unlock_request_link($ip, $aios_locked_user_id);
 			}
 
-			if (!$unlock_url) {
+			if (!$aios_unlock_url) {
 				//No entry found in lockout table with this IP range
-				$error_msg = __('Error: No locked entry was found in the database with your IP address range.', 'all-in-one-wp-security-and-firewall');
-				echo '<div id="login_error"><p>'.esc_html($error_msg).'</p></div>';
+				$aios_unlock_error_msg = __('Error: No locked entry was found in the database matching your IP address range and user account.', 'all-in-one-wp-security-and-firewall');
+				echo '<div id="login_error"><p>'.esc_html($aios_unlock_error_msg).'</p></div>';
 			} else {
 				//Send an email to the user
-				AIOWPSecurity_User_Login::send_unlock_request_email($email, $unlock_url);
+				AIOWPSecurity_User_Login::send_unlock_request_email($email, $aios_unlock_url);
 				echo '<p class="message">' . esc_html__('An email has been sent to you with the unlock instructions.', 'all-in-one-wp-security-and-firewall') . '</p>';
 			}
 		}

@@ -506,4 +506,81 @@ class Integration extends API {
 			'is_production' => ! self::is_staging(),
 		];
 	}
+
+	/**
+	 * Fetch entry stats from the LiteConnect API.
+	 *
+	 * Uses a direct `wp_remote_post()` instead of the inherited `request()` transport
+	 * to avoid an additional `Integration` instance during normal credentialed requests.
+	 * Note: `get_site_credentials()` may still instantiate `Integration` as a fallback
+	 * when stored credentials are absent (debug-settings path).
+	 *
+	 * @since 2.0.2
+	 *
+	 * @param int    $period   Number of trailing days (1-366). Default 30.
+	 * @param string $timezone IANA name or UTC offset. Default: site timezone.
+	 *
+	 * @return array Parsed response on success, empty array on any failure.
+	 */
+	public static function get_stats( int $period = 30, string $timezone = '' ): array {
+
+		$credentials = self::get_site_credentials();
+
+		if ( empty( $credentials['site_id'] ) || empty( $credentials['access_token'] ) ) {
+			return [];
+		}
+
+		$api_url = self::is_staging() ? API::STAGING_API_URL : API::API_URL;
+
+		$response = self::post(
+			$api_url . '/retrieval/stats',
+			[
+				'site_id'  => $credentials['site_id'],
+				'period'   => $period,
+				'timezone' => $timezone ? $timezone : wp_timezone_string(),
+			],
+			[
+				'X-WPForms-Lite-Connect-Access-Token' => $credentials['access_token'],
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			wpforms_log(
+				'Lite Connect: stats request failed',
+				[ 'error' => $response->get_error_message() ],
+				[ 'type' => [ 'error' ] ]
+			);
+
+			return [];
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+
+		if ( $code < 200 || $code >= 300 ) {
+			wpforms_log(
+				'Lite Connect: stats request returned non-2xx',
+				[
+					'code' => $code,
+					'body' => wp_remote_retrieve_body( $response ),
+				],
+				[ 'type' => [ 'error' ] ]
+			);
+
+			return [];
+		}
+
+		$data = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( ! StatsResponseValidator::validate( $data ) ) {
+			wpforms_log(
+				'Lite Connect: stats response failed schema validation',
+				[ 'body' => wp_remote_retrieve_body( $response ) ],
+				[ 'type' => [ 'error' ] ]
+			);
+
+			return [];
+		}
+
+		return $data;
+	}
 }
