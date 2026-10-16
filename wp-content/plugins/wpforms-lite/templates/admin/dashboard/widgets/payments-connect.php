@@ -7,6 +7,7 @@
  * @var string $connect_url       URL for the "Connect with Stripe" button.
  * @var string $settings_url      URL for the "Payment Settings" footer link.
  * @var bool   $show_mercado_pago Whether the footer mentions Mercado Pago (site currency is one it can process).
+ * @var bool   $show_paystack     Whether the footer mentions Paystack (site currency is one it can process).
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -32,6 +33,8 @@ $square = sprintf(
 $authorize = '<span class="wpforms-dashboard-payments-connect-brand">Authorize.Net</span>';
 
 $mercado_pago = '<span class="wpforms-dashboard-payments-connect-brand">Mercado Pago</span>';
+
+$paystack = '<span class="wpforms-dashboard-payments-connect-brand">Paystack</span>';
 
 $settings_link = sprintf(
 	'<a href="%s">%s</a>',
@@ -100,6 +103,19 @@ $settings_link = sprintf(
 						$square,
 						$authorize,
 						$mercado_pago,
+						$settings_link
+					),
+					$allowed_tags
+				);
+			} elseif ( $show_paystack ) {
+				echo wp_kses( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sanitized by wp_kses(); parts escaped above.
+					sprintf(
+						/* translators: 1: PayPal brand (icon + name), 2: Square brand (icon + name), 3: Authorize.Net brand name, 4: Paystack brand name, 5: Payment Settings page link. */
+						__( 'WPForms also supports %1$s, %2$s, %3$s, and %4$s. Go to %5$s to configure.', 'wpforms-lite' ),
+						$paypal,
+						$square,
+						$authorize,
+						$paystack,
 						$settings_link
 					),
 					$allowed_tags

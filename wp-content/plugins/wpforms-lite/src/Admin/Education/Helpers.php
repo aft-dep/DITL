@@ -216,4 +216,32 @@ class Helpers {
 
 		return ! empty( $dismissed[ 'edu-' . $section ] );
 	}
+
+	/**
+	 * Get the data-processing disclosure shown before an addon is installed or activated.
+	 *
+	 * An addon that sends site data to WPForms services is not running when its install or
+	 * activate modal opens, so the disclosure has to live here in core. The modal shows it in a
+	 * footer below its buttons, so the site owner learns where the processing happens before
+	 * opting in.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $slug Addon slug, e.g. `wpforms-pdf`.
+	 *
+	 * @return string Paragraph HTML, or an empty string when the addon has no disclosure.
+	 */
+	public static function get_addon_disclosure( string $slug ): string {
+
+		$disclosures = [
+			'wpforms-pdf' => sprintf(
+				'<p>%1$s <a href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a></p>',
+				esc_html__( 'PDFs are generated on WPForms\' servers in the United States. Your form entry data is sent there to create each PDF and is not stored after rendering.', 'wpforms-lite' ),
+				esc_url( wpforms_utm_link( 'https://wpforms.com/docs/pdf-addon/#data-processing', 'Builder Settings', 'PDF Remote Processing Disclosure' ) ),
+				esc_html__( 'Learn More', 'wpforms-lite' )
+			),
+		];
+
+		return $disclosures[ $slug ] ?? '';
+	}
 }

@@ -7,6 +7,7 @@ use WPForms\Integrations\Square\Helpers as SquareHelpers;
 use WPForms\Integrations\PayPalCommerce\Connection as PayPalCommerceConnection;
 use WPFormsAuthorizeNet\Helpers as AuthorizeNetHelpers;
 use WPFormsMercadoPago\Helpers as MercadoPagoHelpers;
+use WPFormsPaystack\Helpers as PaystackHelpers;
 
 /**
  * Dashboard shared helpers.
@@ -59,7 +60,8 @@ class Helpers {
 			|| SquareHelpers::is_square_configured()
 			|| ( $paypal_connection && $paypal_connection->is_configured() )
 			|| ( class_exists( AuthorizeNetHelpers::class ) && AuthorizeNetHelpers::has_authorize_net_keys() )
-			|| ( class_exists( MercadoPagoHelpers::class ) && MercadoPagoHelpers::is_configured() );
+			|| ( class_exists( MercadoPagoHelpers::class ) && MercadoPagoHelpers::is_configured() )
+			|| ( class_exists( PaystackHelpers::class ) && PaystackHelpers::is_configured() );
 	}
 
 	/**

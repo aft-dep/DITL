@@ -160,6 +160,7 @@ class Payments extends AbstractWidget {
 				'connect_url'       => $connect_url,
 				'settings_url'      => StripeHelpers::get_settings_page_url(),
 				'show_mercado_pago' => $this->is_mercado_pago_supported(),
+				'show_paystack'     => $this->is_paystack_supported(),
 			],
 			true
 		);
@@ -180,6 +181,20 @@ class Payments extends AbstractWidget {
 	private function is_mercado_pago_supported(): bool {
 
 		$supported = [ 'ARS', 'BRL', 'CLP', 'COP', 'MXN', 'PEN', 'UYU' ];
+
+		return in_array( strtoupper( wpforms_get_currency() ), $supported, true );
+	}
+
+	/**
+	 * Whether the site currency is one Paystack can process.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @return bool
+	 */
+	private function is_paystack_supported(): bool {
+
+		$supported = [ 'NGN', 'GHS', 'ZAR', 'KES' ];
 
 		return in_array( strtoupper( wpforms_get_currency() ), $supported, true );
 	}

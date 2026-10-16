@@ -118,7 +118,7 @@ class Bridge {
 
 		$payload = [
 			'token'       => $this->auth->generate_token(),
-			'rest_url'    => rest_url( 'wpforms/v1/setup-wizard' ),
+			'rest_url'    => $this->get_rest_url(),
 			'exit_url'    => $exit_url,
 			'restart_url' => $restart_url,
 		];
@@ -160,7 +160,7 @@ class Bridge {
 	}
 
 	/**
-	 * Whether the wizard SPA is reachable and healthy right now.
+	 * Whether the wizard SPA is reachable and healthy, and can reach this site.
 	 *
 	 * Server-side preflight run before the handoff: a top-level form POST
 	 * abandons the bridge page, so a client-side timeout cannot recover once the
@@ -211,13 +211,34 @@ class Bridge {
 	/**
 	 * Get the SPA health probe URL, co-located with the handoff endpoint.
 	 *
+	 * The URL carries this site's wizard REST base, so the product API also
+	 * verifies that it can connect back to the site. Every SPA call is proxied
+	 * over that path, and a site the product API cannot reach would otherwise
+	 * pass the probe, hand off, and fail on the SPA's first request.
+	 *
 	 * @since 2.0.0
 	 *
 	 * @return string
 	 */
 	private function get_health_url(): string {
 
-		return trailingslashit( $this->get_handoff_url() ) . 'health';
+		$url = trailingslashit( $this->get_handoff_url() ) . 'health';
+
+		// add_query_arg() appends the value as given, and on a plain-permalink
+		// site the REST base carries a `?rest_route=` query of its own.
+		return add_query_arg( 'rest_url', rawurlencode( $this->get_rest_url() ), $url );
+	}
+
+	/**
+	 * Get this site's wizard REST base, the URL the SPA's calls are proxied to.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @return string
+	 */
+	private function get_rest_url(): string {
+
+		return rest_url( 'wpforms/v1/setup-wizard' );
 	}
 
 	/**

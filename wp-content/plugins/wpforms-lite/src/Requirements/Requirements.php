@@ -302,6 +302,7 @@ class Requirements {
 		'wpforms-offline-forms/wpforms-offline-forms.php'               => [],
 		'wpforms-paypal-commerce/wpforms-paypal-commerce.php'           => [],
 		'wpforms-paypal-standard/wpforms-paypal-standard.php'           => [],
+		'wpforms-paystack/wpforms-paystack.php'                         => [],
 		'wpforms-pdf/wpforms-pdf.php'                                   => [],
 		'wpforms-pipedrive/wpforms-pipedrive.php'                       => [
 			self::LICENSE => self::TOP,

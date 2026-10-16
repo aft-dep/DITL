@@ -126,6 +126,7 @@ class PaymentIntents extends Common implements ApiInterface {
 		$localize_script = [
 			'element_locale'        => $this->filter_config_element_locale(),
 			'radar_session_enabled' => $radar_session_enabled,
+			'currency_minimum'      => Helpers::get_currency_minimum( wpforms_get_currency() ),
 		];
 
 		$this->config = [

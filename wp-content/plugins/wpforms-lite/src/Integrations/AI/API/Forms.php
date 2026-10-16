@@ -84,7 +84,8 @@ class Forms extends API {
 
 		// Since starting from 1.9.4, we display unavailable addon fields in Lite and all Pro licenses,
 	    // we need to return all required addons to let AI generate addon fields.
-	    return FormsAjax::FORM_GENERATOR_REQUIRED_ADDONS;
+	    // Active payment gateways without a field are added so the AI can point to the Payments panel.
+	    return array_merge( FormsAjax::FORM_GENERATOR_REQUIRED_ADDONS, Helpers::get_active_gateway_addons() );
     }
 
 	/**

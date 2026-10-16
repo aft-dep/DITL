@@ -138,6 +138,9 @@ class Field extends WPForms_Field {
 				'content' => $coupons_field_label . $coupons_field . $allowed_forms_json . $warning,
 			]
 		);
+
+		$this->coupon_scope_options( $field );
+
 		$this->field_option( 'required', $field );
 
 		$this->field_option( 'basic-options', $field, [ 'markup' => 'close' ] );
@@ -206,6 +209,168 @@ class Field extends WPForms_Field {
 		$output .= '</select>';
 
 		return $output;
+	}
+
+	/**
+	 * Add the "Coupons Discount" options: the scope mode and the payment fields it applies to.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param array $field Field data and settings.
+	 */
+	private function coupon_scope_options( array $field ) {
+
+		// An older initialized addon cannot store the scope, so the options would be dead
+		// controls. Without a working addon the rows render as the usual educational preview.
+		if ( wpforms_is_addon_initialized( $this->addon_slug ) && ! method_exists( $this, 'sanitize_coupon_scopes' ) ) {
+			return;
+		}
+
+		$scope        = $field['coupon_scopes']['default'] ?? [];
+		$mode         = in_array( $scope['mode'] ?? '', [ 'except', 'only' ], true ) ? $scope['mode'] : 'all';
+		$scope_fields = array_map( 'absint', (array) ( $scope['fields'] ?? [] ) );
+		$options      = $this->get_scope_field_options();
+		$field_labels = [
+			'except' => esc_html__( 'Excluded Payment Fields', 'wpforms-lite' ),
+			'only'   => esc_html__( 'Included Payment Fields', 'wpforms-lite' ),
+		];
+
+		$mode_label    = $this->field_element(
+			'label',
+			$field,
+			[
+				'slug'    => 'coupon_scope_mode',
+				'value'   => esc_html__( 'Coupons Discount', 'wpforms-lite' ),
+				'tooltip' => esc_html__( 'Choose which payment fields the applied coupons discount.', 'wpforms-lite' ),
+			],
+			false
+		);
+		$mode_select   = $this->field_element(
+			'select',
+			$field,
+			[
+				'slug'    => 'coupon_scope_mode',
+				'value'   => $mode,
+				'class'   => 'wpforms-coupons-coupon_scope_mode',
+				'data'    => [
+					'scope-target' => sprintf( 'wpforms-field-option-row-%d-coupon_scope_fields', $field['id'] ),
+					'label-except' => $field_labels['except'],
+					'label-only'   => $field_labels['only'],
+				],
+				'options' => [
+					'all'    => esc_html__( 'All Payment Fields', 'wpforms-lite' ),
+					'except' => esc_html__( 'All Except Selected Fields', 'wpforms-lite' ),
+					'only'   => esc_html__( 'Only Selected Fields', 'wpforms-lite' ),
+				],
+			],
+			false
+		);
+		$fields_label  = $this->field_element(
+			'label',
+			$field,
+			[
+				'slug'    => 'coupon_scope_fields',
+				'value'   => $field_labels[ $mode ] ?? $field_labels['only'],
+				'tooltip' => esc_html__( 'Choose the payment fields the selected option applies to.', 'wpforms-lite' ),
+			],
+			false
+		);
+		$fields_select = $this->field_element(
+			'select-multiple',
+			$field,
+			[
+				'slug'      => 'coupon_scope_fields',
+				'value'     => $scope_fields,
+				'options'   => $options,
+				// Choices.js is initialized by the addon builder script, or by the
+				// core disabled-fields fallback when no working addon is present.
+				'choicesjs' => false,
+				'class'     => 'wpforms-coupons-coupon_scope_fields',
+			],
+			false
+		);
+
+		$this->field_element(
+			'row',
+			$field,
+			[
+				'slug'    => 'coupon_scope_mode',
+				'content' => $mode_label . $mode_select,
+			]
+		);
+
+		$this->field_element(
+			'row',
+			$field,
+			[
+				'slug'    => 'coupon_scope_fields',
+				'content' => $fields_label . $fields_select . $this->get_scope_alerts( $mode, $scope_fields, $options ),
+				'class'   => $mode === 'all' ? 'wpforms-hidden' : '',
+			]
+		);
+	}
+
+	/**
+	 * Get the warnings shown while a discount scope covers no payment field.
+	 *
+	 * The dead configuration differs per mode: an empty selection in the "only" mode,
+	 * or every payment field selected in the "except" mode.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $mode         Discount scope mode.
+	 * @param array  $scope_fields Payment field IDs the scope covers.
+	 * @param array  $options      Discountable payment fields, keyed by field ID.
+	 *
+	 * @return string
+	 */
+	private function get_scope_alerts( string $mode, array $scope_fields, array $options ): string {
+
+		$alert    = '<p class="wpforms-alert wpforms-alert-warning %1$s%2$s">%3$s</p>';
+		$is_empty = $mode === 'only' && empty( $scope_fields );
+		$is_all   = $mode === 'except' && $options && count( array_intersect( array_keys( $options ), $scope_fields ) ) === count( $options );
+
+		return sprintf(
+			$alert,
+			'wpforms-coupons-scope-empty-alert',
+			$is_empty ? '' : ' wpforms-hidden',
+			esc_html__( 'You haven\'t selected any payment fields. Discount will not be applied until you choose at least one.', 'wpforms-lite' )
+		) . sprintf(
+			$alert,
+			'wpforms-coupons-scope-all-alert',
+			$is_all ? '' : ' wpforms-hidden',
+			esc_html__( 'You\'ve selected every payment field, so the discount has nothing to apply to. Leave at least one field unselected.', 'wpforms-lite' )
+		);
+	}
+
+	/**
+	 * Get the form's discountable payment fields as select options, keyed by field ID.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @return array
+	 */
+	private function get_scope_field_options(): array {
+
+		// The coupon field itself carries no amount, so it is never discountable.
+		$types  = array_diff( wpforms_payment_fields(), [ $this->type ] );
+		$fields = wpforms_get_form_fields( $this->get_form_id(), $types );
+
+		if ( ! is_array( $fields ) ) {
+			return [];
+		}
+
+		$labels = [];
+
+		foreach ( $fields as $payment_field ) {
+			$field_id = absint( $payment_field['id'] );
+
+			$labels[ $field_id ] = ! wpforms_is_empty_string( $payment_field['label'] ?? '' )
+				? $payment_field['label']
+				: sprintf( /* translators: %d - payment field ID. */ esc_html__( 'Field #%d', 'wpforms-lite' ), $field_id );
+		}
+
+		return $labels;
 	}
 
 	/**

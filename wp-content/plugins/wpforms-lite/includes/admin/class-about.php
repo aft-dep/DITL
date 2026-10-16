@@ -611,7 +611,7 @@ class WPForms_About {
 								</li>
 								<li>
 									<i class="fa fa-check" aria-hidden="true"></i>
-									<?php esc_html_e( 'Take payments with Stripe, PayPal, Square, Authorize.Net, & Mercado Pago', 'wpforms-lite' ); ?>
+									<?php esc_html_e( 'Take payments with Stripe, PayPal, Square, Authorize.Net, Mercado Pago, & Paystack', 'wpforms-lite' ); ?>
 								</li>
 								<li>
 									<i class="fa fa-check" aria-hidden="true"></i>
@@ -1513,28 +1513,28 @@ class WPForms_About {
 					'status' => 'partial',
 					'text'   => [
 						'<strong>' . esc_html__( 'Create Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, and Mercado Pago', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Mercado Pago, and Paystack', 'wpforms-lite' ),
 					],
 				],
 				'elite'    => [
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Create Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, and Mercado Pago', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, Mercado Pago, and Paystack', 'wpforms-lite' ),
 					],
 				],
 				'agency'   => [
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Create Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, and Mercado Pago', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, Mercado Pago, and Paystack', 'wpforms-lite' ),
 					],
 				],
 				'ultimate' => [
 					'status' => 'full',
 					'text'   => [
 						'<strong>' . esc_html__( 'Create Payment Forms', 'wpforms-lite' ) . '</strong>',
-						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, and Mercado Pago', 'wpforms-lite' ),
+						esc_html__( 'Accept payments using PayPal Commerce, Stripe, Square, PayPal Standard, Authorize.Net, Mercado Pago, and Paystack', 'wpforms-lite' ),
 					],
 				],
 			],

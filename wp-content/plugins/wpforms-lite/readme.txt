@@ -3,7 +3,7 @@ Contributors: wpforms, smub, slaFFik
 Tags: contact form, contact form plugin, forms, form builder, custom form
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.0.2.1
+Stable tag: 2.0.2.2
 Requires PHP: 7.2
 License: GNU General Public License v2.0 or later
 
@@ -392,6 +392,13 @@ Thank you,
 Syed Balkhi
 
 == Changelog ==
+= 2.0.2.2 =
+- Added: Support for the Nigerian Naira (NGN), Ghanaian Cedi (GHS), and Kenyan Shilling (KES) currencies.
+- Fixed: The Setup Wizard handed off to its hosted version even when that version could not connect back to the site, so it failed on its first request instead of falling back to the local Getting Started setup.
+- Fixed: Email addresses used as payment titles were displayed capitalized in the Payments table.
+- Fixed: PayPal Commerce forms now always require a completed payment before saving an entry.
+- Fixed: Smart Tag values used inside embedded content in a Confirmation message or a form description were not always escaped properly.
+
 = 2.0.2.1 =
 - Changed: The Keyboard Shortcuts modal in the Form Builder was reorganized into a single two-column list that pairs related shortcuts side by side, and widened so no shortcut wraps onto a second line.
 - Fixed: Values submitted to a form embedded with the WPForms block were echoed back into the re-rendered form with shortcode delimiters intact.

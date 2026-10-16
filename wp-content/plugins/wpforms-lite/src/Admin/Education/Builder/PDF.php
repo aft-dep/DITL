@@ -233,11 +233,12 @@ class PDF {
 		} elseif ( $action !== 'upgrade' ) {
 			$button_class = 'education-modal';
 			$button_attr  = sprintf(
-				'data-nonce="%1$s" data-path="%2$s" data-url="%3$s" data-message="" data-name="%4$s"',
+				'data-nonce="%1$s" data-path="%2$s" data-url="%3$s" data-message="" data-name="%4$s" data-disclosure="%5$s"',
 				esc_attr( wp_create_nonce( 'wpforms-admin' ) ),
 				$addon['path'] ?? '',
 				$addon['url'] ?? '',
-				esc_html__( 'WPForms PDF Addon', 'wpforms-lite' )
+				esc_html__( 'WPForms PDF Addon', 'wpforms-lite' ),
+				esc_attr( Helpers::get_addon_disclosure( $addon['slug'] ?? $this->slug ) )
 			);
 		}
 

@@ -311,7 +311,7 @@ class Chart {
 				'meta_key'       => 'coupon_id', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 				'funnel'         => [
 					'not_in' => [
-						'status'              => [ 'failed' ],
+						'status'              => [ 'failed', 'pending' ],
 						'subscription_status' => [ 'failed' ],
 					],
 				],

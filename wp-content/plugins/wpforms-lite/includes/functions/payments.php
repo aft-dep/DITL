@@ -127,6 +127,14 @@ function wpforms_get_currencies() {
 			'decimal_separator'   => ',',
 			'decimals'            => 2,
 		],
+		'GHS' => [
+			'name'                => esc_html__( 'Ghanaian Cedi', 'wpforms-lite' ),
+			'symbol'              => 'GH&#8373;&nbsp;',
+			'symbol_pos'          => 'left',
+			'thousands_separator' => ',',
+			'decimal_separator'   => '.',
+			'decimals'            => 2,
+		],
 		'HKD' => [
 			'name'                => esc_html__( 'Hong Kong Dollar', 'wpforms-lite' ),
 			'symbol'              => '&#36;',
@@ -167,6 +175,14 @@ function wpforms_get_currencies() {
 			'decimal_separator'   => '',
 			'decimals'            => 0,
 		],
+		'KES' => [
+			'name'                => esc_html__( 'Kenyan Shilling', 'wpforms-lite' ),
+			'symbol'              => 'Ksh&nbsp;',
+			'symbol_pos'          => 'left',
+			'thousands_separator' => ',',
+			'decimal_separator'   => '.',
+			'decimals'            => 2,
+		],
 		'MYR' => [
 			'name'                => esc_html__( 'Malaysian Ringgit', 'wpforms-lite' ),
 			'symbol'              => '&#82;&#77;',
@@ -178,6 +194,14 @@ function wpforms_get_currencies() {
 		'MXN' => [
 			'name'                => esc_html__( 'Mexican Peso', 'wpforms-lite' ),
 			'symbol'              => '&#36;',
+			'symbol_pos'          => 'left',
+			'thousands_separator' => ',',
+			'decimal_separator'   => '.',
+			'decimals'            => 2,
+		],
+		'NGN' => [
+			'name'                => esc_html__( 'Nigerian Naira', 'wpforms-lite' ),
+			'symbol'              => '&#8358;',
 			'symbol_pos'          => 'left',
 			'thousands_separator' => ',',
 			'decimal_separator'   => '.',

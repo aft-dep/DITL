@@ -114,6 +114,7 @@ class ErrorHandler {
 			WP_PLUGIN_DIR . '/wpforms-offline-forms/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-paypal-commerce/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-paypal-standard/vendor/',
+			WP_PLUGIN_DIR . '/wpforms-paystack/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-post-submissions/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-salesforce/vendor/',
 			WP_PLUGIN_DIR . '/wpforms-salesforce/vendor_prefixed/',

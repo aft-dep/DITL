@@ -46,6 +46,76 @@ class SmartTags {
 	private const ATTRIBUTE_PATTERN = '#(?P<name>[a-zA-Z_:][a-zA-Z0-9_:.-]*)\s*=\s*(?:"(?P<double>[^"]*)"|\'(?P<single>[^\']*)\'|(?P<bare>[^\s>]+))#';
 
 	/**
+	 * Attributes whose value the browser parses as a whole HTML document after decoding it.
+	 *
+	 * The value is a document of its own, so the tag is substituted inside it with the same
+	 * positional escaping as outside, and the result is encoded once more for the attribute.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @var string[]
+	 */
+	private const DOCUMENT_ATTRIBUTES = [ 'srcdoc' ];
+
+	/**
+	 * Prefix every event handler attribute carries, `onclick`, `onload` and the rest.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @var string
+	 */
+	private const SCRIPT_ATTRIBUTE_PREFIX = 'on';
+
+	/**
+	 * Opening tag of a script element.
+	 *
+	 * Only whitespace, `/` or `>` ends a tag name, so `<script-x>` is another element. PCRE `\s`
+	 * also matches a vertical tab, which the HTML tokenizer does not treat as whitespace.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @var string
+	 */
+	private const SCRIPT_START_PATTERN = '#^<script[\t\n\f\r />]#i';
+
+	/**
+	 * End tag of a script element, which the browser recognizes only when the name is complete,
+	 * so `</scriptx>` stays script text.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @var string
+	 */
+	private const SCRIPT_END_PATTERN = '#^</script[\t\n\f\r />]#i';
+
+	/**
+	 * URI attributes `wp_kses_uri_attributes()` does not list.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @var string[]
+	 */
+	private const URI_ATTRIBUTES = [ 'xlink:href' ];
+
+	/**
+	 * SVG animation elements, which can write any value into `href` while the page runs.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @var string[]
+	 */
+	private const ANIMATION_ELEMENTS = [ 'set', 'animate' ];
+
+	/**
+	 * Attributes holding the value an animation element writes. `values` is a `;`-separated list.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @var string[]
+	 */
+	private const ANIMATION_VALUE_ATTRIBUTES = [ 'to', 'from', 'by', 'values' ];
+
+	/**
 	 * List of smart tags.
 	 *
 	 * @since 1.6.7
@@ -566,11 +636,13 @@ class SmartTags {
 	/**
 	 * Replace a smart tag in content that is printed as markup.
 	 *
-	 * A tag value is escaped only where the tag sits inside an HTML tag, so a value carrying a
-	 * quote cannot close an attribute the form author opened. Text positions keep the value
-	 * untouched, which is what lets the tags that emit markup on purpose keep working.
+	 * A tag value is escaped only where the tag sits inside an HTML tag or inside a script element,
+	 * so a value carrying a quote cannot close an attribute or a string literal the form author
+	 * opened. Text positions keep the value untouched, which is what lets the tags that emit markup
+	 * on purpose keep working.
 	 *
 	 * @since 2.0.2.1
+	 * @since 2.0.2.2 Substitutes inside the attributes the browser parses again, and inside a script element.
 	 *
 	 * @param string $tag     The tag.
 	 * @param string $value   The value.
@@ -588,13 +660,23 @@ class SmartTags {
 
 		$scan = $this->get_attribute_positions( $content, $tag );
 
-		if ( ! $scan['in_tag'] ) {
+		if ( ! $scan['in_tag'] && ! $scan['script_text'] ) {
 			return str_replace( $tag, $value, $content );
 		}
 
-		$attribute_value = $this->escape_for_attribute( $value );
-		$result          = '';
-		$offset          = 0;
+		// One form of the value per kind of position, built once for all the tag's occurrences.
+		$attribute = $this->escape_for_attribute( $value );
+		$values    = [
+			'text'                => $value,
+			'attribute'           => $attribute,
+			'name'                => str_replace( '=', '&#61;', $attribute ),
+			'script'              => $scan['script_spans'] ? $this->escape_for_script_attribute( $value, false ) : '',
+			'script_literal'      => $scan['script_spans'] ? $this->escape_for_script_attribute( $value, true ) : '',
+			'script_text'         => $scan['script_text'] ? $this->escape_for_script( $value, false ) : '',
+			'script_text_literal' => $scan['script_text'] ? $this->escape_for_script( $value, true ) : '',
+		];
+		$result    = '';
+		$offset    = 0;
 
 		while ( true ) {
 			$position = strpos( $content, $tag, $offset );
@@ -603,18 +685,18 @@ class SmartTags {
 				break;
 			}
 
-			$span = isset( $scan['in_tag'][ $position ] ) ? $this->find_uri_span( $scan['uri_spans'], $position ) : null;
+			$span = isset( $scan['in_tag'][ $position ] ) ? $this->find_span( $scan['whole_spans'], $position ) : null;
 
 			if ( $span !== null ) {
 				$result .= substr( $content, $offset, $span[0] - $offset );
-				$result .= $this->sanitize_uri_value( substr( $content, $span[0], $span[1] ), $tag, $attribute_value );
+				$result .= $this->sanitize_whole_value( $span[2], substr( $content, $span[0], $span[1] ), $tag, $values );
 				$offset  = $span[0] + $span[1];
 
 				continue;
 			}
 
 			$result .= substr( $content, $offset, $position - $offset );
-			$result .= isset( $scan['in_tag'][ $position ] ) ? $attribute_value : $value;
+			$result .= $this->get_replacement( $scan, $position, $values, $content );
 			$offset  = $position + $tag_length;
 		}
 
@@ -622,16 +704,56 @@ class SmartTags {
 	}
 
 	/**
-	 * Find the URI attribute value a position falls in.
+	 * Pick the form of the value that is inert at the position the tag sits in.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param array  $scan     Positions and spans collected for the content.
+	 * @param int    $position Position of the tag.
+	 * @param array  $values   The value as text, and made inert for an attribute value, an attribute
+	 *                         name, and for an event handler and a script element inside and outside
+	 *                         a string literal, under those keys.
+	 * @param string $content  Content.
+	 *
+	 * @return string
+	 */
+	private function get_replacement( array $scan, int $position, array $values, string $content ): string {
+
+		if ( isset( $scan['script_text'][ $position ] ) ) {
+			$code = substr( $content, $scan['script_text'][ $position ], $position - $scan['script_text'][ $position ] );
+
+			return $this->is_inside_script_literal( $code, false ) ? $values['script_text'] : $values['script_text_literal'];
+		}
+
+		if ( ! isset( $scan['in_tag'][ $position ] ) ) {
+			return $values['text'];
+		}
+
+		$span = $this->find_span( $scan['script_spans'], $position );
+
+		if ( $span !== null ) {
+			$code = substr( $content, $span[0], $position - $span[0] );
+
+			return $this->is_inside_script_literal( $code, true ) ? $values['script'] : $values['script_literal'];
+		}
+
+		// Outside every attribute value the tag stands where an attribute name goes. A reference
+		// is not decoded there, so `=` written as one cannot give the value an attribute of its own.
+		return $this->find_span( $scan['value_spans'], $position ) !== null ? $values['attribute'] : $values['name'];
+	}
+
+	/**
+	 * Find the attribute value a position falls in.
 	 *
 	 * @since 2.0.2.1
+	 * @since 2.0.2.2 Renamed from `find_uri_span()`, since every kind of value span uses it.
 	 *
-	 * @param array $spans    Value spans as offset and length pairs.
+	 * @param array $spans    Value spans as offset and length pairs, with the kind as a third element where the caller stores one.
 	 * @param int   $position Position of the tag.
 	 *
 	 * @return array|null
 	 */
-	private function find_uri_span( array $spans, int $position ): ?array {
+	private function find_span( array $spans, int $position ): ?array {
 
 		foreach ( $spans as $span ) {
 			if ( $position >= $span[0] && $position < $span[0] + $span[1] ) {
@@ -643,22 +765,71 @@ class SmartTags {
 	}
 
 	/**
-	 * Substitute a smart tag inside a URI attribute value and make the assembled value inert.
+	 * Substitute a smart tag inside an attribute value the browser reads as a whole, and make the
+	 * assembled value inert.
 	 *
-	 * The browser decodes and resolves the value as a whole, so a scheme can be split across two
-	 * tags that are each harmless alone. Checking the finished value is the only way to see it.
+	 * A URI is decoded and resolved as one string, so a scheme can be split across two tags that
+	 * are each harmless alone; only the finished value shows it. A document attribute holds a
+	 * whole HTML document: it is decoded once, the tag is substituted inside it with the same
+	 * positional escaping as outside, and the result is encoded once more for the attribute. The
+	 * tags the author wrote that still wait for their own pass are put back exactly as written, so
+	 * their pass still finds them; a tag-like string carried in by the value stays encoded text.
 	 *
 	 * @since 2.0.2.1
+	 * @since 2.0.2.2 Renamed from `sanitize_uri_value()`; handles document attributes too.
 	 *
-	 * @param string $span  The attribute value.
-	 * @param string $tag   The tag.
-	 * @param string $value The escaped value.
+	 * @param string $kind   Kind of the value, `uri`, `uri_list` or `document`.
+	 * @param string $span   The attribute value.
+	 * @param string $tag    The tag.
+	 * @param array  $values The value as text and made inert for an attribute, under those keys.
 	 *
 	 * @return string
 	 */
-	private function sanitize_uri_value( string $span, string $tag, string $value ): string {
+	private function sanitize_whole_value( string $kind, string $span, string $tag, array $values ): string {
 
-		return wp_kses_bad_protocol( str_replace( $tag, $value, $span ), wp_allowed_protocols() );
+		if ( $kind === 'uri' ) {
+			return wp_kses_bad_protocol( str_replace( $tag, $values['attribute'], $span ), wp_allowed_protocols() );
+		}
+
+		if ( $kind === 'uri_list' ) {
+			// The browser splits the list after decoding it, so `&#59;` separates items too. The value
+			// is rewritten only when an item loses its scheme, to keep the author's spelling otherwise.
+			$assembled = str_replace( $tag, $values['attribute'], $span );
+			$items     = explode( ';', html_entity_decode( $assembled, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+			$safe      = [];
+
+			foreach ( $items as $item ) {
+				$safe[] = wp_kses_bad_protocol( $item, wp_allowed_protocols() );
+			}
+
+			return $safe === $items ? $assembled : $this->encode_attribute_whitespace( htmlspecialchars( implode( ';', $safe ), ENT_QUOTES, 'UTF-8' ) );
+		}
+
+		// The other tags are masked in the author's own spelling before anything is decoded, so they
+		// come back exactly as written and their own pass still finds them, and nothing the value
+		// carries can pass for one of them. The marker is grown until neither side contains it.
+		$pending = array_values( array_diff( array_keys( wpforms_get_all_smart_tags( $span ) ), [ $tag ] ) );
+		$marker  = 'wpformspendingtag';
+
+		while ( strpos( $span . $values['text'], $marker ) !== false ) {
+			$marker .= 'x';
+		}
+
+		foreach ( $pending as $index => $smart_tag ) {
+			$span = str_replace( $smart_tag, "{$marker}_{$index}_", $span );
+		}
+
+		// The author encodes the inner markup for the attribute, so the tag reads decoded in there too.
+		$decoded  = html_entity_decode( $span, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		$tag      = html_entity_decode( $tag, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		$document = $this->replace_in_markup( $tag, $values['text'], $decoded );
+		$encoded  = $this->encode_attribute_whitespace( htmlspecialchars( $document, ENT_QUOTES, 'UTF-8' ) );
+
+		foreach ( $pending as $index => $smart_tag ) {
+			$encoded = str_replace( "{$marker}_{$index}_", $smart_tag, $encoded );
+		}
+
+		return $encoded;
 	}
 
 	/**
@@ -672,42 +843,197 @@ class SmartTags {
 	 */
 	private function escape_for_attribute( string $value ): string {
 
-		// Whitespace terminates an unquoted attribute value, and a character reference is decoded
-		// only after the browser has tokenized the tag, so encoding it changes nothing visually.
+		return $this->encode_attribute_whitespace( esc_attr( $value ) );
+	}
+
+	/**
+	 * Make a smart tag value inert inside an event handler attribute.
+	 *
+	 * The browser decodes the attribute once and then compiles the result as JavaScript, so an
+	 * entity is of no help: `&#039;` comes back as a quote and ends the string literal the author
+	 * put the tag in. The value is written as JavaScript instead, which the attribute decoding
+	 * leaves alone.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $value      The value.
+	 * @param bool   $as_literal Whether to write the value as a complete literal.
+	 *
+	 * @return string
+	 */
+	private function escape_for_script_attribute( string $value, bool $as_literal ): string {
+
+		return esc_attr( $this->escape_for_script( $value, $as_literal ) );
+	}
+
+	/**
+	 * Make a smart tag value inert inside JavaScript.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $value      The value.
+	 * @param bool   $as_literal Whether to write the value as a complete literal.
+	 *
+	 * @return string
+	 */
+	private function escape_for_script( string $value, bool $as_literal ): string {
+
+		$text = wp_specialchars_decode( $value, ENT_QUOTES );
+
+		// A leading zero would read as an octal literal, so such a value is a string like any other.
+		if ( $as_literal && preg_match( '/^-?(0|[1-9]\d*)(\.\d+)?$/', $text ) === 1 ) {
+			return $text;
+		}
+
+		$chars = preg_split( '//u', $text, -1, PREG_SPLIT_NO_EMPTY );
+
+		if ( $chars === false ) {
+			return '';
+		}
+
+		$body = '';
+
+		foreach ( $chars as $char ) {
+			if ( preg_match( '/^[A-Za-z0-9_]$/', $char ) === 1 ) {
+				$body .= $char;
+
+				continue;
+			}
+
+			// A character outside ASCII is one or two \uXXXX units, which wp_json_encode() already writes.
+			$body .= strlen( $char ) === 1 ? sprintf( '\\u%04X', ord( $char ) ) : substr( wp_json_encode( $char ), 1, -1 );
+		}
+
+		return $as_literal ? '"' . $body . '"' : $body;
+	}
+
+	/**
+	 * Tell whether the script code written before a smart tag leaves a string literal open.
+	 *
+	 * A comment is stepped over, since a quote inside one opens no literal. A regular expression
+	 * literal is not told apart from a division, so a quote inside one misjudges the position; both
+	 * forms of the value are inert either way, so a misjudgment only garbles the text. Character
+	 * references are decoded for a handler attribute, since that is the code the browser compiles,
+	 * and left alone in a script element, where the browser does not decode them.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $code         Script code from where it begins up to the tag.
+	 * @param bool   $in_attribute Whether the code is the value of an event handler attribute.
+	 *
+	 * @return bool
+	 */
+	private function is_inside_script_literal( string $code, bool $in_attribute ): bool {
+
+		foreach ( array_keys( wpforms_get_all_smart_tags( $code ) ) as $smart_tag ) {
+			$code = str_replace( $smart_tag, str_repeat( 'x', strlen( $smart_tag ) ), $code );
+		}
+
+		if ( $in_attribute ) {
+			$code = html_entity_decode( $code, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+		}
+
+		$length = strlen( $code );
+		$quote  = '';
+
+		for ( $i = 0; $i < $length; $i++ ) {
+			$char = $code[ $i ];
+
+			if ( $quote !== '' ) {
+				$quote = $char === $quote ? '' : $quote;
+				$i    += $char === '\\' ? 1 : 0;
+
+				continue;
+			}
+
+			if ( $char === '"' || $char === "'" || $char === '`' ) {
+				$quote = $char;
+
+				continue;
+			}
+
+			// A comment that runs up to the tag holds the tag itself, so the tag is outside every literal.
+			if ( $char === '/' && preg_match( '#\G(?://[^\n]*|/\*.*?(?:\*/|$))#s', $code, $comment, 0, $i ) === 1 ) {
+				$i += strlen( $comment[0] ) - 1;
+			}
+		}
+
+		return $quote !== '';
+	}
+
+	/**
+	 * Encode the whitespace of an attribute value.
+	 *
+	 * Whitespace terminates an unquoted attribute value, and a character reference is decoded
+	 * only after the browser has tokenized the tag, so encoding it changes nothing visually.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $value The escaped value.
+	 *
+	 * @return string
+	 */
+	private function encode_attribute_whitespace( string $value ): string {
+
 		return str_replace(
 			[ ' ', "\t", "\n", "\r", "\f" ],
 			[ '&#32;', '&#09;', '&#10;', '&#13;', '&#12;' ],
-			esc_attr( $value )
+			$value
 		);
 	}
 
 	/**
-	 * Collect the positions at which a smart tag sits inside an HTML tag.
+	 * Collect the positions at which a smart tag sits inside an HTML tag or inside a script element.
 	 *
 	 * Quote state is tracked because `>` does not close a tag inside an attribute value, and
-	 * because the tag itself is usually written between quotes.
+	 * because the tag itself is usually written between quotes. Inside a script element nothing
+	 * but its end tag is markup, so the scan reads through to `</script` and records the tags it
+	 * passes as script code.
 	 *
 	 * @since 2.0.2.1
+	 * @since 2.0.2.2 Collects every kind of attribute value span and the script element positions.
 	 *
 	 * @param string $content Content.
 	 * @param string $tag     The tag.
 	 *
 	 * @return array {
-	 *     @type array $in_tag    Positions inside an HTML tag, as keys.
-	 *     @type array $uri_spans Offset and length of every URI attribute value holding the tag.
+	 *     @type array $in_tag       Positions inside an HTML tag, as keys.
+	 *     @type array $script_text  Positions inside a script element, as keys, each holding the position its code starts at.
+	 *     @type array $whole_spans  Offset, length and kind of every URI and document attribute value holding the tag.
+	 *     @type array $script_spans Offset and length of every event handler attribute value holding the tag.
+	 *     @type array $value_spans  Offset and length of every other attribute value holding the tag.
 	 * }
 	 */
 	private function get_attribute_positions( string $content, string $tag ): array {
 
-		$tag_length = strlen( $tag );
-		$length     = strlen( $content );
-		$in_tag     = [];
-		$uri_spans  = [];
-		$element    = -1;
-		$quote      = '';
+		$tag_length  = strlen( $tag );
+		$length      = strlen( $content );
+		$in_tag      = [];
+		$script_text = [];
+		$spans       = [
+			'whole'  => [],
+			'script' => [],
+			'value'  => [],
+		];
+		$element     = -1;
+		$script      = -1;
+		$quote       = '';
 
 		for ( $i = 0; $i < $length; $i++ ) {
-			$char = $content[ $i ];
+			$char   = $content[ $i ];
+			$is_tag = $char === $tag[0] && substr( $content, $i, $tag_length ) === $tag;
+
+			if ( $script >= 0 ) {
+				if ( $is_tag ) {
+					$script_text[ $i ] = $script;
+					$i                += $tag_length - 1;
+				} elseif ( $char === '<' && preg_match( self::SCRIPT_END_PATTERN, substr( $content, $i, 9 ) ) === 1 ) {
+					$element = $i;
+					$script  = -1;
+				}
+
+				continue;
+			}
 
 			if ( $element < 0 ) {
 				// A bare `<` in prose opens no tag, so `5 < 6 {page_title}` stays a text position.
@@ -716,7 +1042,7 @@ class SmartTags {
 				continue;
 			}
 
-			if ( $char === $tag[0] && substr( $content, $i, $tag_length ) === $tag ) {
+			if ( $is_tag ) {
 				$in_tag[ $i ] = true;
 				$i           += $tag_length - 1;
 
@@ -736,35 +1062,52 @@ class SmartTags {
 			}
 
 			if ( $char === '>' ) {
-				$uri_spans = array_merge( $uri_spans, $this->get_uri_value_spans( $content, $element, $i, $in_tag ) );
-				$element   = -1;
+				foreach ( $this->get_attribute_value_spans( $content, $element, $i, $in_tag ) as $kind => $kind_spans ) {
+					$spans[ $kind ] = array_merge( $spans[ $kind ], $kind_spans );
+				}
+
+				$script  = preg_match( self::SCRIPT_START_PATTERN, substr( $content, $element, 8 ) ) === 1 ? $i + 1 : -1;
+				$element = -1;
 			}
 		}
 
 		return [
-			'in_tag'    => $in_tag,
-			'uri_spans' => $uri_spans,
+			'in_tag'       => $in_tag,
+			'script_text'  => $script_text,
+			'whole_spans'  => $spans['whole'],
+			'script_spans' => $spans['script'],
+			'value_spans'  => $spans['value'],
 		];
 	}
 
 	/**
-	 * Collect the URI attribute values of one element that hold the tag being replaced.
+	 * Collect the attribute values of one element that hold the tag being replaced, by kind.
 	 *
 	 * Every smart tag in the element is masked with a same-length filler first: a tag carries
 	 * quotes and spaces of its own, `{query_var key="a"}`, which would otherwise end the very
 	 * attribute value it sits in and hide the rest of that value from the pattern.
 	 *
 	 * @since 2.0.2.1
+	 * @since 2.0.2.2 Renamed from `get_uri_value_spans()`; collects every attribute value, by kind.
 	 *
 	 * @param string $content Content.
 	 * @param int    $start   Position of the element's `<`.
 	 * @param int    $end     Position of the element's `>`.
 	 * @param array  $in_tag  Tag positions inside an HTML tag, as keys.
 	 *
-	 * @return array Offset and length pairs.
+	 * @return array {
+	 *     @type array $whole  Offset, length and kind of URI and document attribute values, which are rewritten as a whole.
+	 *     @type array $script Offset and length pairs of event handler attribute values.
+	 *     @type array $value  Offset and length pairs of every other attribute value.
+	 * }
 	 */
-	private function get_uri_value_spans( string $content, int $start, int $end, array $in_tag ): array {
+	private function get_attribute_value_spans( string $content, int $start, int $end, array $in_tag ): array {
 
+		$spans   = [
+			'whole'  => [],
+			'script' => [],
+			'value'  => [],
+		];
 		$element = substr( $content, $start, $end - $start + 1 );
 
 		foreach ( array_keys( wpforms_get_all_smart_tags( $element ) ) as $smart_tag ) {
@@ -772,24 +1115,60 @@ class SmartTags {
 		}
 
 		if ( ! preg_match_all( self::ATTRIBUTE_PATTERN, $element, $matches, PREG_OFFSET_CAPTURE ) ) {
-			return [];
+			return $spans;
 		}
 
-		$spans = [];
+		preg_match( '#^<([a-zA-Z][^\t\n\f\r />]*)#', $element, $element_name );
+
+		$element_name = strtolower( $element_name[1] ?? '' );
 
 		foreach ( $matches['name'] as $index => $name ) {
-			if ( ! in_array( strtolower( $name[0] ), wp_kses_uri_attributes(), true ) ) {
+			$kind = $this->get_attribute_kind( $name[0], $element_name ) ?? 'value';
+			$span = $this->get_matched_value_span( $matches, $index, $start );
+
+			if ( $span === null || ! $this->has_tag_in_span( $in_tag, $span ) ) {
 				continue;
 			}
 
-			$span = $this->get_matched_value_span( $matches, $index, $start );
+			// A URI and a document are rewritten as a whole, so they share one list and carry their kind.
+			$list = in_array( $kind, [ 'uri', 'uri_list', 'document' ], true ) ? 'whole' : $kind;
 
-			if ( $span !== null && $this->has_tag_in_span( $in_tag, $span ) ) {
-				$spans[] = $span;
-			}
+			$spans[ $list ][] = [ $span[0], $span[1], $kind ];
 		}
 
 		return $spans;
+	}
+
+	/**
+	 * Tell whether an attribute takes a URI, a list of URIs, a whole document or a script, the kinds
+	 * that need more than plain attribute escaping.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $name         Attribute name as written.
+	 * @param string $element_name Lower case name of the element the attribute belongs to.
+	 *
+	 * @return string|null `uri`, `uri_list`, `document`, `script`, or null for any other attribute.
+	 */
+	private function get_attribute_kind( string $name, string $element_name ): ?string {
+
+		$name = strtolower( $name );
+
+		if ( in_array( $name, self::DOCUMENT_ATTRIBUTES, true ) ) {
+			return 'document';
+		}
+
+		if ( in_array( $element_name, self::ANIMATION_ELEMENTS, true ) && in_array( $name, self::ANIMATION_VALUE_ATTRIBUTES, true ) ) {
+			return $name === 'values' ? 'uri_list' : 'uri';
+		}
+
+		if ( strpos( $name, self::SCRIPT_ATTRIBUTE_PREFIX ) === 0 ) {
+			return 'script';
+		}
+
+		$uri_attributes = array_merge( self::URI_ATTRIBUTES, wp_kses_uri_attributes() );
+
+		return in_array( $name, $uri_attributes, true ) ? 'uri' : null;
 	}
 
 	/**

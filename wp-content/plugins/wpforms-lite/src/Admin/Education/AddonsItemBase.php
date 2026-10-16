@@ -108,6 +108,8 @@ abstract class AddonsItemBase implements EducationInterface {
 			return;
 		}
 
+		$addon['disclosure'] = Helpers::get_addon_disclosure( $addon['slug'] ?? '' );
+
 		echo wpforms_render( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			$this->single_addon_template,
 			$addon,

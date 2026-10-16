@@ -69,7 +69,10 @@ class Payments {
 
 		// Format currencies for select element.
 		foreach ( $currencies as $code => $currency ) {
-			$currency_option[ $code ] = sprintf( '%s (%s %s)', $currency['name'], $code, $currency['symbol'] );
+			// A symbol may end with the space that separates it from the amount; the label needs none.
+			$symbol = preg_replace( '/(&nbsp;|\s)+$/', '', $currency['symbol'] );
+
+			$currency_option[ $code ] = sprintf( '%s (%s %s)', $currency['name'], $code, $symbol );
 		}
 
 		$settings['payments'] = [

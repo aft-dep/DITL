@@ -243,4 +243,23 @@ class Helpers {
 
 		return wpforms_is_license_valid();
 	}
+
+	/**
+	 * Get the active payment gateway addons that have no form field.
+	 *
+	 * The AI middleware lists them as Payments-panel integrations, so the model
+	 * points the user to the panel instead of inventing a field for the gateway.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @return array Addon slugs.
+	 */
+	public static function get_active_gateway_addons(): array {
+
+		$gateways = [
+			'paystack' => '\WPFormsPaystack\Loader',
+		];
+
+		return array_keys( array_filter( $gateways, 'class_exists' ) );
+	}
 }

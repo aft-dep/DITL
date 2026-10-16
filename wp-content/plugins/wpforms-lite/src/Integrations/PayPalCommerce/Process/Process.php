@@ -102,14 +102,8 @@ class Process extends Base {
 			return;
 		}
 
-		if (
-			empty( $entry['fields'][ $this->field['id'] ]['orderID'] )
-			&& empty( $entry['fields'][ $this->field['id'] ]['subscriptionProcessorID'] )
-			&& empty( $entry['fields'][ $this->field['id'] ]['subscriptionID'] )
-		) {
-			$this->display_errors();
-
-			$this->maybe_add_conditional_logic_log();
+		if ( ! $this->has_payment_identifier( $entry ) ) {
+			$this->stop_without_payment_identifier();
 
 			return;
 		}
@@ -994,6 +988,56 @@ class Process extends Base {
 	}
 
 	/**
+	 * Whether the submission carries a PayPal identifier for the payment to process.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param array $entry Copy of the original $_POST.
+	 *
+	 * @return bool
+	 */
+	private function has_payment_identifier( array $entry ): bool {
+
+		$submitted = $entry['fields'][ $this->field['id'] ?? null ] ?? [];
+
+		if ( ! is_array( $submitted ) ) {
+			return false;
+		}
+
+		foreach ( [ 'orderID', 'subscriptionProcessorID', 'subscriptionID' ] as $key ) {
+			if ( ! empty( $submitted[ $key ] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Stop a submission that reached the server without a PayPal identifier.
+	 *
+	 * @since 2.0.2.2
+	 */
+	private function stop_without_payment_identifier(): void {
+
+		if ( ! $this->is_card_field_visibility_ok() ) {
+			$this->maybe_add_conditional_logic_log();
+
+			return;
+		}
+
+		wpforms()->obj( 'process' )->errors[ $this->form_id ][ $this->field['id'] ] = wpforms_get_required_label();
+
+		$this->log_errors(
+			'PayPal Commerce payment stopped, missing payment identifier.',
+			[
+				'field_id' => $this->field['id'],
+				'amount'   => $this->amount,
+			]
+		);
+	}
+
+	/**
 	 * Display form errors.
 	 *
 	 * @since 1.10.0
@@ -1004,17 +1048,13 @@ class Process extends Base {
 			return;
 		}
 
-		// Check if the form contains a required credit card. If it does
-		// and there was an error, return the error to the user and prevent
-		// the form from being submitted. This should not occur under normal
-		// circumstances.
+		// A payment error must always block the submission, whether or not the field is marked as
+		// required in the builder: an entry completed without its payment is never acceptable.
 		if ( empty( $this->field ) || empty( $this->form_data['fields'][ $this->field['id'] ] ) ) {
 			return;
 		}
 
-		if ( ! empty( $this->form_data['fields'][ $this->field['id'] ]['required'] ) ) {
-			wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = implode( '<br>', $this->errors );
-		}
+		wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = implode( '<br>', $this->errors );
 	}
 
 	/**

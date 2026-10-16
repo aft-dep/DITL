@@ -3,7 +3,7 @@
         'name' => 'awesomemotive/wpforms',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'cd8307b930fd2c40734f322434f2bcd6b295ecea',
+        'reference' => 'ff5a96f5d79355a7c6c671f22385d55e6c314bba',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -49,7 +49,7 @@
         'awesomemotive/wpforms' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'cd8307b930fd2c40734f322434f2bcd6b295ecea',
+            'reference' => 'ff5a96f5d79355a7c6c671f22385d55e6c314bba',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -121,7 +121,7 @@
         'roave/security-advisories' => array(
             'pretty_version' => 'dev-latest',
             'version' => 'dev-latest',
-            'reference' => 'f1dd47da8977aa9dcb913f443ed6c26042da059f',
+            'reference' => '08ce189d89be521a44e20b191a2418b299a44b2b',
             'type' => 'metapackage',
             'install_path' => null,
             'aliases' => array(
@@ -175,9 +175,9 @@
             'dev_requirement' => false,
         ),
         'symfony/polyfill-php80' => array(
-            'pretty_version' => 'v1.37.0',
-            'version' => '1.37.0.0',
-            'reference' => 'dfb55726c3a76ea3b6459fcfda1ec2d80a682411',
+            'pretty_version' => 'v1.43.0',
+            'version' => '1.43.0.0',
+            'reference' => '9c6a5d6b01ca51d486c813e9a9c0ed55f208bb74',
             'type' => 'library',
             'install_path' => __DIR__ . '/../symfony/polyfill-php80',
             'aliases' => array(),

@@ -141,11 +141,12 @@ class FormEditor extends API {
 
 		$addons_obj = wpforms()->obj( 'addons' );
 
-		if ( ! $addons_obj ) {
-			return [];
-		}
+		// Active payment gateways without a field are reported so the AI can point to the Payments panel.
+		$addons = Helpers::get_active_gateway_addons();
 
-		$addons = [];
+		if ( ! $addons_obj ) {
+			return $addons;
+		}
 
 		// Get the current version of the Quiz addon.
 		$quiz_version = defined( 'WPFORMS_QUIZ_VERSION' ) ? WPFORMS_QUIZ_VERSION : '';

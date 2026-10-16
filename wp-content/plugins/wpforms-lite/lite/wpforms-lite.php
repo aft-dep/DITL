@@ -20,6 +20,7 @@ use WPForms\Db\Payments\Payment;
 use WPForms\Db\ProductEvents\Queue as ProductEventsQueue;
 use WPForms\Lite\Integrations\LiteConnect\Integration as LiteConnectIntegration;
 use WPForms\Lite\Integrations\LiteConnect\LiteConnect;
+use WPForms\Lite\Reports\EntriesWindow;
 use WPForms\Logger\Repository;
 use WPForms\Tasks\Meta as TasksMeta;
 
@@ -930,6 +931,9 @@ class WPForms_Lite {
 		if ( wpforms_is_form_template( $form_id ) ) {
 			return;
 		}
+
+		// Must run before the lifetime meta increment below: the window seeds its start from the pre-submission count.
+		( new EntriesWindow() )->record();
 
 		if ( add_post_meta( $form_id, 'wpforms_entries_count', 1, true ) ) {
 			return;

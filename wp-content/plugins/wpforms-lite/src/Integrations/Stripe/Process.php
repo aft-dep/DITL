@@ -717,7 +717,7 @@ class Process {
 			return esc_html__( 'Stripe payment stopped, invalid/empty amount.', 'wpforms-lite' );
 		}
 
-		if ( 50 > ( $this->amount * 100 ) ) {
+		if ( (float) $this->amount < Helpers::get_currency_minimum( wpforms_get_currency() ) ) {
 			return esc_html__( 'Stripe payment stopped, amount less than minimum charge required.', 'wpforms-lite' );
 		}
 

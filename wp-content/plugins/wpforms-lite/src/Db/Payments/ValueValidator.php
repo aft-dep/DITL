@@ -72,6 +72,7 @@ class ValueValidator {
 				'square'          => esc_html__( 'Square', 'wpforms-lite' ),
 				'authorize_net'   => esc_html__( 'Authorize.net', 'wpforms-lite' ),
 				'mercado_pago'    => esc_html__( 'Mercado Pago', 'wpforms-lite' ),
+				'paystack'        => esc_html__( 'Paystack', 'wpforms-lite' ),
 			]
 		);
 	}

@@ -7,6 +7,7 @@ use WPForms\Admin\Builder\Templates;
 use WPForms\Integrations\AI\Helpers as AIHelpers;
 use WPForms\Integrations\IntegrationInterface;
 use WPForms\Integrations\LiteConnect\Integration;
+use WPForms\Lite\Reports\EntriesWindow;
 use WPForms\SetupChecklist\Checklist;
 use WPForms\SetupChecklist\CompletionDetector;
 use WPForms\SetupChecklist\Config;
@@ -27,6 +28,20 @@ class UsageTracking implements IntegrationInterface {
 	 * @since 1.6.1
 	 */
 	const SETTINGS_SLUG = 'usage-tracking-enabled';
+
+	/**
+	 * The 7-day entries period.
+	 *
+	 * @since 2.0.2.2
+	 */
+	private const PERIOD_7DAYS = '7days';
+
+	/**
+	 * The 30-day entries period.
+	 *
+	 * @since 2.0.2.2
+	 */
+	private const PERIOD_30DAYS = '30days';
 
 	/**
 	 * Indicate if current integration is allowed to load.
@@ -163,7 +178,7 @@ class UsageTracking implements IntegrationInterface {
 		$forms                = $this->get_all_forms();
 		$forms_total          = count( $forms );
 		$form_templates_total = count( $this->get_all_forms( 'wpforms-template' ) );
-		$entries_total        = $this->get_entries_total();
+		$entries_total        = (int) $this->get_entries_total();
 		$form_fields_count    = $this->get_form_fields_count( $forms );
 
 		$data = [
@@ -196,8 +211,6 @@ class UsageTracking implements IntegrationInterface {
 			'wpforms_entries_avg'            => $this->get_entries_avg( $forms_total, $entries_total ),
 			'wpforms_entries_median'         => $this->get_entries_median( $forms ),
 			'wpforms_entries_total'          => $entries_total,
-			'wpforms_entries_last_7days'     => $this->get_entries_total( '7days' ),
-			'wpforms_entries_last_30days'    => $this->get_entries_total( '30days' ),
 			'wpforms_forms_total'            => $forms_total,
 			'wpforms_form_fields_count'      => $form_fields_count,
 			'wpforms_form_templates_total'   => $form_templates_total,
@@ -230,6 +243,19 @@ class UsageTracking implements IntegrationInterface {
 		];
 
 		$data = $this->add_promotion_plugin_data( $data );
+
+		$entries_last_7days  = $this->get_entries_total( self::PERIOD_7DAYS );
+		$entries_last_30days = $this->get_entries_total( self::PERIOD_30DAYS );
+
+		// Lite counts these from a rolling window that only becomes meaningful once it is old
+		// enough to cover the period, so an unknown count omits the key instead of sending zero.
+		if ( $entries_last_7days !== null ) {
+			$data['wpforms_entries_last_7days'] = $entries_last_7days;
+		}
+
+		if ( $entries_last_30days !== null ) {
+			$data['wpforms_entries_last_30days'] = $entries_last_30days;
+		}
 
 		if ( ! empty( $first_form_date ) ) {
 			$data['wpforms_forms_first_created'] = $first_form_date;
@@ -406,6 +432,10 @@ class UsageTracking implements IntegrationInterface {
 					'mercado_pago-test-public-key',
 					'mercado_pago-live-access-token',
 					'mercado_pago-live-public-key',
+					'paystack-test-secret-key',
+					'paystack-test-public-key',
+					'paystack-live-secret-key',
+					'paystack-live-public-key',
 					'square-location-id-sandbox',
 					'square-location-id-production',
 					'geolocation-google-places-api-key',
@@ -800,9 +830,9 @@ class UsageTracking implements IntegrationInterface {
 	 * @param string $period Which period should be counted? Possible values: 7days, 30days.
 	 *                       Everything else will mean "all" entries.
 	 *
-	 * @return int
+	 * @return int|null Null when the count for the requested period is unknown.
 	 */
-	public function get_entries_total( string $period = 'all' ): int {
+	public function get_entries_total( string $period = 'all' ): ?int {
 
 		if ( ! wpforms()->is_pro() ) {
 			return $this->get_entries_total_lite( $period );
@@ -818,7 +848,7 @@ class UsageTracking implements IntegrationInterface {
 		}
 
 		switch ( $period ) {
-			case '7days':
+			case self::PERIOD_7DAYS:
 				$args = [
 					'date' => [
 						gmdate( 'Y-m-d', strtotime( '-7 days' ) ),
@@ -827,7 +857,7 @@ class UsageTracking implements IntegrationInterface {
 				];
 				break;
 
-			case '30days':
+			case self::PERIOD_30DAYS:
 				$args = [
 					'date' => [
 						gmdate( 'Y-m-d', strtotime( '-30 days' ) ),
@@ -850,24 +880,19 @@ class UsageTracking implements IntegrationInterface {
 	 * @param string $period Which period should be counted? Possible values: 7days, 30days.
 	 *                       Everything else will mean "all" entries.
 	 *
-	 * @return int
+	 * @return int|null Null when the rolling window is younger than the requested period.
 	 */
-	private function get_entries_total_lite( string $period = 'all' ): int {
+	private function get_entries_total_lite( string $period = 'all' ): ?int {
 
-		if ( $period === '7days' || $period === '30days' ) {
-			return 0;
+		if ( $period === self::PERIOD_7DAYS ) {
+			return ( new EntriesWindow() )->get_total( 7 );
 		}
 
-		global $wpdb;
+		if ( $period === self::PERIOD_30DAYS ) {
+			return ( new EntriesWindow() )->get_total( 30 );
+		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$count = $wpdb->get_var(
-			"SELECT SUM(meta_value)
-				FROM $wpdb->postmeta
-				WHERE meta_key = 'wpforms_entries_count';"
-		);
-
-		return (int) $count;
+		return EntriesWindow::get_lifetime_total();
 	}
 
 	/**

@@ -715,11 +715,12 @@ function wpforms_settings_webhook_endpoint_callback( array $args ): string {
 
 	$provider    = $args['provider'] ?? 'stripe';
 	$input_id    = "wpforms-{$provider}-webhook-endpoint-url";
-	$copy_btn    = '<a class="button button-secondary wpforms-copy-to-clipboard" data-clipboard-target="#' . esc_attr( $input_id ) . '" href="#" aria-label="' . esc_attr__( 'Copy webhook URL', 'wpforms-lite' ) . '"><span class="dashicons dashicons-admin-page"></span></a>';
+	$copy_btn    = '<a class="button button-secondary wpforms-copy-to-clipboard" data-clipboard-target="#' . esc_attr( $input_id ) . '" href="#" aria-label="' . esc_attr__( 'Copy webhook URL', 'wpforms-lite' ) . '"><span class="fa-regular fa-copy" aria-hidden="true"></span></a>';
 	$input_field = '<input type="text" disabled id="' . esc_attr( $input_id ) . '" value="' . esc_url( $args['url'] ) . '" />';
 
+	// No whitespace between the input and the button: inline elements would render it as an extra gap.
 	$output = sprintf(
-		'<div class="%1$s">%2$s %3$s</div>',
+		'<div class="%1$s">%2$s%3$s</div>',
 		esc_attr( "wpforms-{$provider}-webhook-endpoint-url" ),
 		$input_field,
 		$copy_btn

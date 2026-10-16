@@ -405,6 +405,67 @@ class Helpers {
 	}
 
 	/**
+	 * Get the minimum charge amount of a currency, in major units.
+	 *
+	 * The documented Stripe minimums, see https://docs.stripe.com/currencies#minimum-and-maximum-charge-amounts.
+	 *
+	 * @since 2.0.2.2
+	 *
+	 * @param string $currency Currency code.
+	 *
+	 * @return float
+	 */
+	public static function get_currency_minimum( string $currency ): float {
+
+		$minimums = [
+			'USD' => 0.50,
+			'AED' => 2.00,
+			'ARS' => 0.50,
+			'AUD' => 0.50,
+			'BRL' => 0.50,
+			'CAD' => 0.50,
+			'CHF' => 0.50,
+			'COP' => 0.50,
+			'CZK' => 15.00,
+			'DKK' => 2.50,
+			'EUR' => 0.50,
+			'GBP' => 0.30,
+			'HKD' => 4.00,
+			'HUF' => 175.00,
+			'IDR' => 0.50,
+			'ILS' => 0.50,
+			'INR' => 0.50,
+			'JPY' => 50.00,
+			'KRW' => 50.00,
+			'MXN' => 10.00,
+			'MYR' => 2.00,
+			'NOK' => 3.00,
+			'NZD' => 0.50,
+			'PHP' => 0.50,
+			'PLN' => 2.00,
+			'RON' => 2.00,
+			'RUB' => 0.50,
+			'SEK' => 3.00,
+			'SGD' => 0.50,
+			'THB' => 10.00,
+			'ZAR' => 0.50,
+			'KES' => 1000.00,
+			'NGN' => 5000.00,
+		];
+
+		/**
+		 * Filter the Stripe minimum charge amounts per currency, in major units.
+		 *
+		 * @since 2.0.2.2
+		 *
+		 * @param array $minimums Minimum charge amounts keyed by the currency code.
+		 */
+		$minimums = (array) apply_filters( 'wpforms_integrations_stripe_helpers_get_currency_minimum', $minimums );
+
+		return (float) ( $minimums[ strtoupper( $currency ) ] ?? 0.50 );
+	}
+
+	/**
 	 * Get Stripe webhook endpoint URL.
 	 *
 	 * If the constant WPFORMS_STRIPE_WHURL is defined, it will be used as the webhook URL.

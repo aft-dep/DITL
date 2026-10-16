@@ -788,8 +788,14 @@ class Table extends \WP_List_Table {
 		$title     = $this->get_payment_title( $item );
 		$na_status = empty( $title ) ? sprintf( '<span class="payment-title-is-empty">- %s</span>', Helpers::get_placeholder_na_text() ) : '';
 
+		// An email title must escape the column capitalization: unlike a name,
+		// it reads wrong with the uppercased letters.
+		$title_html = is_email( $item['title'] ?? '' )
+			? sprintf( '<span class="payment-title-email">%s</span>', esc_html( $title ) )
+			: esc_html( $title );
+
 		if ( ! $item['is_published'] ) {
-			return sprintf( '<span>#%1$d %2$s</span> %3$s', $item['id'], esc_html( $title ), $na_status );
+			return sprintf( '<span>#%1$d %2$s</span> %3$s', $item['id'], $title_html, $na_status );
 		}
 
 		$single_url = add_query_arg(
@@ -801,7 +807,7 @@ class Table extends \WP_List_Table {
 			admin_url( 'admin.php' )
 		);
 
-		return sprintf( '<a href="%1$s">#%2$d %3$s</a> %4$s', esc_url( $single_url ), $item['id'], esc_html( $title ), $na_status );
+		return sprintf( '<a href="%1$s">#%2$d %3$s</a> %4$s', esc_url( $single_url ), $item['id'], $title_html, $na_status );
 	}
 
 	/**

@@ -82,6 +82,7 @@ abstract class SmartTag {
 	 * Get a list of smart tag attributes.
 	 *
 	 * @since 1.6.7
+	 * @since 2.0.2.2 Quotes written as character references, as inside an encoded attribute value, are read too.
 	 *
 	 * @return array
 	 */
@@ -98,7 +99,7 @@ abstract class SmartTag {
 		 * (.+?) an attribute value within the quotes, and also the third capturing group. Any number of any characters except the new line. Lazy mode - match as few characters as possible to allow multiple attributes on one line.
 		 * \2 - repeat the second capturing group.
 		 */
-		preg_match_all( '/(\w+)=(["\'])(.+?)\2/', $this->smart_tag, $attributes );
+		preg_match_all( '/(\w+)=(["\'])(.+?)\2/', html_entity_decode( $this->smart_tag, ENT_QUOTES | ENT_HTML5, 'UTF-8' ), $attributes );
 		$this->attributes = array_combine( $attributes[1], $attributes[3] );
 
 		return $this->attributes;
