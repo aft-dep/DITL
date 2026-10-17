@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.23.0' );
+define( 'DITL_THEME_VERSION', '0.24.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -85,6 +85,13 @@ require_once get_stylesheet_directory() . '/inc/extensions.php';
  */
 require_once get_stylesheet_directory() . '/inc/metaboxes/elearning.php';
 require_once get_stylesheet_directory() . '/inc/elearning.php';
+
+/*
+ * Boite a outils (phase 3) : fiches outils et referentiels, questionnaire en
+ * etapes, resultats filtres, fiche detail imprimable, suivi d'audience et
+ * administration des contenus (inc/boite/, point d'entree boite.php).
+ */
+require_once get_stylesheet_directory() . '/inc/boite/boite.php';
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget

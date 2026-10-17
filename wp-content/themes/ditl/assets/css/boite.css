@@ -1,0 +1,1360 @@
+/**
+ * Boite a outils (phase 3) : habillage de la page Boite a outils
+ * (questionnaire, resultats, catalogue) et de la fiche outil.
+ *
+ * PROVISOIRE : mise en page et hierarchie des maquettes V3 (non definitives,
+ * desktop 1440 px seulement), avec la charte actuelle du site (titres Exo,
+ * texte Arial, bleu #1E448F). Les couleurs attendent la decision du client
+ * apres la revue Access42 : elles sont TOUTES regroupees dans les proprietes
+ * personnalisees ci-dessous, un changement de palette tient en quelques
+ * lignes. Couleur des badges d'environnement : couleur du terme (saisie
+ * dans l'admin), texte calcule pour rester lisible (ditl_boite_couleur_texte),
+ * passees en ligne par le gabarit (--ditl-boite-badge-fond / -texte).
+ *
+ * Accessibilite (grille de recette Access42) : tailles de texte en rem/em,
+ * aucune hauteur fixe sur les cartes, badges et boutons, deux colonnes
+ * au-dessus de 1024 px et une seule en deca (reflow 320 px sans defilement
+ * horizontal), bordures de champs a 3:1 au moins sur leur fond, anneau de
+ * focus commun du site (a11y.css) conserve, ajuste seulement la ou il serait
+ * masque (carte cliquable : anneau double pose sur toute la carte).
+ *
+ * Charge uniquement sur la page Boite a outils et les fiches outils
+ * (inc/boite/front.php). Impression : boite-impression.css.
+ *
+ * @package DiTL
+ */
+
+/* ---------------------------------------------------------------------------
+ * Couleurs et reperes (PROVISOIRES : decision de palette du client attendue)
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite {
+	--ditl-boite-bleu: #1e448f;                /* titres, boutons, etape courante (9,2:1 sur blanc) */
+	--ditl-boite-bleu-fonce: #16336b;          /* survol des boutons */
+	--ditl-boite-sur-bleu: #fff;               /* texte sur le bleu */
+	--ditl-boite-texte: #364151;               /* texte courant du site (9,7:1 sur le fond) */
+	--ditl-boite-texte-doux: #5b6573;          /* textes secondaires (5,5:1 sur le fond) */
+	--ditl-boite-fond: #f6f8fb;                /* fond de la zone principale (maquette) */
+	--ditl-boite-surface: #fff;                /* colonne laterale, cartes, encadres */
+	--ditl-boite-surface-image: #eef2f7;       /* fond d'une carte sans image */
+	--ditl-boite-separateur: #d1dae5;          /* filets decoratifs */
+	--ditl-boite-filet-fort: #1e448f;          /* filets sous les titres de colonne */
+	--ditl-boite-bordure-champ: #66727f;       /* bordure des champs (4,6:1 sur le fond, Access42 >= 3:1) */
+	--ditl-boite-inactif-fond: #dfe4e8;        /* "Vos solutions" non disponible */
+	--ditl-boite-inactif-texte: #4a5560;       /* (5,9:1 sur son fond) */
+	--ditl-boite-badge-defaut-fond: #e9eef5;   /* badge sans couleur saisie */
+	--ditl-boite-badge-defaut-texte: #1e448f;
+	--ditl-boite-type-fond: #1e448f;           /* badges "type de compensation" */
+	--ditl-boite-type-texte: #fff;
+	--ditl-boite-message-fond: #fff4e0;        /* message de reponse non disponible */
+	--ditl-boite-message-bordure: #9a5b00;
+	--ditl-boite-ombre: rgba(30, 68, 143, 0.1);
+	--ditl-boite-ombre-forte: rgba(30, 68, 143, 0.18); /* survol des cartes */
+	--ditl-boite-focus: #1e448f;               /* identique a l'anneau commun (a11y.css) */
+	--ditl-boite-focus-lisere: #fff;
+
+	--ditl-boite-rayon: 0.375rem;
+	--ditl-boite-rayon-carte: 0.625rem;
+	--ditl-boite-colonne: 22rem;               /* largeur de la colonne laterale (desktop) */
+
+	background-color: var(--ditl-boite-fond);
+	color: var(--ditl-boite-texte);
+}
+
+/* ---------------------------------------------------------------------------
+ * Structure : conteneur, colonnes
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite__conteneur {
+	max-width: 90rem;
+	margin: 0 auto;
+	padding: 0 1rem;
+	box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+
+	.ditl-boite__conteneur {
+		padding: 0 2rem;
+	}
+}
+
+.ditl-boite *,
+.ditl-boite *::before,
+.ditl-boite *::after {
+	box-sizing: border-box;
+}
+
+/*
+ * Colonne laterale blanche (etapier, profil, filtres) : en une colonne, un
+ * bandeau pleine largeur ; en deux colonnes, le blanc deborde jusqu'au bord
+ * gauche de la fenetre comme sur la maquette (ombre portee tres etendue,
+ * rognee sur les autres cotes : aucun element hors ecran, aucun defilement).
+ */
+.ditl-boite__colonne {
+	padding: 2rem 0;
+	background-color: var(--ditl-boite-surface);
+	box-shadow: 0 0 0 100vmax var(--ditl-boite-surface);
+	clip-path: inset(0 -100vmax);
+}
+
+.ditl-boite__principal,
+.ditl-boite__entete {
+	padding: 1.5rem 0 3rem;
+}
+
+.ditl-boite__entete {
+	padding-bottom: 1.5rem;
+	text-align: center;
+}
+
+@media (min-width: 1025px) {
+
+	.ditl-boite--questionnaire .ditl-boite__conteneur,
+	.ditl-boite--liste .ditl-boite__conteneur {
+		display: grid;
+		grid-template-columns: var(--ditl-boite-colonne) minmax(0, 1fr);
+	}
+
+	.ditl-boite--liste .ditl-boite__conteneur {
+		grid-template-rows: auto 1fr;
+		grid-template-areas:
+			"colonne entete"
+			"colonne principal";
+	}
+
+	/* Catalogue sans aucun filtre a proposer : une seule colonne. */
+	.ditl-boite--liste.ditl-boite--sans-colonne .ditl-boite__conteneur {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas:
+			"entete"
+			"principal";
+	}
+
+	.ditl-boite--liste .ditl-boite__entete {
+		grid-area: entete;
+	}
+
+	.ditl-boite--liste .ditl-boite__colonne {
+		grid-area: colonne;
+	}
+
+	.ditl-boite--liste .ditl-boite__principal {
+		grid-area: principal;
+	}
+
+	.ditl-boite__conteneur {
+		padding: 0 3rem;
+	}
+
+	.ditl-boite__colonne {
+		padding: 3rem 2.5rem 4rem 0;
+		clip-path: inset(0 0 0 -100vmax);
+	}
+
+	.ditl-boite__principal,
+	.ditl-boite__entete {
+		padding-left: 3rem;
+	}
+
+	.ditl-boite__principal {
+		padding-bottom: 5rem;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+ * Typographie commune (titres Exo de la charte, tailles en rem)
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite h1,
+.ditl-boite h2,
+.ditl-boite h3 {
+	font-family: 'Exo', sans-serif;
+	color: var(--ditl-boite-bleu);
+	overflow-wrap: break-word;
+}
+
+.ditl-boite a {
+	color: var(--ditl-boite-texte);
+}
+
+.ditl-boite a:hover {
+	color: var(--ditl-boite-bleu);
+}
+
+.ditl-boite .ditl-boite__titre {
+	margin: 0 0 1.25rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid var(--ditl-boite-filet-fort);
+	font-size: 2.25rem;
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+.ditl-boite .ditl-boite__titre-liste {
+	margin: 0.5rem 0 1rem;
+	font-size: 2.5rem;
+	font-weight: 400;
+	line-height: 1.15;
+}
+
+.ditl-boite__intro {
+	max-width: 46rem;
+	margin: 0 auto 1rem;
+}
+
+.ditl-boite__intro p + p {
+	margin-top: 0.75em;
+}
+
+@media (min-width: 768px) {
+
+	.ditl-boite .ditl-boite__titre-liste {
+		font-size: 3.25rem;
+	}
+}
+
+.ditl-boite-icone {
+	display: inline-block;
+	flex-shrink: 0;
+	width: 1.25em;
+	height: 1.25em;
+	vertical-align: -0.25em;
+}
+
+/* Lien de retour (fleche + texte), en tete de zone principale. */
+.ditl-boite-retour {
+	margin: 0 0 1rem;
+	font-size: 0.875rem;
+	text-align: left;
+}
+
+.ditl-boite-retour a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+/* Elements reserves a l'impression (adresse de la fiche). */
+.ditl-boite-impression-seule {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Boutons et liens d'action
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite .ditl-boite-bouton {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0.5rem 1.5rem;
+	border: 0;
+	border-radius: var(--ditl-boite-rayon);
+	background-color: var(--ditl-boite-bleu);
+	color: var(--ditl-boite-sur-bleu);
+	font-family: 'Exo', sans-serif;
+	font-size: 1.25rem;
+	font-weight: 500;
+	letter-spacing: normal;
+	line-height: 1.3;
+	text-align: center;
+	text-decoration: none;
+	text-transform: none;
+	cursor: pointer;
+}
+
+.ditl-boite .ditl-boite-bouton:hover,
+.ditl-boite .ditl-boite-bouton:focus {
+	background-color: var(--ditl-boite-bleu-fonce);
+	color: var(--ditl-boite-sur-bleu);
+}
+
+.ditl-boite .ditl-boite-bouton--petit {
+	padding: 0.45rem 0.9rem;
+	font-family: inherit;
+	font-size: 0.9375rem;
+	font-weight: 400;
+}
+
+.ditl-boite .ditl-boite-bouton[hidden] {
+	display: none;
+}
+
+/* Lien "Modifier" (crayon seul, nom accessible en texte masque). */
+.ditl-boite .ditl-boite-modifier {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.75rem;
+	min-height: 1.75rem;
+	padding: 0.15rem;
+	border-radius: var(--ditl-boite-rayon);
+	color: var(--ditl-boite-bleu);
+}
+
+.ditl-boite .ditl-boite-modifier:hover {
+	background-color: var(--ditl-boite-fond);
+}
+
+/* Listes de liens utiles (etats vides). */
+.ditl-boite .ditl-boite-liens {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.75rem 1.5rem;
+	margin: 1.25rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite-vide {
+	padding: 2rem 1.5rem;
+	border-radius: var(--ditl-boite-rayon-carte);
+	background-color: var(--ditl-boite-surface);
+	text-align: center;
+}
+
+.ditl-boite-vide p + p {
+	margin-top: 0.75em;
+}
+
+.ditl-boite-message {
+	max-width: 46rem;
+	margin: 0 auto 1.5rem;
+	padding: 0.75rem 1rem;
+	border-left: 0.25rem solid var(--ditl-boite-message-bordure);
+	background-color: var(--ditl-boite-message-fond);
+}
+
+/* ---------------------------------------------------------------------------
+ * Questionnaire : etapier (colonne laterale)
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite .ditl-boite-etapier {
+	position: relative;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Fil vertical reliant les etapes jusqu'a "Vos solutions". */
+.ditl-boite-etapier::before {
+	content: "";
+	position: absolute;
+	top: 1.5rem;
+	bottom: -1.5rem;
+	left: 1.5rem;
+	width: 1px;
+	background-color: var(--ditl-boite-bleu);
+}
+
+.ditl-boite .ditl-boite-etape {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: 0.75rem;
+	margin: 0 0 0.75rem;
+	padding: 0.875rem 0.75rem 0.875rem 0.875rem;
+	border-radius: var(--ditl-boite-rayon);
+	color: var(--ditl-boite-texte-doux);
+	line-height: 1.4;
+}
+
+.ditl-boite-etape__marque {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 1.25rem;
+	height: 1.25rem;
+	margin-top: 0.05rem;
+	border-radius: 50%;
+	background-color: var(--ditl-boite-fond);
+	color: var(--ditl-boite-texte-doux);
+	font-size: 0.6875rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.ditl-boite-etape__marque .ditl-boite-icone {
+	width: 0.875rem;
+	height: 0.875rem;
+	vertical-align: 0;
+}
+
+.ditl-boite-etape__texte {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+	min-width: 0;
+}
+
+.ditl-boite-etape__entete {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.ditl-boite-etape__libelle {
+	font-size: 0.9375rem;
+}
+
+.ditl-boite-etape__reponse {
+	font-size: 0.8125rem;
+	color: var(--ditl-boite-texte-doux);
+	overflow-wrap: anywhere;
+}
+
+/* Etape terminee : coche, libelle en bleu gras, reponse dessous. */
+.ditl-boite-etape--terminee .ditl-boite-etape__marque {
+	background-color: var(--ditl-boite-surface);
+	color: var(--ditl-boite-bleu);
+}
+
+.ditl-boite-etape--terminee .ditl-boite-etape__libelle {
+	color: var(--ditl-boite-bleu);
+	font-weight: 700;
+}
+
+.ditl-boite-etape--terminee .ditl-boite-etape__entete {
+	margin-top: -0.25rem;
+	margin-bottom: -0.25rem;
+}
+
+/* Etape affichee : bloc bleu (maquette). */
+.ditl-boite .ditl-boite-etape--courante {
+	background-color: var(--ditl-boite-bleu);
+	color: var(--ditl-boite-sur-bleu);
+	font-weight: 700;
+}
+
+.ditl-boite-etape--courante .ditl-boite-etape__marque {
+	background-color: var(--ditl-boite-sur-bleu);
+	color: var(--ditl-boite-bleu);
+}
+
+/* Etape sans objet (aucun choix possible pour la reponse precedente). */
+.ditl-boite-etape--sautee .ditl-boite-etape__libelle {
+	text-decoration: line-through;
+}
+
+/* Bouton "Vos solutions" (lien si le parcours est complet). */
+.ditl-boite .ditl-boite-solutions {
+	position: relative;
+	display: block;
+	margin: 1.5rem 0 0;
+	padding: 0.6rem 1rem;
+	border-radius: var(--ditl-boite-rayon);
+	background-color: var(--ditl-boite-bleu);
+	color: var(--ditl-boite-sur-bleu);
+	font-family: 'Exo', sans-serif;
+	font-size: 1.375rem;
+	line-height: 1.3;
+	text-align: center;
+	text-decoration: none;
+}
+
+.ditl-boite a.ditl-boite-solutions:hover,
+.ditl-boite a.ditl-boite-solutions:focus {
+	background-color: var(--ditl-boite-bleu-fonce);
+	color: var(--ditl-boite-sur-bleu);
+}
+
+.ditl-boite .ditl-boite-solutions--inactif {
+	background-color: var(--ditl-boite-inactif-fond);
+	color: var(--ditl-boite-inactif-texte);
+	cursor: default;
+}
+
+/* ---------------------------------------------------------------------------
+ * Questionnaire : zone principale
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite--questionnaire .ditl-boite__principal {
+	text-align: center;
+}
+
+/* Rappel de la reponse precedente (maquette p. 5). */
+.ditl-boite-rappel {
+	max-width: 24rem;
+	margin: 0 auto 2rem;
+	padding-bottom: 1.25rem;
+	border-bottom: 1px solid var(--ditl-boite-texte);
+}
+
+.ditl-boite-rappel__question {
+	margin: 0 0 0.5rem;
+	color: var(--ditl-boite-texte-doux);
+	font-size: 1rem;
+}
+
+.ditl-boite-rappel__reponse {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35rem;
+	margin: 0;
+}
+
+.ditl-boite-rappel__valeur {
+	padding: 0.3rem 0.65rem;
+	border-radius: var(--ditl-boite-rayon);
+	background-color: var(--ditl-boite-surface);
+	font-size: 0.875rem;
+}
+
+/* Question : titre puis "Question N sur M" dans le DOM (Access42), ordre
+ * visuel de la maquette retabli par flex (numero au-dessus du titre). */
+.ditl-boite-question {
+	max-width: 46rem;
+	margin: 0 auto;
+}
+
+.ditl-boite-question__entete {
+	display: flex;
+	flex-direction: column;
+}
+
+.ditl-boite-question__numero {
+	order: -1;
+	margin: 0 0 0.75rem;
+	color: var(--ditl-boite-texte-doux);
+	font-size: 0.9375rem;
+}
+
+.ditl-boite .ditl-boite-question__titre {
+	margin: 0 0 1rem;
+	font-size: 1.875rem;
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+
+	.ditl-boite .ditl-boite-question__titre {
+		font-size: 2.5rem;
+	}
+}
+
+.ditl-boite-question__aide {
+	font-size: 0.9375rem;
+	line-height: 1.6;
+}
+
+.ditl-boite-question__aide p + p,
+.ditl-boite-question__aide ul,
+.ditl-boite-question__aide ol {
+	margin-top: 0.75em;
+}
+
+.ditl-boite-question__aide a {
+	text-decoration: underline;
+}
+
+.ditl-boite-formulaire {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1.5rem;
+	margin: 2rem 0 0;
+}
+
+.ditl-boite-champ {
+	width: 100%;
+	max-width: 36rem;
+	text-align: left;
+}
+
+.ditl-boite-champ__etiquette {
+	display: block;
+	margin: 0 0 0.5rem;
+	color: var(--ditl-boite-bleu);
+	font-weight: 700;
+}
+
+.ditl-boite-champ__liste {
+	position: relative;
+}
+
+/* Liste deroulante native habillee (decision Access42 Q2 : natif). */
+.ditl-boite .ditl-boite-champ__liste select {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	height: auto;
+	margin: 0;
+	padding: 0.85rem 3rem 0.85rem 1.25rem;
+	border: 1px solid var(--ditl-boite-bordure-champ);
+	border-radius: var(--ditl-boite-rayon);
+	background-color: var(--ditl-boite-surface);
+	box-shadow: 0 0.25rem 1rem var(--ditl-boite-ombre);
+	color: var(--ditl-boite-texte);
+	font-size: 1rem;
+	line-height: 1.4;
+	cursor: pointer;
+}
+
+.ditl-boite .ditl-boite-champ__liste select:hover {
+	border-color: var(--ditl-boite-bleu);
+}
+
+.ditl-boite-champ__liste .ditl-boite-icone--chevron {
+	position: absolute;
+	top: 50%;
+	right: 1rem;
+	width: 1.5rem;
+	height: 1.5rem;
+	color: var(--ditl-boite-bleu);
+	transform: translateY(-50%);
+	pointer-events: none;
+}
+
+/* Navigation question precedente / suivante. */
+.ditl-boite .ditl-boite-navigation {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 1rem 2rem;
+	max-width: 46rem;
+	margin: 3rem auto 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite-navigation a {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.75rem;
+	font-size: 0.875rem;
+}
+
+.ditl-boite-navigation .ditl-boite-icone {
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0.5rem;
+	border-radius: var(--ditl-boite-rayon);
+	background-color: var(--ditl-boite-surface);
+	box-shadow: 0 0.125rem 0.5rem var(--ditl-boite-ombre);
+	color: var(--ditl-boite-texte);
+}
+
+/* ---------------------------------------------------------------------------
+ * Resultats / catalogue : colonne laterale (profil, filtres)
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite-bloc + .ditl-boite-bloc {
+	margin-top: 2.5rem;
+}
+
+.ditl-boite .ditl-boite-bloc__titre {
+	margin: 0 0 1rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid var(--ditl-boite-filet-fort);
+	font-size: 2rem;
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+.ditl-boite .ditl-boite-profil__liste {
+	margin: 0 0 1.25rem;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite-profil__reponse {
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.2rem 0;
+	font-size: 0.875rem;
+}
+
+.ditl-boite-profil__valeur {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.ditl-boite-profil__reinitialiser {
+	margin: 0;
+}
+
+.ditl-boite-filtres__groupe {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.ditl-boite .ditl-boite-filtres__liste {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite-filtre {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.6rem;
+	padding: 0.3rem 0;
+	font-size: 0.875rem;
+	line-height: 1.4;
+}
+
+.ditl-boite-filtre input[type="checkbox"] {
+	flex-shrink: 0;
+	width: 1.125rem;
+	height: 1.125rem;
+	margin: 0.05rem 0 0;
+	accent-color: var(--ditl-boite-bleu);
+	cursor: pointer;
+}
+
+.ditl-boite-filtre label {
+	cursor: pointer;
+}
+
+.ditl-boite-filtre__nombre {
+	color: var(--ditl-boite-texte-doux);
+}
+
+.ditl-boite-filtres__actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 1rem;
+	margin-top: 1.25rem;
+}
+
+.ditl-boite-compteur {
+	margin: 0;
+	color: var(--ditl-boite-texte-doux);
+	font-size: 0.875rem;
+}
+
+.ditl-boite__autre-vue {
+	margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Cartes des fiches (resultats, catalogue, carrousel de la fiche)
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite .ditl-boite-cartes {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 11.5rem), 1fr));
+	gap: 1.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite-cartes__element {
+	display: flex;
+	margin: 0;
+}
+
+/* Ordre du DOM : titre, badges, image, "En savoir plus" ; ordre visuel de
+ * la maquette : badges, image, titre (flex + order, comme le lot B1). */
+.ditl-boite-carte {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	border-radius: var(--ditl-boite-rayon-carte);
+	background-color: var(--ditl-boite-surface);
+	box-shadow: 0 0.25rem 1.25rem var(--ditl-boite-ombre);
+	overflow: hidden;
+}
+
+.ditl-boite-carte__badges {
+	order: -2;
+}
+
+.ditl-boite-carte__image {
+	order: -1;
+	min-height: 0;
+	background-color: var(--ditl-boite-surface-image);
+}
+
+.ditl-boite-carte__image--vide {
+	aspect-ratio: 16 / 9;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--ditl-boite-texte-doux);
+}
+
+.ditl-boite-carte__image--vide .ditl-boite-icone {
+	width: 2.5rem;
+	height: 2.5rem;
+}
+
+.ditl-boite-carte__img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 16 / 9;
+	object-fit: cover;
+}
+
+.ditl-boite .ditl-boite-carte__titre {
+	display: flex;
+	flex-grow: 1;
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	padding: 1.25rem 1rem 0.75rem;
+	font-size: 1.3125rem;
+	font-weight: 500;
+	line-height: 1.25;
+	text-align: center;
+	overflow-wrap: anywhere;
+}
+
+.entry-content .ditl-boite-carte a,
+.ditl-boite .ditl-boite-carte__lien {
+	color: var(--ditl-boite-bleu);
+	text-decoration: none;
+}
+
+/* Lien etendu a toute la carte : une seule tabulation par carte. */
+.ditl-boite-carte__lien::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+	border-radius: var(--ditl-boite-rayon-carte);
+}
+
+.ditl-boite-carte:hover .ditl-boite-carte__lien {
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+
+/*
+ * Focus : l'anneau commun (contour du lien, rogne par la carte) est
+ * remplace par un anneau double pose sur toute la carte, a l'interieur
+ * (bleu 3 px + lisere blanc : visible sur l'image comme sur un badge
+ * fonce). Specificite (0,4,0) : au-dessus de la regle de a11y.css.
+ */
+.ditl-boite .ditl-boite-carte .ditl-boite-carte__lien:focus-visible {
+	outline: 0;
+}
+
+.ditl-boite .ditl-boite-carte .ditl-boite-carte__lien:focus-visible::after {
+	box-shadow: inset 0 0 0 3px var(--ditl-boite-focus), inset 0 0 0 5px var(--ditl-boite-focus-lisere);
+	/* Le mode contraste eleve supprime box-shadow : ce contour transparent
+	   devient alors visible (couleur systeme). */
+	outline: 3px solid transparent;
+	outline-offset: -3px;
+}
+
+@media (forced-colors: active) {
+	.ditl-boite .ditl-boite-carte .ditl-boite-carte__lien:focus-visible::after {
+		outline-color: Highlight;
+	}
+}
+
+.ditl-boite-carte__plus {
+	display: inline-flex;
+	align-items: center;
+	align-self: center;
+	gap: 0.35rem;
+	margin: 0 1rem 1.25rem;
+	padding: 0.3rem 0.75rem;
+	border-radius: var(--ditl-boite-rayon);
+	background-color: var(--ditl-boite-fond);
+	font-size: 0.8125rem;
+}
+
+.ditl-boite-carte__plus .ditl-boite-icone {
+	width: 1em;
+	height: 1em;
+	vertical-align: 0;
+}
+
+/* Badges d'environnement (couleur du terme passee en ligne). */
+.ditl-boite .ditl-boite-badges {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite .ditl-boite-badge {
+	flex: 1 1 auto;
+	margin: 0;
+	padding: 0.25rem 0.75rem;
+	background-color: var(--ditl-boite-badge-fond, var(--ditl-boite-badge-defaut-fond));
+	color: var(--ditl-boite-badge-texte, var(--ditl-boite-badge-defaut-texte));
+	font-size: 0.8125rem;
+	font-weight: 700;
+	line-height: 1.4;
+	text-align: center;
+}
+
+/* ---------------------------------------------------------------------------
+ * Pagination
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite-pagination {
+	margin-top: 2.5rem;
+}
+
+.ditl-boite .ditl-boite-pagination__liste {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite-pagination__element a,
+.ditl-boite-pagination__element--ellipse {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2.5rem;
+	min-height: 2.5rem;
+	padding: 0.25rem 0.5rem;
+	border-radius: var(--ditl-boite-rayon);
+	line-height: 1.2;
+}
+
+.ditl-boite .ditl-boite-pagination__element a {
+	border: 1px solid var(--ditl-boite-separateur);
+	background-color: var(--ditl-boite-surface);
+	text-decoration: none;
+}
+
+.ditl-boite .ditl-boite-pagination__element a:hover {
+	border-color: var(--ditl-boite-bleu);
+}
+
+.ditl-boite .ditl-boite-pagination__element a[aria-current="page"] {
+	border-color: var(--ditl-boite-bleu);
+	background-color: var(--ditl-boite-bleu);
+	color: var(--ditl-boite-sur-bleu);
+	font-weight: 700;
+}
+
+/* ---------------------------------------------------------------------------
+ * Fiche outil
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite--fiche .ditl-boite__conteneur {
+	padding-top: 1.5rem;
+	padding-bottom: 4rem;
+}
+
+/* Fil d'Ariane. */
+.ditl-boite .ditl-boite-ariane__liste {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	margin: 0 0 1rem;
+	padding: 0;
+	list-style: none;
+	font-size: 0.8125rem;
+	color: var(--ditl-boite-texte-doux);
+}
+
+.ditl-boite-ariane__liste li {
+	display: inline-flex;
+	align-items: center;
+	margin: 0;
+}
+
+.ditl-boite-ariane__liste li + li::before {
+	content: "/";
+	margin: 0 0.5rem;
+	color: var(--ditl-boite-texte-doux);
+}
+
+.ditl-boite .ditl-boite-ariane__liste a {
+	color: var(--ditl-boite-texte-doux);
+}
+
+.ditl-boite .ditl-boite-ariane__liste a[aria-current="page"] {
+	color: var(--ditl-boite-texte);
+	text-decoration: none;
+}
+
+.ditl-fiche {
+	display: grid;
+	gap: 2rem;
+}
+
+@media (min-width: 1025px) {
+
+	.ditl-fiche {
+		grid-template-columns: minmax(0, 1fr) var(--ditl-boite-colonne);
+		grid-template-areas:
+			"entete entete"
+			"corps infos"
+			"autres infos";
+		align-items: start;
+		column-gap: 2.5rem;
+	}
+
+	.ditl-fiche__entete {
+		grid-area: entete;
+	}
+
+	.ditl-fiche__corps {
+		grid-area: corps;
+	}
+
+	.ditl-fiche__infos {
+		grid-area: infos;
+	}
+
+	.ditl-fiche__autres {
+		grid-area: autres;
+	}
+
+	/* Fiche sans aucune rubrique "Informations" : une seule colonne. */
+	.ditl-fiche--sans-infos {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas:
+			"entete"
+			"corps"
+			"autres";
+	}
+
+	/* Collante si elle tient dans la fenetre (classe posee par le script). */
+	.ditl-fiche__infos--collante {
+		position: sticky;
+		top: 2rem;
+	}
+}
+
+.ditl-fiche__entete {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 1rem;
+}
+
+.ditl-boite .ditl-fiche__titre {
+	flex-basis: 100%;
+	margin: 0;
+	font-size: 2.25rem;
+	font-weight: 400;
+	line-height: 1.15;
+}
+
+@media (min-width: 768px) {
+
+	.ditl-boite .ditl-fiche__titre {
+		font-size: 3.25rem;
+	}
+}
+
+.ditl-boite .ditl-fiche__types {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite .ditl-fiche__type {
+	margin: 0;
+	padding: 0.2rem 0.65rem;
+	border: 1px solid var(--ditl-boite-type-fond);
+	border-radius: var(--ditl-boite-rayon);
+	background-color: var(--ditl-boite-type-fond);
+	color: var(--ditl-boite-type-texte);
+	font-size: 0.8125rem;
+	line-height: 1.4;
+}
+
+.ditl-boite .ditl-fiche__type--sous-type {
+	background-color: var(--ditl-boite-surface);
+	color: var(--ditl-boite-type-fond);
+}
+
+.ditl-fiche__actions {
+	margin: 0 0 0 auto;
+}
+
+.ditl-fiche__illustration {
+	margin: 0 0 2rem;
+	border-radius: var(--ditl-boite-rayon-carte);
+	background-color: var(--ditl-boite-surface);
+	overflow: hidden;
+}
+
+.ditl-fiche__img {
+	display: block;
+	width: 100%;
+	height: auto;
+	max-height: 30rem;
+	object-fit: contain;
+}
+
+.ditl-fiche__section + .ditl-fiche__section {
+	margin-top: 2rem;
+}
+
+.ditl-boite .ditl-fiche__soustitre {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0 0 0.75rem;
+	font-size: 1.625rem;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.ditl-fiche__soustitre .ditl-boite-icone {
+	width: 1.25em;
+	height: 1.25em;
+	vertical-align: 0;
+}
+
+.ditl-fiche__texte {
+	font-size: 0.9375rem;
+	line-height: 1.6;
+}
+
+.ditl-fiche__texte p + p,
+.ditl-fiche__texte p + ul,
+.ditl-fiche__texte ul + p,
+.ditl-fiche__texte p + ol,
+.ditl-fiche__texte ol + p {
+	margin-top: 0.75em;
+}
+
+.ditl-fiche__texte ul,
+.ditl-fiche__texte ol {
+	margin: 0 0 0 1.5em;
+	padding: 0;
+}
+
+/* Colonne "Informations". */
+.ditl-fiche__infos {
+	padding: 1.5rem 1.75rem;
+	border-radius: var(--ditl-boite-rayon-carte);
+	background-color: var(--ditl-boite-surface);
+	box-shadow: 0 0.25rem 1.25rem var(--ditl-boite-ombre);
+}
+
+.ditl-boite .ditl-fiche__infos-titre {
+	margin: 0 0 0.5rem;
+	font-size: 1.625rem;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.ditl-fiche__rubrique {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.85rem;
+	padding: 1.25rem 0;
+	border-bottom: 1px solid var(--ditl-boite-filet-fort);
+}
+
+.ditl-fiche__rubrique:last-child {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+
+.ditl-fiche__rubrique > .ditl-boite-icone {
+	width: 1.75rem;
+	height: 1.75rem;
+	padding: 0.3rem;
+	border-radius: 50%;
+	background-color: var(--ditl-boite-fond);
+	color: var(--ditl-boite-bleu);
+}
+
+.ditl-fiche__rubrique-corps {
+	min-width: 0;
+	font-size: 0.875rem;
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+
+.ditl-boite .ditl-fiche__rubrique-titre {
+	margin: 0 0 0.25rem;
+	font-family: inherit;
+	font-size: 0.9375rem;
+	font-weight: 700;
+	line-height: 1.4;
+}
+
+.ditl-fiche__rubrique-corps p + p,
+.ditl-fiche__rubrique-corps ul + p {
+	margin-top: 0.5em;
+}
+
+.ditl-boite .ditl-fiche__aptitudes,
+.ditl-boite .ditl-fiche__liens {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-fiche__liens li + li,
+.ditl-fiche__aptitudes li + li {
+	margin-top: 0.35rem;
+}
+
+.ditl-fiche__url {
+	display: block;
+	color: var(--ditl-boite-texte-doux);
+	font-size: 0.8125rem;
+}
+
+.ditl-boite .ditl-fiche__environnements {
+	gap: 0.35rem;
+	margin-top: 0.35rem;
+}
+
+.ditl-boite .ditl-fiche__environnements .ditl-boite-badge {
+	flex: 0 1 auto;
+	border-radius: var(--ditl-boite-rayon);
+}
+
+/* ---------------------------------------------------------------------------
+ * Fiche : carrousel "Explorer mes autres outils" (ditl-carousel.js)
+ * ------------------------------------------------------------------------ */
+
+.ditl-fiche__autres {
+	min-width: 0;
+}
+
+.ditl-boite-carrousel {
+	position: relative;
+	padding-top: 3.25rem;
+}
+
+.ditl-boite-carrousel .ditl-carousel__viewport {
+	/* Repli sans JavaScript : defilement natif ; le script repasse en
+	   overflow cache a l'initialisation. */
+	overflow-x: auto;
+	margin: 0 -0.75rem;
+	padding: 0.5rem 0 1.5rem;
+}
+
+.ditl-boite .ditl-boite-carrousel .ditl-carousel__track {
+	display: flex;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	transition-property: transform;
+	transition-timing-function: ease;
+	transition-duration: 0ms;
+}
+
+.ditl-boite-carrousel .ditl-carousel__slide {
+	display: flex;
+	flex: 0 0 100%;
+	min-width: 0;
+	margin: 0;
+	padding: 0 0.75rem;
+}
+
+/* Memes paliers que le script (3 / 2 / 1 cartes selon la fenetre). */
+@media (min-width: 767px) {
+
+	.ditl-boite-carrousel .ditl-carousel__slide {
+		flex-basis: 50%;
+	}
+}
+
+@media (min-width: 1023px) {
+
+	.ditl-boite-carrousel .ditl-carousel__slide {
+		flex-basis: 33.3333%;
+	}
+}
+
+.ditl-boite .ditl-boite-carrousel .ditl-carousel__nav {
+	position: absolute;
+	top: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	padding: 0;
+	border: 1px solid var(--ditl-boite-separateur);
+	border-radius: var(--ditl-boite-rayon);
+	background-color: var(--ditl-boite-surface);
+	color: var(--ditl-boite-texte);
+	cursor: pointer;
+}
+
+.ditl-boite .ditl-boite-carrousel .ditl-carousel__nav:hover {
+	border-color: var(--ditl-boite-bleu);
+	color: var(--ditl-boite-bleu);
+}
+
+.ditl-boite-carrousel .ditl-carousel__nav--prev {
+	right: 3.25rem;
+}
+
+.ditl-boite-carrousel .ditl-carousel__nav--next {
+	right: 0;
+}
+
+.ditl-boite-carrousel.ditl-carousel--static {
+	padding-top: 0;
+}
+
+/* Sans JavaScript, les fleches n'auraient aucun effet : masquees tant que
+   le script n'a pas initialise le carrousel (attribut data-ditl-init). */
+.ditl-boite-carrousel:not([data-ditl-init]) {
+	padding-top: 0;
+}
+
+.ditl-boite-carrousel.ditl-carousel--static .ditl-carousel__nav,
+.ditl-boite-carrousel.ditl-carousel--static .ditl-carousel__slide--clone,
+.ditl-boite .ditl-boite-carrousel:not([data-ditl-init]) .ditl-carousel__nav {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mouvement : transitions seulement si le visiteur ne les a pas reduites
+ * ------------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+
+	.ditl-boite-carte {
+		transition: box-shadow 0.2s ease;
+	}
+
+	.ditl-boite-carte:hover {
+		box-shadow: 0 0.5rem 1.75rem var(--ditl-boite-ombre-forte);
+	}
+}
+
+/* Contenu protege par mot de passe : titre et formulaire du coeur seuls. */
+.ditl-boite--protege {
+	max-width: 46rem;
+	margin: 0 auto;
+	padding: 3rem 1rem;
+}
+
+.ditl-boite--protege .ditl-boite__titre {
+	color: var(--ditl-boite-bleu);
+}

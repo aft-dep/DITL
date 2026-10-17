@@ -1,0 +1,229 @@
+/**
+ * Boite a outils - styles des ecrans d'administration (fiche outil, listes
+ * de reference, textes de la page Boite a outils).
+ *
+ * @package DiTL
+ */
+
+/* -------------------------------------------------------------------------
+ * Fiche : intitule de l'editeur principal.
+ * ---------------------------------------------------------------------- */
+
+.ditl-boite-intitule-editeur {
+	margin: 20px 0 8px;
+}
+
+.ditl-boite-intitule {
+	margin: 0 0 4px;
+	font-size: 1.15em;
+	font-weight: 600;
+}
+
+.ditl-boite-intitule-editeur .description {
+	margin: 0;
+}
+
+/* -------------------------------------------------------------------------
+ * Fiche : metabox "Informations de la fiche".
+ * ---------------------------------------------------------------------- */
+
+.ditl-boite-metabox .ditl-boite-champ {
+	margin: 0 0 24px;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.ditl-boite-metabox .ditl-boite-libelle {
+	display: block;
+	margin-bottom: 6px;
+	padding: 0;
+	font-size: 1.05em;
+	font-weight: 600;
+}
+
+.ditl-boite-metabox .description {
+	margin-top: 6px;
+}
+
+.ditl-boite-metabox .wp-editor-wrap {
+	margin-top: 4px;
+}
+
+/* Fabricants : lignes repetables. */
+
+.ditl-boite-lignes {
+	margin: 8px 0 12px;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite-ligne {
+	display: grid;
+	grid-template-columns: minmax( 0, 1fr ) minmax( 0, 1fr ) auto;
+	gap: 8px 12px;
+	align-items: end;
+	margin: 0 0 8px;
+	padding: 10px 12px;
+	border: 1px solid #dcdcde;
+	background: #fff;
+}
+
+.ditl-boite-ligne-numero {
+	display: none;
+	grid-column: 1 / -1;
+	font-weight: 600;
+}
+
+.ditl-boite-js .ditl-boite-ligne-numero {
+	display: block;
+}
+
+.ditl-boite-ligne-champ {
+	display: block;
+}
+
+.ditl-boite-ligne-libelle {
+	display: block;
+	margin-bottom: 4px;
+}
+
+.ditl-boite-ligne-actions {
+	display: none;
+	gap: 4px;
+	white-space: nowrap;
+}
+
+.ditl-boite-js .ditl-boite-ligne-actions {
+	display: flex;
+}
+
+/* Sans JavaScript, les boutons d'ajout et de tri n'ont pas d'effet. */
+.ditl-boite-fabricants .ditl-boite-ajouter {
+	display: none;
+}
+
+.ditl-boite-fabricants.ditl-boite-js .ditl-boite-ajouter {
+	display: inline-block;
+}
+
+@media screen and ( max-width: 782px ) {
+	.ditl-boite-ligne {
+		grid-template-columns: minmax( 0, 1fr );
+	}
+}
+
+/* -------------------------------------------------------------------------
+ * Fiche : metaboxes des taxonomies.
+ * ---------------------------------------------------------------------- */
+
+.ditl-boite-taxo-aide {
+	margin: 0 0 8px;
+}
+
+/* Listes simples : pas de parent dans l'ajout rapide. */
+.ditl-boite-taxo-plate .category-add label[for$="_parent"],
+.ditl-boite-taxo-plate .category-add select[name$="_parent"] {
+	display: none;
+}
+
+/* -------------------------------------------------------------------------
+ * Listes de reference (ecrans des taxonomies).
+ * ---------------------------------------------------------------------- */
+
+.ditl-boite-aide-ecran {
+	margin: 0 0 16px;
+	padding: 8px 12px;
+	border-left: 4px solid #1e448f;
+	background: #fff;
+}
+
+.ditl-boite-aide-ecran p {
+	margin: 0.5em 0;
+}
+
+/* Listes simples : pas de champ "Parent" (ajout et modification). */
+.ditl-boite-taxo-plate .term-parent-wrap {
+	display: none;
+}
+
+/* Couleur du badge : saisie hexadecimale + palette, puis apercu. */
+
+.ditl-boite-couleur {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.form-field .ditl-boite-couleur input.ditl-boite-couleur-hex {
+	width: 9em;
+}
+
+.form-field .ditl-boite-couleur input.ditl-boite-couleur-palette {
+	width: 44px;
+	height: 30px;
+	padding: 2px;
+	cursor: pointer;
+}
+
+.ditl-boite-apercu {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin: 8px 0 0;
+}
+
+.ditl-boite-badge {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 4px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+.ditl-boite-badge-neutre {
+	border: 1px dashed #8c8f94;
+	background: #fff;
+	color: #1d2327;
+}
+
+/* Colonne Couleur de la liste. */
+
+.ditl-boite-pastille {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border: 1px solid rgba( 0, 0, 0, 0.25 );
+	border-radius: 50%;
+	vertical-align: middle;
+}
+
+.column-ditl_ordre {
+	width: 6em;
+}
+
+.column-ditl_couleur {
+	width: 9em;
+}
+
+/* -------------------------------------------------------------------------
+ * Page : metabox "Textes de la boite a outils".
+ * ---------------------------------------------------------------------- */
+
+.ditl-boite-metabox-textes .ditl-boite-etape {
+	margin: 16px 0;
+	padding: 4px 12px 0;
+	border: 1px solid #dcdcde;
+	background: #fff;
+	min-width: 0;
+}
+
+.ditl-boite-metabox-textes .ditl-boite-etape legend {
+	padding: 0 4px;
+	font-weight: 600;
+}
+
+.ditl-boite-metabox-textes .ditl-field {
+	margin: 12px 0;
+}

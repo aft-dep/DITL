@@ -4,8 +4,17 @@
 		enfant, Polylang 3.x) : ses declarations s'appliquent des aujourd'hui en local, avant la migration
 		vers WPML (phase 2).
 		copy      = valeur identique dans toutes les langues, recopiee depuis l'original ;
-		translate = valeur traduite pour chaque langue.
+		translate = valeur traduite pour chaque langue ;
+		copy-once = recopiee a la creation d'une traduction seulement ;
+		ignore    = jamais recopiee (metas techniques propres a chaque traduction).
 		Un bloc par chantier, signale par un commentaire dans chaque section ci-dessous.
+	-->
+	<!--
+		Boite a outils (phase 3) : fiches outils (ditl_ressource) et leurs referentiels (taxonomies). Fabricants et
+		sources = copy (synchronises ; garde dans inc/boite/modele.php : une fiche sans la meta ne la supprime pas chez
+		ses traductions) ; textes = translate ; metas techniques de l'import des fiches (phase 4) = ignore. Metas de
+		termes (code, couleur, ordre) = copy-once : une synchronisation effacerait chez les traductions toute valeur
+		absente du terme enregistre ; l'alignement entre langues est fait par l'admin de la boite et par l'import.
 	-->
 	<!--
 		Reglementation (phase 6) : fiches pays (ditl_reglementation), 1 publication = 1 pays dans 1 langue.
@@ -14,10 +23,35 @@
 		les sous-cles de custom-fields-texts sont a traduire.
 	-->
 	<custom-types>
+		<!-- Boite a outils (phase 3) -->
+		<custom-type translate="1">ditl_ressource</custom-type>
 		<!-- Reglementation (phase 6) -->
 		<custom-type translate="1">ditl_reglementation</custom-type>
 	</custom-types>
+	<taxonomies>
+		<!-- Boite a outils (phase 3) -->
+		<taxonomy translate="1">ditl_metier</taxonomy>
+		<taxonomy translate="1">ditl_aptitude</taxonomy>
+		<taxonomy translate="1">ditl_environnement</taxonomy>
+		<taxonomy translate="1">ditl_type_compensation</taxonomy>
+		<taxonomy translate="1">ditl_sous_type</taxonomy>
+	</taxonomies>
 	<custom-fields>
+		<!-- Boite a outils (phase 3) -->
+		<custom-field action="translate">_ditl_image_alt</custom-field>
+		<custom-field action="translate">_ditl_aptitude_texte</custom-field>
+		<custom-field action="translate">_ditl_descriptif_technique</custom-field>
+		<custom-field action="translate">_ditl_points_vigilance</custom-field>
+		<custom-field action="copy">_ditl_fabricants</custom-field>
+		<custom-field action="copy">_ditl_sources</custom-field>
+		<custom-field action="ignore">_ditl_import_id</custom-field>
+		<custom-field action="ignore">_ditl_import_groupe</custom-field>
+		<custom-field action="ignore">_ditl_import_langue</custom-field>
+		<custom-field action="ignore">_ditl_import_empreinte</custom-field>
+		<custom-field action="ignore">_ditl_import_etat</custom-field>
+		<custom-field action="ignore">_ditl_import_date</custom-field>
+		<custom-field action="ignore">_ditl_import_image</custom-field>
+		<custom-field action="ignore">_ditl_import_image_sha1</custom-field>
 		<!-- Reglementation (phase 6) -->
 		<custom-field action="copy">_ditl_regl_drapeau_id</custom-field>
 		<custom-field action="translate" encoding="json">_ditl_regl_sections</custom-field>
@@ -36,4 +70,11 @@
 			<key name="url" />
 		</key>
 	</custom-fields-texts>
+	<custom-term-fields>
+		<!-- Boite a outils (phase 3) -->
+		<custom-term-field action="copy-once">_ditl_code</custom-term-field>
+		<custom-term-field action="copy-once">_ditl_couleur</custom-term-field>
+		<custom-term-field action="copy-once">_ditl_ordre</custom-term-field>
+		<custom-term-field action="ignore">_ditl_import_terme</custom-term-field>
+	</custom-term-fields>
 </wpml-config>

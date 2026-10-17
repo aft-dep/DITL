@@ -17,6 +17,10 @@
  * Quand toutes les cartes tiennent dans la fenetre, le carrousel passe en
  * mode statique : pas de boucle, pas d'autoplay, commandes masquees.
  *
+ * Option : data-autoplay="off" sur la racine supprime le defilement
+ * automatique (et donc le bouton pause, sans objet) ; sans l'attribut, le
+ * comportement est inchange.
+ *
  * @package DiTL
  */
 
@@ -90,6 +94,7 @@
 		var dragDelta     = 0;
 		var dragging      = false;
 		var suppressClick = false;
+		var autoplayOff   = 'off' === root.getAttribute( 'data-autoplay' );
 
 		function perView() {
 			if ( mqDesktop.matches ) {
@@ -237,7 +242,7 @@
 		/* -- Defilement automatique ---------------------------------------- */
 
 		function autoplayAllowed() {
-			return ! staticMode && ! dragging && ! mqReduce.matches && ! pausedByUser && ! hovered && ! focused && ! document.hidden;
+			return ! autoplayOff && ! staticMode && ! dragging && ! mqReduce.matches && ! pausedByUser && ! hovered && ! focused && ! document.hidden;
 		}
 
 		function syncAutoplay() {
@@ -272,7 +277,7 @@
 			}
 
 			// Sans animation automatique, le bouton n'a pas d'objet.
-			if ( mqReduce.matches ) {
+			if ( autoplayOff || mqReduce.matches ) {
 				pauseBtn.setAttribute( 'hidden', '' );
 				return;
 			}
