@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.22.0' );
+define( 'DITL_THEME_VERSION', '0.23.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -24,6 +24,14 @@ require_once get_stylesheet_directory() . '/inc/metaboxes/accueil.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/partenaires.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/contact.php';
 require_once get_stylesheet_directory() . '/inc/metaboxes/livrable.php';
+require_once get_stylesheet_directory() . '/inc/metaboxes/reglementation.php';
+
+/*
+ * Reglementation (phase 6) : type de contenu des pays, lecture des pays pour
+ * le gabarit, reglages Astra et assets du gabarit, liste des pays en
+ * administration, purge du cache de page.
+ */
+require_once get_stylesheet_directory() . '/inc/reglementation.php';
 
 /*
  * Ajustements SEO (iso-SEO du <head> apres activation de Yoast).

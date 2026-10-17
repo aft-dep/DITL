@@ -1,9 +1,13 @@
 /**
- * Metaboxes des gabarits DiTL - ecran d'edition de page.
+ * Metaboxes des gabarits DiTL - ecran d'edition de page (et des pays de la
+ * Reglementation).
  *
  * - Affichage conditionnel des metaboxes selon le modele de page choisi
  *   (editeur classique et Gutenberg). Le registre id de metabox => modeles
- *   declencheurs est fourni par PHP via ditlMetabox.metaboxes.
+ *   declencheurs est fourni par PHP via ditlMetabox.metaboxes (null :
+ *   metabox toujours visible, ecran sans modele de page).
+ * - Formats d'editeur propres a une zone de texte (attribut
+ *   data-ditl-formats, configuration ditlMetabox.formats).
  * - Selecteur de media simple (image de banniere).
  * - Galerie multiple (carrousel).
  * - Sections repetables avec editeur riche (wp.editor.initialize), plusieurs
@@ -45,11 +49,18 @@
 
 	/**
 	 * Montre ou masque chaque metabox du registre selon le modele selectionne.
+	 *
+	 * Une entree null designe une metabox toujours visible (ecran sans
+	 * modele de page, ex. fiche pays de la Reglementation) : jamais masquee.
 	 */
 	function ditlToggleMetaboxes() {
 		var template = ditlCurrentTemplate();
 
 		$.each( metaboxes, function( metaboxId, templates ) {
+			if ( null === templates ) {
+				return;
+			}
+
 			var visible = $.inArray( template, templates || [] ) !== -1;
 
 			$( '#' + metaboxId ).toggle( visible );
@@ -287,6 +298,43 @@
 	}
 
 	/**
+	 * Complete les reglages TinyMCE d'une zone de texte portant l'attribut
+	 * data-ditl-formats (configuration fournie par PHP via
+	 * ditlMetabox.formats). Sans attribut, ou pour une valeur inconnue, les
+	 * reglages ne sont pas modifies.
+	 *
+	 * "reglementation" : menu "Formats" avec l'unique format "Encadre
+	 * d'information" (classe posee sur le paragraphe), titres limites au
+	 * niveau 4, et apercu de l'encadre dans l'editeur.
+	 *
+	 * Seule la valeur "reglementation" est connue a ce jour : un nouveau jeu
+	 * de formats demande sa configuration PHP (ditlMetabox.formats) ET une
+	 * branche ici.
+	 */
+	function ditlAppliquerFormats( tinymceSettings, formatsKey ) {
+		var config = formatsKey && settings.formats ? settings.formats[ formatsKey ] : null;
+
+		if ( 'reglementation' !== formatsKey || ! config || ! config.encadre ) {
+			return;
+		}
+
+		tinymceSettings.toolbar1 = tinymceSettings.toolbar1.replace( 'formatselect,', 'formatselect,styleselect,' );
+		tinymceSettings.style_formats = [ {
+			title: config.encadre.titre,
+			selector: 'p',
+			classes: config.encadre.classe
+		} ];
+		tinymceSettings.style_formats_merge = false;
+		tinymceSettings.block_formats = config.blockFormats || 'Paragraphe=p;Titre de niveau 4=h4';
+		tinymceSettings.content_style = 'p.' + config.encadre.classe + '{' +
+			'border:1px solid #c3c4c7;border-left:4px solid #1e448f;background:#f6f8fb;' +
+			'padding:8px 12px 8px 34px;position:relative;}' +
+			'p.' + config.encadre.classe + '::before{' +
+			'content:"i";position:absolute;left:10px;top:9px;width:16px;height:16px;' +
+			'border:1px solid #1e448f;border-radius:50%;color:#1e448f;font:bold 11px/16px serif;text-align:center;}';
+	}
+
+	/**
 	 * Initialise l'editeur riche d'une zone de texte de section.
 	 */
 	function ditlInitEditor( editorId ) {
@@ -294,18 +342,25 @@
 			return;
 		}
 
+		var textarea        = editorId ? document.getElementById( editorId ) : null;
+		var tinymceSettings = {
+			wpautop: true,
+			toolbar1: 'formatselect,bold,italic,bullist,numlist,link,unlink,removeformat,undo,redo',
+			setup: function( editor ) {
+				// Garde la zone de texte synchronisee (indispensable
+				// pour l'enregistrement des metaboxes sous Gutenberg).
+				editor.on( 'change keyup blur', function() {
+					editor.save();
+				} );
+			}
+		};
+
+		if ( textarea ) {
+			ditlAppliquerFormats( tinymceSettings, textarea.getAttribute( 'data-ditl-formats' ) );
+		}
+
 		wp.editor.initialize( editorId, {
-			tinymce: {
-				wpautop: true,
-				toolbar1: 'formatselect,bold,italic,bullist,numlist,link,unlink,removeformat,undo,redo',
-				setup: function( editor ) {
-					// Garde la zone de texte synchronisee (indispensable
-					// pour l'enregistrement des metaboxes sous Gutenberg).
-					editor.on( 'change keyup blur', function() {
-						editor.save();
-					} );
-				}
-			},
+			tinymce: tinymceSettings,
 			quicktags: true,
 			mediaButtons: false
 		} );
@@ -440,14 +495,18 @@
 
 		// Chaque metabox du registre initialise les champs qu'elle contient
 		// (les bindings delegues restent inertes si le champ est absent).
-		$.each( metaboxes, function( metaboxId ) {
+		$.each( metaboxes, function( metaboxId, templates ) {
 			var $metabox = $( '#' + metaboxId );
 
 			if ( ! $metabox.length ) {
 				return;
 			}
 
-			initialisee = true;
+			// Seule une metabox dependante d'un modele de page justifie la
+			// surveillance du modele (aucun appel a wp.data sinon).
+			if ( null !== templates ) {
+				initialisee = true;
+			}
 
 			ditlInitMediaField( $metabox );
 			ditlInitGalleryField( $metabox );

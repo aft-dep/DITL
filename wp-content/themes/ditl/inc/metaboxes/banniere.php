@@ -40,6 +40,7 @@ function ditl_gabarits_templates() {
 		DITL_TPL_PARTENAIRES,
 		DITL_TPL_CONTACT,
 		DITL_TPL_LIVRABLE,
+		DITL_TPL_REGLEMENTATION,
 	);
 }
 
@@ -178,7 +179,8 @@ function ditl_banniere_save_metabox( $post_id ) {
 add_action( 'save_post_page', 'ditl_banniere_save_metabox' );
 
 /**
- * Charge les assets admin des metaboxes de gabarits (ecran d'edition de page).
+ * Charge les assets admin des metaboxes de gabarits (ecran d'edition de page
+ * et ecran d'edition des pays de la Reglementation).
  *
  * Assets communs a toutes les metaboxes de gabarits DiTL : le JS gere
  * l'affichage conditionnel selon le registre transmis via ditlMetabox.
@@ -192,7 +194,9 @@ function ditl_gabarits_admin_assets( $hook_suffix ) {
 
 	$screen = get_current_screen();
 
-	if ( ! $screen || 'page' !== $screen->post_type ) {
+	// Ecran d'edition des pages, et des pays de la Reglementation (metabox
+	// "Contenu du pays" : memes champs media, lignes repetables et editeurs).
+	if ( ! $screen || ! in_array( $screen->post_type, array( 'page', DITL_REGL_POST_TYPE ), true ) ) {
 		return;
 	}
 
@@ -215,21 +219,41 @@ function ditl_gabarits_admin_assets( $hook_suffix ) {
 		true
 	);
 
+	// Metaboxes a afficher selon le modele de page selectionne :
+	// id de metabox => liste des modeles qui la declenchent.
+	$ditl_registre = array(
+		'ditl-banniere'            => ditl_gabarits_templates(),
+		'ditl-projet-ditl'         => array( DITL_TPL_PROJET_DITL ),
+		'ditl-resultats'           => array( DITL_TPL_RESULTATS ),
+		'ditl-accueil'             => array( DITL_TPL_ACCUEIL ),
+		'ditl-partenaires'         => array( DITL_TPL_PARTENAIRES ),
+		'ditl-contact'             => array( DITL_TPL_CONTACT ),
+		'ditl-livrable'            => array( DITL_TPL_LIVRABLE ),
+		'ditl-elearning'           => array( DITL_TPL_ELEARNING ),
+		'ditl-reglementation-page' => array( DITL_TPL_REGLEMENTATION ),
+	);
+
+	// Ecran des pays (sans modele de page) : null = toujours visible.
+	if ( DITL_REGL_POST_TYPE === $screen->post_type ) {
+		$ditl_registre = array( 'ditl-reglementation-pays' => null );
+	}
+
 	wp_localize_script(
 		'ditl-admin-metabox',
 		'ditlMetabox',
 		array(
-			// Metaboxes a afficher selon le modele de page selectionne :
-			// id de metabox => liste des modeles qui la declenchent.
-			'metaboxes' => array(
-				'ditl-banniere'    => ditl_gabarits_templates(),
-				'ditl-projet-ditl' => array( DITL_TPL_PROJET_DITL ),
-				'ditl-resultats'   => array( DITL_TPL_RESULTATS ),
-				'ditl-accueil'     => array( DITL_TPL_ACCUEIL ),
-				'ditl-partenaires' => array( DITL_TPL_PARTENAIRES ),
-				'ditl-contact'     => array( DITL_TPL_CONTACT ),
-				'ditl-livrable'    => array( DITL_TPL_LIVRABLE ),
-				'ditl-elearning'   => array( DITL_TPL_ELEARNING ),
+			'metaboxes' => $ditl_registre,
+			// Formats d'editeur propres a certaines zones de texte (attribut
+			// data-ditl-formats du textarea) ; les autres editeurs gardent
+			// exactement leurs reglages.
+			'formats'   => array(
+				'reglementation' => array(
+					'encadre'      => array(
+						'titre'  => __( 'Encadre d\'information', 'ditl' ),
+						'classe' => 'ditl-regl-encadre',
+					),
+					'blockFormats' => __( 'Paragraphe=p;Titre de niveau 4=h4', 'ditl' ),
+				),
 			),
 			'i18n'      => array(
 				'chooseImage'  => __( 'Choisir une image', 'ditl' ),

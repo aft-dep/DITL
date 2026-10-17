@@ -1,0 +1,39 @@
+<wpml-config>
+	<!--
+		Configuration WPML du theme DiTL. Ce fichier est AUSSI lu par Polylang (wpml-config.xml du theme
+		enfant, Polylang 3.x) : ses declarations s'appliquent des aujourd'hui en local, avant la migration
+		vers WPML (phase 2).
+		copy      = valeur identique dans toutes les langues, recopiee depuis l'original ;
+		translate = valeur traduite pour chaque langue.
+		Un bloc par chantier, signale par un commentaire dans chaque section ci-dessous.
+	-->
+	<!--
+		Reglementation (phase 6) : fiches pays (ditl_reglementation), 1 publication = 1 pays dans 1 langue.
+		Drapeau = copy (meme image dans toutes les langues, synchronise) ; sections et lien de retour =
+		translate (recopies a la creation d'une traduction, puis propres a chaque langue), JSON dont seules
+		les sous-cles de custom-fields-texts sont a traduire.
+	-->
+	<custom-types>
+		<!-- Reglementation (phase 6) -->
+		<custom-type translate="1">ditl_reglementation</custom-type>
+	</custom-types>
+	<custom-fields>
+		<!-- Reglementation (phase 6) -->
+		<custom-field action="copy">_ditl_regl_drapeau_id</custom-field>
+		<custom-field action="translate" encoding="json">_ditl_regl_sections</custom-field>
+		<custom-field action="translate" encoding="json">_ditl_regl_retour</custom-field>
+	</custom-fields>
+	<custom-fields-texts>
+		<!-- Reglementation (phase 6) : sous-cles a traduire des metas JSON -->
+		<key name="_ditl_regl_sections">
+			<key name="*">
+				<key name="titre" />
+				<key name="contenu" />
+			</key>
+		</key>
+		<key name="_ditl_regl_retour">
+			<key name="texte" />
+			<key name="url" />
+		</key>
+	</custom-fields-texts>
+</wpml-config>

@@ -188,6 +188,12 @@ function ditl_preload_banniere_gabarit() {
 		return;
 	}
 
+	// Le gabarit Reglementation n'affiche pas d'image de banniere (H1 seul) :
+	// une image saisie par erreur serait prechargee sans etre affichee.
+	if ( defined( 'DITL_TPL_REGLEMENTATION' ) && is_page_template( DITL_TPL_REGLEMENTATION ) ) {
+		return;
+	}
+
 	$ditl_hero_id = absint( get_post_meta( get_queried_object_id(), '_ditl_hero_image_id', true ) );
 
 	if ( $ditl_hero_id <= 0 ) {
