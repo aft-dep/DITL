@@ -33,6 +33,9 @@ wordfence-waf.php
 # Polices Google auto-hebergees par Astra (option self_hosted_gfonts) :
 # telechargees au premier rendu, regenerees par cli/optimiser-chargement.php
 wp-content/astra-local-fonts/
+# Modules e-learning (exports eXeLearning du client, deposes par environnement
+# comme uploads/ ; .htaccess pose par cli/configurer-elearning.php)
+wp-content/elearning/
 
 # --- Systeme / OS ---
 .DS_Store

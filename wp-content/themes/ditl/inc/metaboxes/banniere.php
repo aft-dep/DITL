@@ -229,6 +229,7 @@ function ditl_gabarits_admin_assets( $hook_suffix ) {
 				'ditl-partenaires' => array( DITL_TPL_PARTENAIRES ),
 				'ditl-contact'     => array( DITL_TPL_CONTACT ),
 				'ditl-livrable'    => array( DITL_TPL_LIVRABLE ),
+				'ditl-elearning'   => array( DITL_TPL_ELEARNING ),
 			),
 			'i18n'      => array(
 				'chooseImage'  => __( 'Choisir une image', 'ditl' ),

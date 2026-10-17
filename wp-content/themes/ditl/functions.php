@@ -64,6 +64,13 @@ require_once get_stylesheet_directory() . '/inc/recherche.php';
  */
 require_once get_stylesheet_directory() . '/inc/extensions.php';
 
+/*
+ * Modules e-learning (exports HTML eXeLearning affiches en iframe) : metabox
+ * du gabarit "E-learning", puis rendu des modules et chargement des assets.
+ */
+require_once get_stylesheet_directory() . '/inc/metaboxes/elearning.php';
+require_once get_stylesheet_directory() . '/inc/elearning.php';
+
 /**
  * Applique au HTML riche des metas le meme traitement que le widget
  * texte d'Elementor (shortcodes puis typographie WordPress), afin de

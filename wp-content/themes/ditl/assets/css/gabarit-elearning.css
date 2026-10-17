@@ -1,0 +1,40 @@
+/**
+ * Gabarit "E-learning" : modules eXeLearning affiches en iframe sous le
+ * contenu de la page (voir inc/elearning.php).
+ *
+ * La page garde la mise en page d'Astra (titre et contenu inchanges) ; les
+ * modules occupent toute la largeur du contenu, le module gerant ses propres
+ * marges interieures. Typographie heritee du site (titre H2, liens).
+ */
+
+.ditl-elearning {
+	margin: 0 0 2em;
+}
+
+.ditl-elearning + .ditl-elearning {
+	margin-top: 3em;
+}
+
+.ditl-elearning__description {
+	margin-bottom: 1em;
+}
+
+.ditl-elearning__pleine-page {
+	margin: 0 0 1em;
+}
+
+/*
+ * Hauteur de repli (sans JavaScript ou avant le chargement du module) :
+ * l'iframe defile. Le script remplace cette hauteur par celle du module.
+ */
+.ditl-elearning__cadre {
+	display: block;
+	width: 100%;
+	height: 80vh;
+	min-height: 30rem;
+	border: 0;
+}
+
+.ditl-elearning__cadre--ajuste {
+	min-height: 0;
+}
