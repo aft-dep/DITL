@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.24.0' );
+define( 'DITL_THEME_VERSION', '0.25.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -92,6 +92,15 @@ require_once get_stylesheet_directory() . '/inc/elearning.php';
  * administration des contenus (inc/boite/, point d'entree boite.php).
  */
 require_once get_stylesheet_directory() . '/inc/boite/boite.php';
+
+/*
+ * Import des fiches outils et des referentiels de la boite a outils par CSV
+ * (ecran "Boite a outils > Importer"). Administration seulement : le script
+ * WP-CLI cli/importer-fiches.php charge le moteur lui-meme.
+ */
+if ( is_admin() ) {
+	require_once get_stylesheet_directory() . '/inc/import/import.php';
+}
 
 /**
  * Applique au HTML riche des metas le meme traitement que le widget

@@ -25,6 +25,8 @@ wp-content/aiowps_backups/
 
 # --- Fichiers generes / specifiques a l'environnement (AIOS, serveur) ---
 .htaccess
+# Verrou cree par WP Fastest Cache a chaque reecriture de son bloc .htaccess
+.htaccess.wpfc.lock
 .user.ini
 aios-bootstrap.php
 wp-content/mu-plugins/aios-firewall-loader.php

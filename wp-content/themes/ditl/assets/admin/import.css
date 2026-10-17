@@ -1,0 +1,130 @@
+/**
+ * Import des fiches outils - ecran d'administration.
+ *
+ * Les niveaux de message sont toujours portes par un libelle texte
+ * ("Erreur :", "Avertissement :") : la couleur n'est qu'un complement.
+ *
+ * @package DiTL
+ */
+
+/* L'attribut hidden doit l'emporter sur display des boutons de l'admin. */
+.ditl-import [hidden] {
+	display: none !important;
+}
+
+.ditl-import .ditl-import-aide li,
+.ditl-import p {
+	max-width: 70em;
+}
+
+.ditl-import .ditl-import-telechargements .button {
+	margin: 0 0.5em 0.5em 0;
+}
+
+.ditl-import .ditl-import-formulaire fieldset {
+	margin: 1em 0;
+	padding: 0.5em 1em;
+	border: 1px solid #c3c4c7;
+}
+
+.ditl-import .ditl-import-formulaire legend {
+	padding: 0 0.25em;
+	font-weight: 600;
+}
+
+.ditl-import .ditl-import-formulaire .description {
+	display: block;
+	margin-top: 0.25em;
+}
+
+.ditl-import .ditl-import-resume,
+.ditl-import .ditl-import-compteurs {
+	list-style: disc;
+	margin-left: 1.5em;
+}
+
+.ditl-import .ditl-import-messages {
+	margin: 0;
+	list-style: none;
+}
+
+.ditl-import .ditl-import-messages li {
+	margin: 0 0 0.25em;
+	padding-left: 0.5em;
+	border-left: 4px solid #c3c4c7;
+}
+
+.ditl-import .ditl-import-niveau {
+	font-weight: 600;
+}
+
+.ditl-import .ditl-import-niveau-fatal,
+.ditl-import .ditl-import-niveau-erreur {
+	border-left-color: #d63638;
+}
+
+.ditl-import .ditl-import-niveau-avertissement {
+	border-left-color: #dba617;
+}
+
+.ditl-import .ditl-import-niveau-info {
+	border-left-color: #72aee6;
+}
+
+.ditl-import .ditl-import-groupes > li {
+	margin-bottom: 0.75em;
+}
+
+.ditl-import .ditl-import-tableau {
+	margin: 1em 0;
+}
+
+.ditl-import .ditl-import-tableau caption {
+	padding: 0.5em 0;
+	font-weight: 600;
+	text-align: left;
+}
+
+.ditl-import .ditl-import-tableau th[scope="row"] {
+	font-weight: 400;
+	white-space: nowrap;
+}
+
+.ditl-import .ditl-import-toutes {
+	margin: 1em 0;
+}
+
+.ditl-import .ditl-import-toutes summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.ditl-import .ditl-import-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5em;
+	align-items: center;
+	margin: 1.5em 0 1em;
+}
+
+.ditl-import .ditl-import-actions form {
+	margin: 0;
+}
+
+.ditl-import .ditl-import-progression progress {
+	display: block;
+	width: 100%;
+	max-width: 40em;
+	height: 1.5em;
+	margin-top: 0.25em;
+}
+
+.ditl-import .ditl-import-statut {
+	font-weight: 600;
+}
+
+.ditl-import .ditl-import-final h2:focus,
+.ditl-import #ditl-import-rapport:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
