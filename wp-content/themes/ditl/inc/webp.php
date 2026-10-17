@@ -163,8 +163,9 @@ function ditl_webp_convertir_fichier( $source, $cible ) {
 		}
 	}
 
+	// Pas d'imagedestroy() : sans effet depuis PHP 8.0 et deprecie en 8.5 ;
+	// l'image est liberee au retour de la fonction (PHP 7.4 compris).
 	$ditl_resultat = @imagewebp( $ditl_image, $cible, DITL_WEBP_QUALITE );
-	imagedestroy( $ditl_image );
 
 	return $ditl_resultat && file_exists( $cible );
 }
