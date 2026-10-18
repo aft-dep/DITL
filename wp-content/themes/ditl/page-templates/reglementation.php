@@ -28,8 +28,9 @@
  *
  * Images : drapeaux et illustrations sont decoratifs (alt vide force), le
  * texte adjacent porte l'information. Contenu riche des reponses : wpautop
- * (l'editeur enregistre les paragraphes simples sans balise <p>) puis
- * ditl_format_rich_text, filtre par wp_kses_post au rendu.
+ * (filet pour un contenu enregistre sans balises <p>, par l'editeur avant le
+ * theme 0.26.0 ou par un import) puis ditl_format_rich_text, filtre par
+ * wp_kses_post au rendu.
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
@@ -171,9 +172,9 @@ get_header(); ?>
 											)
 										);
 
-										// L'editeur enregistre les paragraphes simples sans
-										// balise <p> : wpautop les retablit (sans effet sur un
-										// contenu deja balise).
+										// Un contenu enregistre sans balises <p> (editeur avant
+										// le theme 0.26.0, import) retrouve ses paragraphes ;
+										// sans effet sur un contenu deja balise.
 										$ditl_texte = ditl_reglementation_contenu_vide( $ditl_contenu ) ? '' : wp_kses_post( ditl_format_rich_text( wpautop( $ditl_contenu ) ) );
 										?>
 									<div class="ditl-regl__section">

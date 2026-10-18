@@ -20,7 +20,7 @@
  *
  * Les descriptions des blocs de coordonnees sont saisies en zone de texte SIMPLE,
  * sans editeur TinyMCE : l'existant melange sauts de ligne et <br> dans un seul
- * paragraphe, et wpautop enrobirait le tout de <p> supplementaires (meme parade
+ * paragraphe, et l'editeur enroberait le tout d'un <p> supplementaire (meme parade
  * que le titre H3 du gabarit Partenaires). Le HTML reste autorise, filtre par
  * wp_kses_post - qui accepte le protocole tel: et preserve les <br>.
  *

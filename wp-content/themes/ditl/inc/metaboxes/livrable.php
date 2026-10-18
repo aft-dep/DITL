@@ -26,7 +26,7 @@
  *                                     general, stockee relative).
  *
  * Le titre de section est saisi en zone de texte SIMPLE, sans editeur
- * TinyMCE : wpautop enroberait les spans de <p> supplementaires (meme parade
+ * TinyMCE : l'editeur enroberait les spans d'un <p> supplementaire (meme parade
  * que le titre H3 du gabarit Partenaires). Le HTML reste autorise, filtre
  * par wp_kses_post.
  *

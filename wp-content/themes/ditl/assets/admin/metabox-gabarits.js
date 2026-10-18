@@ -336,6 +336,20 @@
 
 	/**
 	 * Initialise l'editeur riche d'une zone de texte de section.
+	 *
+	 * wpautop: false (reglage par defaut du coeur pour ces editeurs) : la zone
+	 * de texte recoit le HTML tel que l'editeur le produit, paragraphes <p>
+	 * compris, et les gabarits le rendent tel quel (ditl_format_rich_text,
+	 * sans wpautop ; seule la Reglementation applique en plus wpautop au
+	 * rendu, sans effet sur un contenu deja balise). Avec wpautop: true,
+	 * l'editeur retirait les <p> simples a chaque enregistrement (removep) -
+	 * y compris sans aucune modification sous l'editeur de blocs, qui
+	 * sauvegarde tous les editeurs avant d'envoyer les metaboxes - et les
+	 * paragraphes d'un champ se fondaient en un seul bloc de texte au rendu.
+	 * Consequences : l'onglet "Code" montre le HTML complet (balises <p>
+	 * comprises) ; un contenu en ligne place hors de tout bloc est range par
+	 * l'editeur dans un paragraphe au premier enregistrement (4 champs
+	 * existants concernes, rendu identique au pixel, mesure du 18/10).
 	 */
 	function ditlInitEditor( editorId ) {
 		if ( ! window.wp || ! wp.editor || ! wp.editor.initialize ) {
@@ -344,7 +358,7 @@
 
 		var textarea        = editorId ? document.getElementById( editorId ) : null;
 		var tinymceSettings = {
-			wpautop: true,
+			wpautop: false,
 			toolbar1: 'formatselect,bold,italic,bullist,numlist,link,unlink,removeformat,undo,redo',
 			setup: function( editor ) {
 				// Garde la zone de texte synchronisee (indispensable
