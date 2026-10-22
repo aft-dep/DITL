@@ -17,6 +17,11 @@
  * coupees (DISABLE_WP_CRON) et la requete de rebouclage bloquee par
  * l'authentification HTTP. En production, elle reste active.
  *
+ * WP Mail SMTP, hors production : le bandeau "ENVOI DESACTIVE" est attendu,
+ * la preprod bloquant tout envoi (constante WPMS_DO_NOT_SEND et mu-plugin
+ * ditl-preprod.php). L'extension n'offre pas de filtre : le bandeau est
+ * retire en decrochant sa methode d'affichage.
+ *
  * L'environnement est lu par wp_get_environment_type() (constante
  * WP_ENVIRONMENT_TYPE, "staging" en preprod ; "production" par defaut).
  *
@@ -57,4 +62,22 @@ function ditl_sante_retirer_tests( $tests ) {
  */
 if ( 'production' !== wp_get_environment_type() ) {
 	add_filter( 'action_scheduler_check_pastdue_actions', '__return_false' );
+	add_action( 'admin_init', 'ditl_sante_retirer_bandeau_envoi_desactive' );
+}
+
+/**
+ * Retire le bandeau "ENVOI DESACTIVE" de WP Mail SMTP.
+ *
+ * La methode d'affichage est accrochee a admin_notices pendant init
+ * (WPMailSMTP\Core::init, administrateurs seulement) : elle est donc
+ * decrochee a admin_init. Elle n'affiche rien d'autre quand l'envoi est
+ * bloque.
+ */
+function ditl_sante_retirer_bandeau_envoi_desactive() {
+	if ( ! function_exists( 'wp_mail_smtp' ) ) {
+		return;
+	}
+
+	remove_action( 'admin_notices', array( wp_mail_smtp(), 'display_general_notices' ) );
+	remove_action( 'network_admin_notices', array( wp_mail_smtp(), 'display_general_notices' ) );
 }
