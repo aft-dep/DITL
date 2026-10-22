@@ -80,9 +80,10 @@ require_once get_stylesheet_directory() . '/inc/recherche.php';
 require_once get_stylesheet_directory() . '/inc/extensions.php';
 
 /*
- * Sante du site : retrait des controles qui signalent des choix assumes
- * (pas de theme par defaut ; hors production, mises a jour automatiques,
- * taches planifiees et indexation coupees expres).
+ * Alertes d'administration signalant des choix assumes, retirees : Sante du
+ * site (pas de theme par defaut ; hors production, mises a jour
+ * automatiques, taches planifiees et indexation coupees expres) et, hors
+ * production, actions en retard d'Action Scheduler.
  */
 require_once get_stylesheet_directory() . '/inc/sante-site.php';
 

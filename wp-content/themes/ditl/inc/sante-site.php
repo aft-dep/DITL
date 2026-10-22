@@ -1,8 +1,9 @@
 <?php
 /**
- * Outil "Sante du site" : retrait des controles qui signalent des choix
- * assumes, pour ne laisser a l'administrateur que les alertes utiles.
+ * Alertes d'administration qui signalent des choix assumes : retirees pour ne
+ * laisser a l'administrateur que les alertes utiles.
  *
+ * Outil "Sante du site" :
  * - theme_version (tous environnements) : aucun theme par defaut Twenty*
  *   n'est installe, volontairement (Astra + theme enfant seulement). Les mises
  *   a jour de themes restent signalees par Tableau de bord > Mises a jour.
@@ -10,6 +11,11 @@
  *   (AUTOMATIC_UPDATER_DISABLED), taches planifiees (DISABLE_WP_CRON) et
  *   indexation (noindex) sont coupees expres. En production, ces trois
  *   controles restent actifs : ils y signaleraient un vrai probleme.
+ *
+ * Action Scheduler (embarque par WPForms et WP Mail SMTP), hors production :
+ * l'alerte "past-due actions" est attendue, les taches planifiees etant
+ * coupees (DISABLE_WP_CRON) et la requete de rebouclage bloquee par
+ * l'authentification HTTP. En production, elle reste active.
  *
  * L'environnement est lu par wp_get_environment_type() (constante
  * WP_ENVIRONMENT_TYPE, "staging" en preprod ; "production" par defaut).
@@ -43,4 +49,12 @@ function ditl_sante_retirer_tests( $tests ) {
 	}
 
 	return $tests;
+}
+
+/*
+ * Action Scheduler : pas de controle des actions en retard hors production
+ * (filtre evalue a chaque admin_notices, avant toute requete).
+ */
+if ( 'production' !== wp_get_environment_type() ) {
+	add_filter( 'action_scheduler_check_pastdue_actions', '__return_false' );
 }
