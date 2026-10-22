@@ -466,8 +466,10 @@ function ditl_boite_front_badges_environnements( $post_id, $classe = '' ) {
 function ditl_boite_front_url_lisible( $url ) {
 	// Decodage des %xx pour la lecture, sauf s'il produit de l'UTF-8 invalide
 	// (adresses encodees en Latin-1, ex. %E9 : l'echappement viderait le texte).
+	// wp_is_valid_utf8() remplace seems_utf8(), obsolete depuis WordPress 6.9.
 	$decode  = rawurldecode( (string) $url );
-	$decode  = seems_utf8( $decode ) ? $decode : (string) $url;
+	$valide  = function_exists( 'wp_is_valid_utf8' ) ? wp_is_valid_utf8( $decode ) : seems_utf8( $decode );
+	$decode  = $valide ? $decode : (string) $url;
 	$lisible = preg_replace( '#^https?://(www\.)?#i', '', $decode );
 	$lisible = is_string( $lisible ) ? untrailingslashit( $lisible ) : (string) $url;
 
