@@ -80,6 +80,13 @@ require_once get_stylesheet_directory() . '/inc/recherche.php';
 require_once get_stylesheet_directory() . '/inc/extensions.php';
 
 /*
+ * Sante du site : retrait des controles qui signalent des choix assumes
+ * (pas de theme par defaut ; hors production, mises a jour automatiques,
+ * taches planifiees et indexation coupees expres).
+ */
+require_once get_stylesheet_directory() . '/inc/sante-site.php';
+
+/*
  * Modules e-learning (exports HTML eXeLearning affiches en iframe) : metabox
  * du gabarit "E-learning", puis rendu des modules et chargement des assets.
  */
