@@ -23,8 +23,10 @@ wp-content/wpvivid_staging/
 wp-content/wpvivid_uploads/
 wp-content/aiowps_backups/
 
-# --- Fichiers generes / specifiques a l'environnement (AIOS, serveur) ---
-.htaccess
+# --- Fichiers generes / specifiques a l'environnement (serveur) ---
+# .htaccess de la racine seulement : ceux des extensions (Wordfence) sont
+# versionnes et deployes avec elles.
+/.htaccess
 # Verrou cree par WP Fastest Cache a chaque reecriture de son bloc .htaccess
 .htaccess.wpfc.lock
 .user.ini
