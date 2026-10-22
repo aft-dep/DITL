@@ -41,20 +41,6 @@ add_filter( 'wpforms_analytics_should_track_user', '__return_false' );
 add_filter( 'wpforms_analytics_is_enabled', '__return_false' );
 
 /*
- * All In One WP Security 5.4.9 : retention du journal d'audit a 30 jours.
- *
- * La purge des evenements d'audit (cron aiowps_clean_old_events, methode
- * AIOWPSecurity_Audit_Event_Handler::delete_old_events) n'a pas d'option :
- * elle ne lit que la constante AIOWPSEC_PURGE_AUDIT_LOGS_AFTER_DAYS (90 jours
- * par defaut). Le theme est charge avant l'execution des crons, la constante
- * est donc vue par la purge. Un define anterieur (wp-config.php) garde la
- * priorite.
- */
-if ( ! defined( 'AIOWPSEC_PURGE_AUDIT_LOGS_AFTER_DAYS' ) ) {
-	define( 'AIOWPSEC_PURGE_AUDIT_LOGS_AFTER_DAYS', 30 );
-}
-
-/*
  * Complianz 7.5 + Site Kit : consent mode "basique" pour Google Analytics.
  *
  * L'integration Site Kit de Complianz met gtag.js en liste blanche du

@@ -63,8 +63,8 @@
  * (getHtaccess lit $_POST pour les conditions Mobile et logged-in) puis
  * appelle WpFastestCacheAdmin::modifyHtaccess, qui execute tous les
  * controles du plugin et ecrit les blocs WpFastestCache, GzipWpFastestCache
- * et LBCWpFastestCache EN TETE du fichier, donc avant les blocs AIOS et
- * WordPress (comportement standard du plugin, blocs AIOS intacts).
+ * et LBCWpFastestCache EN TETE du fichier, donc avant les autres blocs
+ * (comportement standard du plugin, autres blocs intacts).
  * L'ecriture est sautee si les blocs cibles sont deja en place (la ligne
  * "# Modified Time" du plugin est ignoree dans la comparaison).
  *
@@ -85,8 +85,10 @@
  *    clair (condition d'exclusion par cookie, comportement natif du plugin,
  *    bloc regenere aux hooks user_register / profile_update). C'est attendu
  *    et accepte : le .htaccess n'est pas versionne et sa lecture HTTP est
- *    interdite (bloc AIOS). Verifier a chaque environnement que le fichier
- *    reste ignore par git (git check-ignore .htaccess).
+ *    interdite par la configuration Apache par defaut (fichiers .ht*).
+ *    Verifier a chaque environnement que le fichier reste ignore par git
+ *    (git check-ignore .htaccess) et que curl -I https://<hote>/.htaccess
+ *    renvoie 403.
  * 5. Aucune purge initiale necessaire (cache vide au depart) ; le preload
  *    demarre seul via le cron "wp_fastest_cache_Preload" (5 min). Verifier
  *    l'apparition de fichiers sous wp-content/cache/all/ apres quelques minutes.

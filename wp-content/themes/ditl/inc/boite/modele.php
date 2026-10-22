@@ -208,7 +208,7 @@ add_action( 'init', 'ditl_boite_enregistrer_modele' );
  * publication (ou un changement de sa base d'URL).
  *
  * Regeneration "douce" (sans reecriture du .htaccess, gere par ailleurs par
- * WordPress, AIOS et WP Fastest Cache). Rejouee automatiquement sur chaque
+ * WordPress et WP Fastest Cache). Rejouee automatiquement sur chaque
  * environnement au premier chargement qui suit le deploiement.
  */
 function ditl_boite_regenerer_reecriture() {

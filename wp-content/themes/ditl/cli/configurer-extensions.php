@@ -38,18 +38,6 @@
  *   La rustine ditl_retirer_sitekit_wpforms_sans_formulaire (inc/perf.php)
  *   devient sans objet une fois conversion_tracking coupe : elle est laissee
  *   en place (inoffensive, protege un retour en arriere).
- * - All In One WP Security 5.4.9 : protection contre la copie coupee
- *   (aiowps_copy_protection : le JS anti clic droit / selection disparait du
- *   front, nuisance d'accessibilite sans valeur de securite), detection des
- *   robots de commentaires et blocage automatique des IP spammeuses coupes
- *   (aucun commentaire sur le site). Ecriture via la classe de configuration
- *   du plugin (AIOWPSecurity_Config, option serialisee aio_wp_security_configs),
- *   cases decochees stockees comme l'admin les stocke (chaine vide). Le
- *   pare-feu PHP, le .user.ini et les regles .htaccess d'AIOS ne sont PAS
- *   touches. Retention du journal d'audit : pas d'option dans cette version,
- *   uniquement la constante AIOWPSEC_PURGE_AUDIT_LOGS_AFTER_DAYS, definie a
- *   30 jours par le theme (inc/extensions.php) : ce script ne fait que la
- *   controler.
  * - WPForms 2.0 : ameliorations RGPD (gdpr : plus de stockage d'IP ni de
  *   user agent), annonces et menu de barre d'admin masques, resumes
  *   hebdomadaires par e-mail desactives (email-summaries-disable) ; le
@@ -65,14 +53,14 @@
  *   annulation de la tache Action Scheduler comme le fait l'onglet Misc.
  * - Mises a jour automatiques (option auto_update_plugins) : etendues aux
  *   extensions de cache et de confort sans impact front (wp-fastest-cache,
- *   wps-hide-login, duplicate-page) ; google-site-kit y est deja. Les suites
- *   de securite restent en manuel (AIOS : pare-feu en auto_prepend_file,
- *   une mise a jour cassee le desactiverait en silence ; Wordfence : sort a
- *   arbitrer par le client). Les autres (wpforms-lite, complianz-gdpr,
- *   wordpress-seo, polylang, add-search-to-menu, interactive-geo-maps,
- *   wp-mail-smtp) restent en manuel : impact front, a tester en preprod.
- * - Freemius (add-search-to-menu, interactive-geo-maps) : opt-out local de la
- *   telemetrie via FS_Permission_Manager::update_site_tracking(false), la
+ *   wps-hide-login, duplicate-page) ; google-site-kit y est deja. Wordfence,
+ *   seule suite de securite depuis la suppression d'AIOS (22/10/2026), reste
+ *   en manuel. Les autres (wpforms-lite, complianz-gdpr, wordpress-seo,
+ *   polylang, interactive-geo-maps, wp-mail-smtp) restent en manuel : impact
+ *   front, a tester en preprod.
+ * - Freemius (interactive-geo-maps ; Ivory Search supprime le 22/10/2026) :
+ *   opt-out local de la telemetrie via
+ *   FS_Permission_Manager::update_site_tracking(false), la
  *   methode publique du SDK que l'opt-out de l'ecran Compte finit par
  *   appeler ; le cron quotidien fs_data_sync_<slug> est supprime et le SDK ne
  *   le reprogramme pas tant que is_tracking_allowed() est faux. LIMITE : la
@@ -105,14 +93,14 @@
  * 6. Complianz : relancer le scan de cookies depuis le tableau de bord
  *    (Complianz > Tableau de bord) pour rafraichir la politique de cookies
  *    generee (Matomo n'y figure plus, Google Analytics y figure).
- * 7. Freemius (optionnel, complete l'opt-out cote API) : Reglages > Ivory
- *    Search > Compte > "Opt out", puis Maps > Compte > "Opt out".
+ * 7. Freemius (optionnel, complete l'opt-out cote API) : Maps > Compte >
+ *    "Opt out".
  *    WPForms : l'option "Disable storing user details" par formulaire est
  *    sans objet ici, le reglage global gdpr (pose par ce script) suffit en
  *    version Lite (aucune IP ni user agent stockes, pas de cookie de
  *    session).
  * 8. Rejouer ce script apres toute (re)activation de Complianz, Site Kit,
- *    AIOS, WPForms ou WP Mail SMTP (leurs hooks d'activation peuvent
+ *    WPForms ou WP Mail SMTP (leurs hooks d'activation peuvent
  *    reposer des valeurs par defaut) et apres cli/configurer-yoast.php si
  *    Yoast est reactive.
  * 9. Le .htaccess n'est pas versionne : le bloc DITL Acces est a reposer par
@@ -209,7 +197,7 @@ if ( ! function_exists( 'ditl_ext_bloc_htaccess_acces' ) ) {
 	 * configuration PHP (.user.ini).
 	 *
 	 * Les deux formes de directive (Apache 2.4 mod_authz_core et 2.2) sont
-	 * posees, comme dans les blocs AIOS du meme fichier.
+	 * posees, comme dans les autres blocs de securite du meme fichier.
 	 *
 	 * @return string Bloc complet, marqueurs inclus, termine par un saut de ligne.
 	 */
@@ -217,7 +205,7 @@ if ( ! function_exists( 'ditl_ext_bloc_htaccess_acces' ) ) {
 		$lignes = array(
 			'# BEGIN DITL Acces',
 			'# Interdiction de lecture HTTP du fichier .user.ini (configuration PHP',
-			'# du pare-feu AIOS : il revele le chemin absolu du serveur). Bloc gere',
+			'# d\'un pare-feu applicatif : il revele le chemin absolu). Bloc gere',
 			'# par le script WP-CLI wp-content/themes/ditl/cli/configurer-extensions.php',
 			'# - ne pas editer a la main.',
 			'<Files ".user.ini">',
@@ -250,8 +238,8 @@ if ( ! function_exists( 'ditl_ext_poser_htaccess_acces' ) ) {
 	/**
 	 * Pose ou met a jour le bloc DITL Acces dans le .htaccess.
 	 *
-	 * Insere AVANT le bloc WordPress (donc apres les blocs AIOS et DITL WebP
-	 * existants). Les autres blocs ne sont jamais touches. Mise a jour par
+	 * Insere AVANT le bloc WordPress (donc apres les blocs WP Fastest Cache
+	 * et DITL WebP existants). Les autres blocs ne sont jamais touches. Mise a jour par
 	 * str_replace du bloc capture : jamais de preg_replace avec du contenu en
 	 * chaine de remplacement (lecon du 20/08, references arrieres).
 	 *
@@ -527,62 +515,11 @@ if ( ! class_exists( '\Google\Site_Kit\Plugin' ) ) {
 }
 
 // ---------------------------------------------------------------------------
-// Etape 3 : All In One WP Security.
+// Etape 3 : All In One WP Security (retiree).
 // ---------------------------------------------------------------------------
 
-WP_CLI::log( '--- All In One WP Security (option aio_wp_security_configs) ---' );
-
-global $aio_wp_security;
-
-if ( ! is_object( $aio_wp_security ) || ! isset( $aio_wp_security->configs ) || ! is_object( $aio_wp_security->configs ) ) {
-	WP_CLI::warning( 'AIOS inactif : reglages non poses (rejouer ce script apres activation).' );
-} else {
-	// Cases decochees = chaine vide, comme les commandes d'administration du
-	// plugin (classes/commands/*.php) ; aiowps_spam_comments_should est un
-	// select "Discarded" (0) / "Marked as spam" (1), sans effet une fois la
-	// detection coupee.
-	$ditl_aios_cibles = array(
-		'aiowps_copy_protection'          => '',
-		'aiowps_enable_spambot_detecting' => '',
-		'aiowps_spam_comments_should'     => '0',
-		'aiowps_enable_autoblock_spam_ip' => '',
-	);
-
-	$ditl_aios_modifie = false;
-
-	foreach ( $ditl_aios_cibles as $ditl_cle => $ditl_cible ) {
-		$ditl_actuelle = (string) $aio_wp_security->configs->get_value( $ditl_cle );
-
-		if ( $ditl_actuelle === $ditl_cible ) {
-			WP_CLI::log( sprintf( '  %s : deja a %s, rien a faire.', $ditl_cle, ditl_ext_libelle( $ditl_cible ) ) );
-			continue;
-		}
-
-		if ( $ditl_dry_run ) {
-			WP_CLI::log( sprintf( '  [dry-run] %s : %s serait remplacee par %s.', $ditl_cle, ditl_ext_libelle( $ditl_actuelle ), ditl_ext_libelle( $ditl_cible ) ) );
-			continue;
-		}
-
-		$aio_wp_security->configs->set_value( $ditl_cle, $ditl_cible );
-		WP_CLI::log( sprintf( '  %s : %s -> %s.', $ditl_cle, ditl_ext_libelle( $ditl_actuelle ), ditl_ext_libelle( $ditl_cible ) ) );
-		$ditl_aios_modifie = true;
-	}
-
-	if ( $ditl_aios_modifie ) {
-		if ( $aio_wp_security->configs->save_config() ) {
-			WP_CLI::log( '  Option aio_wp_security_configs enregistree.' );
-			$ditl_ecritures++;
-		} else {
-			WP_CLI::warning( 'Option aio_wp_security_configs : enregistrement refuse.' );
-		}
-	}
-
-	if ( defined( 'AIOWPSEC_PURGE_AUDIT_LOGS_AFTER_DAYS' ) ) {
-		WP_CLI::log( sprintf( '  Retention du journal d\'audit : %d jours (constante AIOWPSEC_PURGE_AUDIT_LOGS_AFTER_DAYS, definie par inc/extensions.php ou wp-config.php).', (int) AIOWPSEC_PURGE_AUDIT_LOGS_AFTER_DAYS ) );
-	} else {
-		WP_CLI::warning( 'Constante AIOWPSEC_PURGE_AUDIT_LOGS_AFTER_DAYS non definie (90 jours par defaut) : verifier que inc/extensions.php est charge par le theme.' );
-	}
-}
+// Extension supprimee le 22/10/2026 (Wordfence reste la seule suite de
+// securite) : etape sans objet, numerotation des suivantes conservee.
 
 // ---------------------------------------------------------------------------
 // Etape 4 : WPForms.
@@ -719,9 +656,8 @@ if ( ! class_exists( '\WPMailSMTP\Options' ) ) {
 WP_CLI::log( '--- Mises a jour automatiques (option auto_update_plugins) ---' );
 
 $ditl_auto_cibles = array(
-	// Les deux suites de securite restent en manuel : AIOS porte un pare-feu
-	// en auto_prepend_file (une casse a la mise a jour = pare-feu desactive
-	// en silence) et le sort de Wordfence est une decision client.
+	// Wordfence (seule suite de securite) reste en manuel : son pare-feu
+	// applicatif doit etre controle apres chaque mise a jour.
 	'wp-fastest-cache/wpFastestCache.php',
 	'wps-hide-login/wps-hide-login.php',
 	'duplicate-page/duplicatepage.php',
@@ -755,14 +691,13 @@ if ( $ditl_auto_nouveau !== array_values( $ditl_auto_actuels ) && ! $ditl_dry_ru
 }
 
 // ---------------------------------------------------------------------------
-// Etape 7 : Freemius (telemetrie d'Ivory Search et Interactive Geo Maps).
+// Etape 7 : Freemius (telemetrie d'Interactive Geo Maps).
 // ---------------------------------------------------------------------------
 
 WP_CLI::log( '--- Freemius : opt-out de la telemetrie ---' );
 
 // Identifiants Freemius des modules (fs_dynamic_init de chaque extension).
 $ditl_fs_modules = array(
-	'add-search-to-menu'   => 2086,
 	'interactive-geo-maps' => 5114,
 );
 
