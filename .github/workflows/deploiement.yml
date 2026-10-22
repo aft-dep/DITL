@@ -2,17 +2,19 @@
 #
 # - Push sur dev : deploiement incremental vers la preproduction
 #   (https://preprod.ditlproject.eu).
-# - Lancement manuel (onglet Actions, branche dev) : incremental, ou complet
-#   pour une remise a niveau (long, sans suppression). GitHub ne propose ce
-#   lancement que si ce fichier est aussi present sur la branche par defaut.
-# - Mise en service : la revision deja en place est deposee a la main sur le
-#   serveur (.revision-deployee, hors racine web).
+# - Push sur main : deploiement incremental vers la production
+#   (https://ditlproject.eu).
+# - Lancement manuel (onglet Actions, branche dev ou main) : incremental, ou
+#   complet pour une remise a niveau (long, sans suppression). GitHub ne
+#   propose ce lancement que si ce fichier est present sur la branche par
+#   defaut.
+# - Mise en service d'un environnement : la revision deja en place est deposee
+#   a la main sur le serveur (.revision-deployee, hors racine web) ; sans elle,
+#   le deploiement s'arrete en erreur sans rien envoyer.
 #
 # Seuls les fichiers versionnes sont transmis ; la base de donnees n'est
 # jamais touchee (operations en base en console, avant le deploiement).
 # Detail du fonctionnement : .github/scripts/deployer.sh.
-#
-# La production sera branchee sur main lors de la mise en ligne.
 
 name: Deploiement
 
@@ -20,6 +22,7 @@ on:
   push:
     branches:
       - dev
+      - main
   workflow_dispatch:
     inputs:
       complet:
@@ -30,16 +33,15 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: deploiement-preprod
-  cancel-in-progress: false
-
 jobs:
   preprod:
     name: Preproduction
     if: github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    concurrency:
+      group: deploiement-preprod
+      cancel-in-progress: false
     steps:
       - name: Recuperation du depot
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -57,5 +59,36 @@ jobs:
           SFTP_RACINE: /vhosts/preprod.ditlproject.eu
           SFTP_UTILISATEUR: ${{ secrets.PREPROD_SFTP_UTILISATEUR }}
           SFTP_CLE: ${{ secrets.PREPROD_SFTP_CLE }}
+          COMPLET: ${{ inputs.complet && 'true' || 'false' }}
+        run: bash .github/scripts/deployer.sh
+
+  # Production : meme mecanisme, cle et secrets distincts de la preproduction.
+  # Racine et serveur a confirmer a la creation du site de production sur
+  # l'hebergement (meme instance que la preproduction a ce jour).
+  production:
+    name: Production
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    concurrency:
+      group: deploiement-production
+      cancel-in-progress: false
+    steps:
+      - name: Recuperation du depot
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Installation de lftp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Deploiement
+        env:
+          SFTP_HOTE: sftp.sd5.gpaas.net
+          SFTP_HOTE_CONNU: "sftp.sd5.gpaas.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEOEbFdyFtoYO6f6/ZRcSSNGi9PRzHDqUXhFoTwHAiXI"
+          SFTP_RACINE: /vhosts/ditlproject.eu
+          SFTP_UTILISATEUR: ${{ secrets.PROD_SFTP_UTILISATEUR }}
+          SFTP_CLE: ${{ secrets.PROD_SFTP_CLE }}
           COMPLET: ${{ inputs.complet && 'true' || 'false' }}
         run: bash .github/scripts/deployer.sh
