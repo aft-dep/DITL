@@ -88,6 +88,12 @@ require_once get_stylesheet_directory() . '/inc/extensions.php';
 require_once get_stylesheet_directory() . '/inc/sante-site.php';
 
 /*
+ * Tableau de bord : retrait des widgets sans usage (Bienvenue, actualites
+ * WordPress, Yoast, Wordfence, WPForms, WP Mail SMTP).
+ */
+require_once get_stylesheet_directory() . '/inc/tableau-de-bord.php';
+
+/*
  * Modules e-learning (exports HTML eXeLearning affiches en iframe) : metabox
  * du gabarit "E-learning", puis rendu des modules et chargement des assets.
  */
