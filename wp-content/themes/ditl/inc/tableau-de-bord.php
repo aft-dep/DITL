@@ -7,6 +7,7 @@
  * Retires :
  * - panneau "Bienvenue" (welcome_panel) ;
  * - "Evenements et nouveautes WordPress" (dashboard_primary) ;
+ * - "Brouillon rapide" (dashboard_quick_press) ;
  * - Yoast SEO : "Posts Overview" (wpseo-dashboard-overview) et
  *   "Wincher: Top Keyphrases" (wpseo-wincher-dashboard-overview) ;
  * - Wordfence : activite de la semaine (wordfence_activity_report_widget) ;
@@ -34,6 +35,7 @@ add_action( 'wp_dashboard_setup', 'ditl_tdb_retirer_widgets', PHP_INT_MAX );
 function ditl_tdb_retirer_widgets() {
 	$widgets = array(
 		'dashboard_primary',
+		'dashboard_quick_press',
 		'wpseo-dashboard-overview',
 		'wpseo-wincher-dashboard-overview',
 		'wordfence_activity_report_widget',

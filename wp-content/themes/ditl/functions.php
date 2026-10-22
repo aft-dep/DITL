@@ -89,7 +89,7 @@ require_once get_stylesheet_directory() . '/inc/sante-site.php';
 
 /*
  * Tableau de bord : retrait des widgets sans usage (Bienvenue, actualites
- * WordPress, Yoast, Wordfence, WPForms, WP Mail SMTP).
+ * WordPress, Brouillon rapide, Yoast, Wordfence, WPForms, WP Mail SMTP).
  */
 require_once get_stylesheet_directory() . '/inc/tableau-de-bord.php';
 
