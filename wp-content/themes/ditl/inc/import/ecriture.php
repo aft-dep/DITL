@@ -505,7 +505,7 @@ function ditl_import_traiter_fiche( $ligne, $plan, $simulation ) {
 	}
 
 	if ( $simulation ) {
-		if ( null !== $ligne['image'] && 'dossier' === $ligne['image']['source'] && 0 === ditl_import_media_par_sha1( $ligne['image']['sha1'] ) ) {
+		if ( null !== $ligne['image'] && '' !== $ligne['image']['nom'] && 'dossier' === $ligne['image']['source'] && 0 === ditl_import_media_par_sha1( $ligne['image']['sha1'] ) ) {
 			ditl_import_message( $resultat, 'info', sprintf( 'image « %s » : sera ajoutée à la médiathèque.', ditl_import_extrait( $ligne['image']['nom'], 60 ) ) );
 		}
 
