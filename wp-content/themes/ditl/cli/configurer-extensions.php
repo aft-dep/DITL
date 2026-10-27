@@ -73,6 +73,13 @@
  *   fichier revele le chemin absolu du serveur, constat de l'audit du
  *   08/09). Insere avant le bloc WordPress, mis a jour par str_replace du
  *   bloc capture (jamais preg_replace avec du contenu en remplacement).
+ *   Etendu le 27/10/2026 aux protections que posait AIOS avant sa
+ *   suppression (audit securite du 27/10/2026) : pas de liste des
+ *   dossiers, wp-config.php / debug.log / .ht* interdits ainsi que leurs
+ *   copies et les fichiers de sauvegarde (.bak, .sql, .log...), motifs
+ *   insensibles a la casse, taille de requete plafonnee a 100 Mo,
+ *   affichage en iframe limite au site lui-meme (X-Frame-Options et CSP
+ *   frame-ancestors, memes valeurs que la prod).
  *
  * Yoast : le crawl cleanup est porte par cli/configurer-yoast.php (etendu le
  * 08/09), pas par ce script.
@@ -88,8 +95,13 @@
  *    page d'accueil (?nocache=1) : gtag('consent', 'default', ...) present
  *    AVANT la balise gtag.js, plus aucun script content-events ni
  *    oncontextmenu, banniere Complianz affichee (politique incrementee).
- * 5. Verifier : curl -I https://<hote>/.user.ini -> 403 ; la home -> 200 ;
- *    une image avec jumeau .webp servie en image/webp (bloc WebP intact).
+ * 5. Verifier : curl -I https://<hote>/.user.ini -> 403 ; /wp-config.php,
+ *    /wp-content/debug.log et un dossier d'uploads sans index -> 403 ; la
+ *    home -> 200 avec X-Frame-Options SAMEORIGIN et CSP frame-ancestors
+ *    'self' (verifier avec un parametre qui contourne le cache, ex.
+ *    ?nocache=1 : les pages deja en cache Varnish gardent les anciens
+ *    en-tetes jusqu'a expiration ou purge) ; une image avec jumeau .webp
+ *    servie en image/webp (bloc WebP intact).
  * 6. Complianz : relancer le scan de cookies depuis le tableau de bord
  *    (Complianz > Tableau de bord) pour rafraichir la politique de cookies
  *    generee (Matomo n'y figure plus, Google Analytics y figure).
@@ -105,11 +117,28 @@
  *    Yoast est reactive.
  * 9. Le .htaccess n'est pas versionne : le bloc DITL Acces est a reposer par
  *    ce script sur chaque environnement.
+ * 10. PREPROD (base de reference depuis le 22/10/2026, l'AFT peut y avoir
+ *    change des reglages d'extensions) : ne poser QUE le bloc .htaccess avec
+ *    le mode "htaccess", apres une copie du fichier hors htdocs. Depuis le
+ *    dossier du vhost, WP-CLI lance avec --path=htdocs (eval-file cherche le
+ *    script par rapport au dossier courant) :
+ *      cp htdocs/.htaccess htaccess-avant-acces.bak
+ *      wp --path=htdocs eval-file htdocs/wp-content/themes/ditl/cli/configurer-extensions.php htaccess dry-run
+ *      wp --path=htdocs eval-file htdocs/wp-content/themes/ditl/cli/configurer-extensions.php htaccess
+ *    Verifier dans la minute : /wp-config.php et /wp-content/debug.log ->
+ *    403, un dossier d'uploads sans index -> 403, la home -> 200 avec
+ *    X-Frame-Options SAMEORIGIN et CSP frame-ancestors 'self', une page
+ *    e-learning (module affiche). Retour arriere : recopier la sauvegarde.
  * ===============================================================================
  *
  * Usage :
  *   wp eval-file wp-content/themes/ditl/cli/configurer-extensions.php dry-run
  *   wp eval-file wp-content/themes/ditl/cli/configurer-extensions.php
+ *   wp eval-file wp-content/themes/ditl/cli/configurer-extensions.php htaccess [dry-run]
+ *
+ * Le mode "htaccess" ne traite que le bloc DITL Acces (etape 8) et ne touche
+ * a aucun reglage d'extension. Tout argument inconnu est refuse : une faute
+ * de frappe sur "htaccess" ne doit pas lancer le mode complet.
  *
  * Le mode simulation accepte "dry-run" ou "--dry-run". Pas de mode annuler :
  * l'argument "annuler" est refuse avec une erreur explicite (les valeurs
@@ -134,8 +163,19 @@ require_once __DIR__ . '/commun.php';
 // Lecture des arguments : mode simulation eventuel.
 // ---------------------------------------------------------------------------
 
-$ditl_modes   = ditl_cli_lire_modes( $args );
-$ditl_dry_run = $ditl_modes['dry_run'];
+// Arguments inconnus refuses (et non ignores comme dans ditl_cli_lire_modes) :
+// une faute de frappe sur "htaccess" lancerait sinon le mode complet, qui
+// reecrit les reglages d'extensions.
+foreach ( (array) $args as $ditl_arg ) {
+	if ( ! in_array( $ditl_arg, array( 'htaccess', 'dry-run', '--dry-run', 'annuler', '--annuler' ), true ) ) {
+		WP_CLI::error( sprintf( 'Argument inconnu : %s (attendus : htaccess, dry-run).', $ditl_arg ) );
+	}
+}
+
+// Mode "htaccess" : bloc DITL Acces seul, sans aucun reglage d'extension.
+$ditl_htaccess_seul = in_array( 'htaccess', (array) $args, true );
+$ditl_modes         = ditl_cli_lire_modes( array_diff( (array) $args, array( 'htaccess' ) ) );
+$ditl_dry_run       = $ditl_modes['dry_run'];
 
 if ( $ditl_modes['annuler'] ) {
 	WP_CLI::error( 'Ce script n\'a pas de mode annuler : argument refuse (valeurs anterieures dans decisions.md du 08/09/2026).' );
@@ -143,6 +183,10 @@ if ( $ditl_modes['annuler'] ) {
 
 if ( $ditl_dry_run ) {
 	WP_CLI::log( '=== MODE SIMULATION (dry-run) : aucune ecriture (base, crons, .htaccess) ===' );
+}
+
+if ( $ditl_htaccess_seul ) {
+	WP_CLI::log( '=== MODE htaccess : bloc DITL Acces seul, aucun reglage d\'extension ===' );
 }
 
 // Compteur d'ecritures effectives (idempotence : rejeu = zero ecriture).
@@ -193,11 +237,19 @@ if ( ! function_exists( 'ditl_ext_libelle' ) ) {
 
 if ( ! function_exists( 'ditl_ext_bloc_htaccess_acces' ) ) {
 	/**
-	 * Contenu du bloc .htaccess d'interdiction de lecture des fichiers de
-	 * configuration PHP (.user.ini).
+	 * Contenu du bloc .htaccess de protection des acces : fichiers de
+	 * configuration et de documentation interdits en HTTP, plus les
+	 * protections reprises d'AIOS le 27/10/2026 (directives acceptees par
+	 * Gandi : le bloc AIOS les a posees sur la preprod du 21 au 22/10 sans
+	 * aucune erreur serveur).
 	 *
 	 * Les deux formes de directive (Apache 2.4 mod_authz_core et 2.2) sont
 	 * posees, comme dans les autres blocs de securite du meme fichier.
+	 * Header set : couvre aussi les pages servies en statique par WP Fastest
+	 * Cache, que PHP ne voit pas. Les en-tetes envoyes par PHP (admin,
+	 * connexion) ne sont pas remplaces : doublon de meme valeur, sans effet
+	 * sur les navigateurs. Header always set deplacerait seulement le doublon
+	 * sur les modules e-learning (Header set dans leur propre bloc).
 	 *
 	 * @return string Bloc complet, marqueurs inclus, termine par un saut de ligne.
 	 */
@@ -218,7 +270,7 @@ if ( ! function_exists( 'ditl_ext_bloc_htaccess_acces' ) ) {
 			'</IfModule>',
 			'</Files>',
 			'# Fichiers de documentation des extensions (divulgation de versions).',
-			'<FilesMatch "^(readme|license|changelog)\.(txt|html|md)$">',
+			'<FilesMatch "(?i)^(readme|license|changelog)\.(txt|html|md)$">',
 			'<IfModule mod_authz_core.c>',
 			'Require all denied',
 			'</IfModule>',
@@ -227,6 +279,40 @@ if ( ! function_exists( 'ditl_ext_bloc_htaccess_acces' ) ) {
 			'Deny from all',
 			'</IfModule>',
 			'</FilesMatch>',
+			'# Pas de liste des fichiers des dossiers sans index (repris d\'AIOS).',
+			'Options -Indexes',
+			'# Configuration WordPress, journal de debogage et fichiers .ht*, avec',
+			'# leurs copies (wp-config.php.bak, .wp-config.php.swp, debug.log.1...),',
+			'# sans tenir compte de la casse (repris d\'AIOS et etendu ; .ht* deja',
+			'# refuse par Apache, redondance voulue).',
+			'<FilesMatch "(?i)^(\.?wp-config|debug\.log|\.ht)">',
+			'<IfModule mod_authz_core.c>',
+			'Require all denied',
+			'</IfModule>',
+			'<IfModule !mod_authz_core.c>',
+			'Order deny,allow',
+			'Deny from all',
+			'</IfModule>',
+			'</FilesMatch>',
+			'# Copies de sauvegarde, d\'editeur et exports de base, ou qu\'ils soient.',
+			'<FilesMatch "(?i)(\.(bak|old|orig|save|swp|swo|sql|log)|~)$">',
+			'<IfModule mod_authz_core.c>',
+			'Require all denied',
+			'</IfModule>',
+			'<IfModule !mod_authz_core.c>',
+			'Order deny,allow',
+			'Deny from all',
+			'</IfModule>',
+			'</FilesMatch>',
+			'# Taille maximale d\'une requete : 100 Mo (valeur AIOS ; illimitee',
+			'# par defaut sur l\'Apache de Gandi).',
+			'LimitRequestBody 104857600',
+			'# Pages affichables en iframe par le site lui-meme uniquement',
+			'# (memes valeurs que la prod sous AIOS).',
+			'<IfModule mod_headers.c>',
+			'Header set X-Frame-Options "SAMEORIGIN"',
+			'Header set Content-Security-Policy "frame-ancestors \'self\'"',
+			'</IfModule>',
 			'# END DITL Acces',
 		);
 
@@ -248,7 +334,7 @@ if ( ! function_exists( 'ditl_ext_poser_htaccess_acces' ) ) {
 	 * @return int Nombre d'ecritures effectuees (0 ou 1).
 	 */
 	function ditl_ext_poser_htaccess_acces( $fichier, $dry_run ) {
-		WP_CLI::log( '--- Bloc .htaccess (# BEGIN DITL Acces : .user.ini interdit en HTTP) ---' );
+		WP_CLI::log( '--- Bloc .htaccess (# BEGIN DITL Acces : fichiers sensibles, liste des dossiers, iframes) ---' );
 
 		if ( ! file_exists( $fichier ) ) {
 			WP_CLI::warning( sprintf( '.htaccess introuvable (%s) : bloc non pose, a rejouer sur un environnement ou il existe.', $fichier ) );
@@ -303,6 +389,18 @@ if ( ! function_exists( 'ditl_ext_poser_htaccess_acces' ) ) {
 		WP_CLI::log( $present ? '  Bloc mis a jour dans le .htaccess.' : '  Bloc insere avant le bloc WordPress.' );
 		return 1;
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Mode "htaccess" : etape 8 seule, puis fin (runbook, point 10).
+// ---------------------------------------------------------------------------
+
+if ( $ditl_htaccess_seul ) {
+	$ditl_ecritures = ditl_ext_poser_htaccess_acces( rtrim( ABSPATH, '/' ) . '/.htaccess', $ditl_dry_run );
+
+	WP_CLI::log( '' );
+	WP_CLI::log( $ditl_dry_run ? 'Simulation terminee (bloc .htaccess seul).' : sprintf( 'Bloc .htaccess traite (%d ecriture(s)), aucun reglage d\'extension touche.', $ditl_ecritures ) );
+	return;
 }
 
 // ---------------------------------------------------------------------------
@@ -752,7 +850,7 @@ if ( ! function_exists( 'freemius' ) || ! class_exists( 'FS_Permission_Manager' 
 }
 
 // ---------------------------------------------------------------------------
-// Etape 8 : bloc .htaccess (.user.ini interdit en HTTP).
+// Etape 8 : bloc .htaccess (DITL Acces).
 // ---------------------------------------------------------------------------
 
 $ditl_ecritures += ditl_ext_poser_htaccess_acces( rtrim( ABSPATH, '/' ) . '/.htaccess', $ditl_dry_run );
