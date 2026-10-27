@@ -529,38 +529,112 @@ function ditl_import_traiter_fiche( $ligne, $plan, $simulation ) {
  * @return array Resultat de la ligne.
  */
 function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
-	$valeurs = $ligne['valeurs'];
-
 	// Champs deja suivis : conserves dans le nouvel etat (union).
 	$suivis = 0 === $post_id ? array() : ditl_import_champs_suivis( $post_id );
 
 	// Image : null = inchangee, 0 = retiree, sinon ID du media.
-	$attachment_id = null;
+	$attachment_id = ditl_import_media_fiche( $ligne['image'], $resultat );
 
-	if ( null !== $ligne['image'] ) {
-		$image = $ligne['image'];
+	$post_id = ditl_import_enregistrer_post( $ligne, $resultat, $post_id );
 
-		if ( '' === $image['nom'] ) {
-			$attachment_id = 0;
-		} elseif ( 'mediatheque' === $image['source'] ) {
-			$attachment_id = (int) $image['attachment_id'];
-		} elseif ( 'dossier' === $image['source'] ) {
-			$attachment_id = ditl_import_media_par_sha1( $image['sha1'] );
+	if ( 0 === $post_id ) {
+		return $resultat;
+	}
 
-			if ( 0 === $attachment_id ) {
-				$televerse = ditl_import_televerser_image( $image['chemin'], $image['nom'], $image['sha1'] );
+	$resultat['objet'] = $post_id;
 
-				if ( is_wp_error( $televerse ) ) {
-					ditl_import_message( $resultat, 'avertissement', sprintf( 'image « %1$s » : téléversement impossible (%2$s) : illustration non modifiée.', ditl_import_extrait( $image['nom'], 60 ), $televerse->get_error_message() ) );
-					$attachment_id = null;
-				} else {
-					$attachment_id = (int) $televerse;
-					ditl_import_message( $resultat, 'info', sprintf( 'image « %1$s » ajoutée à la médiathèque (média %2$d).', ditl_import_extrait( $image['nom'], 60 ), $attachment_id ) );
-				}
-			}
+	// Lu AVANT l'ecriture des metas (comparaison avec les valeurs en base).
+	$traductions_propres = ditl_import_traductions_a_rafraichir( $post_id, $ligne['valeurs']['metas'] );
+
+	if ( ditl_ml_langue_post( $post_id ) !== $ligne['lang'] ) {
+		ditl_ml_definir_langue_post( $post_id, $ligne['lang'] );
+	}
+
+	ditl_import_poser_metas( $post_id, $ligne['valeurs']['metas'] );
+	ditl_import_poser_termes( $post_id, $ligne['termes'], $resultat );
+	ditl_import_poser_image( $post_id, $attachment_id );
+	ditl_import_poser_metas_techniques( $post_id, $ligne );
+
+	ditl_import_lier_groupe( $ligne['groupe'], $resultat );
+
+	ditl_import_enregistrer_etat( $post_id, array_merge( $suivis, $ligne['champs'] ) );
+
+	foreach ( $traductions_propres as $traduction ) {
+		$champs_traduction = ditl_import_champs_suivis( $traduction );
+
+		if ( array() !== $champs_traduction ) {
+			ditl_import_enregistrer_etat( $traduction, $champs_traduction );
 		}
 	}
 
+	// En dernier : la ligne n'est "a jour" qu'une fois tout ecrit.
+	update_post_meta( $post_id, '_ditl_import_empreinte', $empreinte );
+
+	return $resultat;
+}
+
+/**
+ * Media a poser en image a la une d'une fiche. Une image du dossier absente
+ * de la mediatheque (sha1) y est televersee.
+ *
+ * @param array|null $image    Image de la ligne (null = colonne absente ou
+ *                             image refusee a l'analyse).
+ * @param array      $resultat Resultat de ligne (par reference, messages).
+ * @return int|null null = illustration inchangee, 0 = retiree, sinon ID du media.
+ */
+function ditl_import_media_fiche( $image, &$resultat ) {
+	if ( null === $image ) {
+		return null;
+	}
+
+	if ( '' === $image['nom'] ) {
+		return 0;
+	}
+
+	if ( 'mediatheque' === $image['source'] ) {
+		return (int) $image['attachment_id'];
+	}
+
+	if ( 'dossier' !== $image['source'] ) {
+		return null;
+	}
+
+	$attachment_id = ditl_import_media_par_sha1( $image['sha1'] );
+
+	if ( 0 !== $attachment_id ) {
+		return $attachment_id;
+	}
+
+	$televerse = ditl_import_televerser_image( $image['chemin'], $image['nom'], $image['sha1'] );
+
+	if ( is_wp_error( $televerse ) ) {
+		ditl_import_message( $resultat, 'avertissement', sprintf( 'image « %1$s » : téléversement impossible (%2$s) : illustration non modifiée.', ditl_import_extrait( $image['nom'], 60 ), $televerse->get_error_message() ) );
+		return null;
+	}
+
+	$attachment_id = (int) $televerse;
+	ditl_import_message( $resultat, 'info', sprintf( 'image « %1$s » ajoutée à la médiathèque (média %2$d).', ditl_import_extrait( $image['nom'], 60 ), $attachment_id ) );
+
+	return $attachment_id;
+}
+
+/**
+ * Cree ou met a jour la publication d'une fiche (titre, contenu, slug,
+ * statut) et compte les fiches publiees ecrites (une purge du cache en fin
+ * de lot).
+ *
+ * Creation : brouillon sauf statut "publie", cle de rejeu posee des la
+ * creation. Mise a jour : le statut ne change que pour publier, etat
+ * supprime avant d'ecrire.
+ *
+ * @param array $ligne    Ligne du plan.
+ * @param array $resultat Resultat de ligne (par reference : message et
+ *                        action "echec" si l'enregistrement echoue).
+ * @param int   $post_id  ID de la fiche existante (0 = creation).
+ * @return int ID de la fiche, 0 si l'enregistrement a echoue.
+ */
+function ditl_import_enregistrer_post( $ligne, &$resultat, $post_id ) {
+	$valeurs = $ligne['valeurs'];
 	$postarr = array(
 		'post_type'  => ditl_import_type_fiche(),
 		'post_title' => $valeurs['post_title'],
@@ -608,19 +682,33 @@ function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
 	if ( is_wp_error( $enregistre ) || ! $enregistre ) {
 		ditl_import_message( $resultat, 'erreur', sprintf( 'enregistrement impossible : %s', is_wp_error( $enregistre ) ? $enregistre->get_error_message() : 'erreur inconnue' ) );
 		$resultat['action'] = 'echec';
-		return $resultat;
+		return 0;
 	}
 
-	$post_id           = (int) $enregistre;
-	$resultat['objet'] = $post_id;
+	if ( 'publish' === $statut_final ) {
+		++$GLOBALS['ditl_import_publications'];
+	}
 
-	// Metas communes modifiees : l'extension multilingue les recopie sur les
-	// traductions. L'etat des traductions non retouchees sera rafraichi
-	// (c'est l'import qui les change, pas l'administration).
+	return (int) $enregistre;
+}
+
+/**
+ * Traductions dont l'etat sera rafraichi apres l'ecriture d'une fiche.
+ *
+ * Metas communes modifiees : l'extension multilingue les recopie sur les
+ * traductions. L'etat des traductions non retouchees sera rafraichi (c'est
+ * l'import qui les change, pas l'administration). A appeler AVANT
+ * l'ecriture des metas.
+ *
+ * @param int   $post_id ID de la fiche.
+ * @param array $metas   Metas de la ligne [cle => valeur].
+ * @return int[] IDs des traductions a rafraichir.
+ */
+function ditl_import_traductions_a_rafraichir( $post_id, $metas ) {
 	$traductions_propres = array();
 
 	foreach ( ditl_import_metas_communes() as $cle ) {
-		if ( isset( $valeurs['metas'][ $cle ] ) && (string) get_post_meta( $post_id, $cle, true ) !== $valeurs['metas'][ $cle ] ) {
+		if ( isset( $metas[ $cle ] ) && (string) get_post_meta( $post_id, $cle, true ) !== $metas[ $cle ] ) {
 			foreach ( ditl_ml_traductions_post( $post_id ) as $traduction ) {
 				$traduction = (int) $traduction;
 
@@ -632,21 +720,34 @@ function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
 		}
 	}
 
-	if ( 'publish' === $statut_final ) {
-		++$GLOBALS['ditl_import_publications'];
-	}
+	return array_keys( $traductions_propres );
+}
 
-	if ( ditl_ml_langue_post( $post_id ) !== $ligne['lang'] ) {
-		ditl_ml_definir_langue_post( $post_id, $ligne['lang'] );
-	}
-
-	foreach ( $valeurs['metas'] as $cle => $valeur ) {
+/**
+ * Ecrit les metas de contenu d'une fiche (seulement celles qui changent).
+ *
+ * @param int   $post_id ID de la fiche.
+ * @param array $metas   Metas de la ligne [cle => valeur].
+ */
+function ditl_import_poser_metas( $post_id, $metas ) {
+	foreach ( $metas as $cle => $valeur ) {
 		if ( (string) get_post_meta( $post_id, $cle, true ) !== $valeur ) {
 			update_post_meta( $post_id, $cle, wp_slash( $valeur ) );
 		}
 	}
+}
 
-	foreach ( $ligne['termes'] as $taxonomie => $ids ) {
+/**
+ * Pose les termes d'une fiche, taxonomie par taxonomie (seulement si la
+ * liste change ; les termes d'une taxonomie absente du fichier ne sont pas
+ * touches).
+ *
+ * @param int   $post_id  ID de la fiche.
+ * @param array $termes   Termes de la ligne [taxonomie => IDs].
+ * @param array $resultat Resultat de ligne (par reference, messages).
+ */
+function ditl_import_poser_termes( $post_id, $termes, &$resultat ) {
+	foreach ( $termes as $taxonomie => $ids ) {
 		$ids = array_map( 'intval', $ids );
 		sort( $ids );
 
@@ -658,7 +759,15 @@ function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
 			}
 		}
 	}
+}
 
+/**
+ * Pose, retire ou laisse l'image a la une d'une fiche.
+ *
+ * @param int      $post_id       ID de la fiche.
+ * @param int|null $attachment_id null = inchangee, 0 = retiree, sinon ID du media.
+ */
+function ditl_import_poser_image( $post_id, $attachment_id ) {
 	if ( 0 === $attachment_id ) {
 		if ( has_post_thumbnail( $post_id ) ) {
 			delete_post_thumbnail( $post_id );
@@ -666,7 +775,16 @@ function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
 	} elseif ( null !== $attachment_id && (int) get_post_thumbnail_id( $post_id ) !== $attachment_id ) {
 		set_post_thumbnail( $post_id, $attachment_id );
 	}
+}
 
+/**
+ * Ecrit les metas techniques d'une fiche (id, groupe, langue si elles
+ * changent ; date du dernier import).
+ *
+ * @param int   $post_id ID de la fiche.
+ * @param array $ligne   Ligne du plan.
+ */
+function ditl_import_poser_metas_techniques( $post_id, $ligne ) {
 	$techniques = array(
 		'_ditl_import_id'     => $ligne['id'],
 		'_ditl_import_groupe' => $ligne['groupe'],
@@ -680,23 +798,6 @@ function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
 	}
 
 	update_post_meta( $post_id, '_ditl_import_date', current_time( 'mysql' ) );
-
-	ditl_import_lier_groupe( $ligne['groupe'], $resultat );
-
-	ditl_import_enregistrer_etat( $post_id, array_merge( $suivis, $ligne['champs'] ) );
-
-	foreach ( array_keys( $traductions_propres ) as $traduction ) {
-		$champs_traduction = ditl_import_champs_suivis( $traduction );
-
-		if ( array() !== $champs_traduction ) {
-			ditl_import_enregistrer_etat( $traduction, $champs_traduction );
-		}
-	}
-
-	// En dernier : la ligne n'est "a jour" qu'une fois tout ecrit.
-	update_post_meta( $post_id, '_ditl_import_empreinte', $empreinte );
-
-	return $resultat;
 }
 
 /**
@@ -804,14 +905,35 @@ function ditl_import_lier_groupe( $groupe, &$resultat ) {
 		$membres[ $lang ] = $id;
 	}
 
+	if ( ! ditl_import_lier_traductions( 'post', $membres ) ) {
+		ditl_import_message( $resultat, 'avertissement', sprintf( 'groupe %s : traductions non reliées (extension multilingue absente ?).', $groupe ) );
+	}
+}
+
+/**
+ * Relie comme traductions des fiches (groupe group_id) ou des termes (ligne
+ * d'un referentiel) : meme logique pour les deux.
+ *
+ * N'ecrit que si les liens changent, en une seule liaison. Les liens
+ * existants vers d'autres objets sont conserves pour les langues absentes
+ * des membres. Langue source (WPML) : ditl_import_ordonner_langues().
+ *
+ * @param string $nature  "post" (fiches) ou "terme" (referentiels).
+ * @param int[]  $membres Correspondance [langue => ID] des objets a relier.
+ * @return bool False si la liaison a echoue (extension multilingue absente ?),
+ *              true sinon, y compris sans ecriture (moins de deux membres,
+ *              liens deja en place).
+ */
+function ditl_import_lier_traductions( $nature, $membres ) {
 	if ( count( $membres ) < 2 ) {
-		return;
+		return true;
 	}
 
+	$lire  = 'terme' === $nature ? 'ditl_ml_traductions_terme' : 'ditl_ml_traductions_post';
 	$cible = array();
 
 	foreach ( $membres as $id ) {
-		foreach ( ditl_ml_traductions_post( $id ) as $lang => $traduction ) {
+		foreach ( $lire( $id ) as $lang => $traduction ) {
 			if ( ! isset( $cible[ $lang ] ) && (int) $traduction > 0 ) {
 				$cible[ $lang ] = (int) $traduction;
 			}
@@ -825,19 +947,19 @@ function ditl_import_lier_groupe( $groupe, &$resultat ) {
 	$a_jour = true;
 
 	foreach ( $cible as $id ) {
-		if ( ! ditl_import_memes_traductions( ditl_ml_traductions_post( $id ), $cible ) ) {
+		if ( ! ditl_import_memes_traductions( $lire( $id ), $cible ) ) {
 			$a_jour = false;
 			break;
 		}
 	}
 
 	if ( $a_jour ) {
-		return;
+		return true;
 	}
 
-	if ( ! ditl_ml_lier_traductions_posts( ditl_import_ordonner_langues( $cible ) ) ) {
-		ditl_import_message( $resultat, 'avertissement', sprintf( 'groupe %s : traductions non reliées (extension multilingue absente ?).', $groupe ) );
-	}
+	$correspondance = ditl_import_ordonner_langues( $cible );
+
+	return 'terme' === $nature ? (bool) ditl_ml_lier_traductions_termes( $correspondance ) : (bool) ditl_ml_lier_traductions_posts( $correspondance );
 }
 
 /**
@@ -967,33 +1089,9 @@ function ditl_import_traiter_referentiel( $ligne, $simulation ) {
 		}
 	}
 
-	if ( ! $simulation && count( $termes ) > 1 ) {
-		$cible = array();
-
-		foreach ( $termes as $term_id ) {
-			foreach ( ditl_ml_traductions_terme( $term_id ) as $lang => $traduction ) {
-				if ( ! isset( $cible[ $lang ] ) && (int) $traduction > 0 ) {
-					$cible[ $lang ] = (int) $traduction;
-				}
-			}
-		}
-
-		foreach ( $termes as $lang => $term_id ) {
-			$cible[ $lang ] = $term_id;
-		}
-
-		$a_jour = true;
-
-		foreach ( $cible as $term_id ) {
-			if ( ! ditl_import_memes_traductions( ditl_ml_traductions_terme( $term_id ), $cible ) ) {
-				$a_jour = false;
-				break;
-			}
-		}
-
-		if ( ! $a_jour ) {
-			ditl_ml_lier_traductions_termes( ditl_import_ordonner_langues( $cible ) );
-		}
+	// Traductions de la ligne (ecrites seulement si les liens changent).
+	if ( ! $simulation ) {
+		ditl_import_lier_traductions( 'terme', $termes );
 	}
 
 	if ( $creations > 0 ) {

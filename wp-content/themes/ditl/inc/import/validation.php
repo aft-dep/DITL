@@ -256,6 +256,11 @@ function ditl_import_valider_fiches( &$plan, $csv ) {
 /**
  * Convertit et valide une ligne du fichier des fiches.
  *
+ * Etapes, dans cet ordre (ordre des messages et des cles de "valeurs", qui
+ * entre dans l'empreinte de la ligne) : identite (id, group_id, langue),
+ * titre, statut, slug, image, champs de texte et de choix, fabricants,
+ * champs de classement vides.
+ *
  * @param array $enregistrement Enregistrement lu.
  * @param array $carte          Correspondance des colonnes.
  * @param array $schema         Schema des fiches.
@@ -296,6 +301,34 @@ function ditl_import_analyser_fiche( $enregistrement, $carte, $schema, $plan ) {
 		return $ligne;
 	}
 
+	// Langue validee (chaine vide si refusee : les codes ne sont alors pas resolus).
+	$lang = ditl_import_analyser_identite( $ligne, $id, $groupe, $lang );
+
+	ditl_import_analyser_titre( $ligne, $titre, $regles );
+	ditl_import_analyser_statut( $ligne, ditl_import_valeur( $enregistrement, $presentes, 'statut' ) );
+	ditl_import_analyser_slug( $ligne, ditl_import_valeur( $enregistrement, $presentes, 'slug' ) );
+	ditl_import_analyser_image( $ligne, ditl_import_valeur( $enregistrement, $presentes, 'image' ), $plan );
+	ditl_import_analyser_champs( $ligne, $enregistrement, $presentes, $schema, $lang, $regles );
+	ditl_import_analyser_fabricants( $ligne, $enregistrement, $carte, $regles );
+	ditl_import_controler_classement( $ligne );
+
+	$ligne['champs'] = array_values( array_unique( $ligne['champs'] ) );
+	sort( $ligne['champs'] );
+
+	return $ligne;
+}
+
+/**
+ * Controle l'identite d'une ligne : id, group_id (entiers positifs) et
+ * langue (active sur le site).
+ *
+ * @param array  $ligne  Ligne (par reference).
+ * @param string $id     id saisi (rogne).
+ * @param string $groupe group_id saisi (rogne).
+ * @param string $lang   Langue saisie (rognee, en minuscules).
+ * @return string Langue validee, chaine vide si elle est refusee.
+ */
+function ditl_import_analyser_identite( &$ligne, $id, $groupe, $lang ) {
 	if ( ditl_import_entier_positif( $id ) ) {
 		$ligne['id'] = (string) (int) $id;
 	} else {
@@ -317,7 +350,17 @@ function ditl_import_analyser_fiche( $enregistrement, $carte, $schema, $plan ) {
 		$lang = '';
 	}
 
-	// Titre (texte simple : balises retirees).
+	return $lang;
+}
+
+/**
+ * Controle le titre (texte simple : balises retirees) et le retient.
+ *
+ * @param array  $ligne  Ligne (par reference).
+ * @param string $titre  Titre saisi.
+ * @param array  $regles Regles de l'import.
+ */
+function ditl_import_analyser_titre( &$ligne, $titre, $regles ) {
 	$titre_propre = sanitize_text_field( $titre );
 
 	if ( '' === $titre_propre ) {
@@ -335,66 +378,105 @@ function ditl_import_analyser_fiche( $enregistrement, $carte, $schema, $plan ) {
 	}
 
 	$ligne['valeurs']['post_title'] = $titre_propre;
+}
 
-	// Statut.
-	$statut = ditl_import_valeur( $enregistrement, $presentes, 'statut' );
-
-	if ( null !== $statut ) {
-		$interprete = ditl_import_statut( $statut );
-
-		if ( null === $interprete ) {
-			ditl_import_message( $ligne, 'avertissement', sprintf( 'statut « %s » inconnu (brouillon ou publié) : brouillon pour une nouvelle fiche, inchangé sinon.', ditl_import_extrait( $statut, 20 ) ) );
-			$interprete = '';
-		}
-
-		$ligne['valeurs']['statut'] = $interprete;
+/**
+ * Interprete le statut (colonne facultative).
+ *
+ * @param array       $ligne  Ligne (par reference).
+ * @param string|null $statut Statut saisi, null si la colonne est absente.
+ */
+function ditl_import_analyser_statut( &$ligne, $statut ) {
+	if ( null === $statut ) {
+		return;
 	}
 
-	// Slug.
-	$slug = ditl_import_valeur( $enregistrement, $presentes, 'slug' );
+	$interprete = ditl_import_statut( $statut );
 
-	if ( null !== $slug ) {
-		$slug_propre = sanitize_title( $slug );
-
-		if ( '' !== $slug && '' === $slug_propre ) {
-			ditl_import_message( $ligne, 'avertissement', 'slug inexploitable : ignoré.' );
-		}
-
-		$ligne['valeurs']['post_name'] = $slug_propre;
+	if ( null === $interprete ) {
+		ditl_import_message( $ligne, 'avertissement', sprintf( 'statut « %s » inconnu (brouillon ou publié) : brouillon pour une nouvelle fiche, inchangé sinon.', ditl_import_extrait( $statut, 20 ) ) );
+		$interprete = '';
 	}
 
-	// Image.
-	$image = ditl_import_valeur( $enregistrement, $presentes, 'image' );
+	$ligne['valeurs']['statut'] = $interprete;
+}
 
-	if ( null !== $image ) {
-		$image = ditl_import_rogner( $image );
-
-		if ( '' === $image ) {
-			$ligne['image']    = array( 'nom' => '' );
-			$ligne['champs'][] = '_thumbnail_id';
-		} else {
-			$refus = ditl_import_controler_nom_image( $image );
-
-			if ( '' !== $refus ) {
-				ditl_import_message( $ligne, 'avertissement', sprintf( 'image « %1$s » : %2$s : illustration non modifiée.', ditl_import_extrait( $image, 60 ), $refus ) );
-			} else {
-				$resolution = ditl_import_resoudre_image( $image, $plan['options']['images'], $regles );
-
-				if ( '' === $resolution['source'] ) {
-					ditl_import_message( $ligne, 'avertissement', $resolution['message'] . '.' );
-				} else {
-					$ligne['image']    = array_merge( array( 'nom' => $image ), $resolution );
-					$ligne['champs'][] = '_thumbnail_id';
-				}
-			}
-		}
+/**
+ * Nettoie le slug (colonne facultative).
+ *
+ * @param array       $ligne Ligne (par reference).
+ * @param string|null $slug  Slug saisi, null si la colonne est absente.
+ */
+function ditl_import_analyser_slug( &$ligne, $slug ) {
+	if ( null === $slug ) {
+		return;
 	}
 
-	// Champs de texte et de choix.
+	$slug_propre = sanitize_title( $slug );
+
+	if ( '' !== $slug && '' === $slug_propre ) {
+		ditl_import_message( $ligne, 'avertissement', 'slug inexploitable : ignoré.' );
+	}
+
+	$ligne['valeurs']['post_name'] = $slug_propre;
+}
+
+/**
+ * Resout l'image d'une ligne (colonne facultative) : vide = illustration
+ * retiree ; nom refuse ou image introuvable = illustration non modifiee.
+ *
+ * @param array       $ligne Ligne (par reference).
+ * @param string|null $image Nom de fichier saisi, null si la colonne est absente.
+ * @param array       $plan  Plan en cours (regles, dossier d'images).
+ */
+function ditl_import_analyser_image( &$ligne, $image, $plan ) {
+	if ( null === $image ) {
+		return;
+	}
+
+	$image = ditl_import_rogner( $image );
+
+	if ( '' === $image ) {
+		$ligne['image']    = array( 'nom' => '' );
+		$ligne['champs'][] = '_thumbnail_id';
+		return;
+	}
+
+	$refus = ditl_import_controler_nom_image( $image );
+
+	if ( '' !== $refus ) {
+		ditl_import_message( $ligne, 'avertissement', sprintf( 'image « %1$s » : %2$s : illustration non modifiée.', ditl_import_extrait( $image, 60 ), $refus ) );
+		return;
+	}
+
+	$resolution = ditl_import_resoudre_image( $image, $plan['options']['images'], $plan['regles'] );
+
+	if ( '' === $resolution['source'] ) {
+		ditl_import_message( $ligne, 'avertissement', $resolution['message'] . '.' );
+		return;
+	}
+
+	$ligne['image']    = array_merge( array( 'nom' => $image ), $resolution );
+	$ligne['champs'][] = '_thumbnail_id';
+}
+
+/**
+ * Convertit les champs de texte et de choix presents dans le fichier
+ * (titre, slug et image exceptes) vers leur cible (champ de la fiche ou
+ * meta).
+ *
+ * @param array  $ligne          Ligne (par reference).
+ * @param array  $enregistrement Enregistrement lu.
+ * @param array  $presentes      Colonnes presentes [nom => index].
+ * @param array  $schema         Schema des fiches.
+ * @param string $lang           Langue validee (vide : codes non resolus).
+ * @param array  $regles         Regles de l'import.
+ */
+function ditl_import_analyser_champs( &$ligne, $enregistrement, $presentes, $schema, $lang, $regles ) {
 	$libelles = ditl_import_libelles_colonnes();
 
 	foreach ( $schema as $nom => $definition ) {
-		// Titre, slug et image : traites ci-dessus.
+		// Titre, slug et image : traites a part.
 		if ( ! isset( $presentes[ $nom ] ) || empty( $definition['cible'] ) || in_array( $nom, array( 'title', 'slug', 'image' ), true ) ) {
 			continue;
 		}
@@ -404,95 +486,13 @@ function ditl_import_analyser_fiche( $enregistrement, $carte, $schema, $plan ) {
 		$type  = isset( $definition['type'] ) ? $definition['type'] : 'texte';
 
 		if ( 'codes' === $type && 'taxonomie' === $cible[0] ) {
-			$taxonomie = (string) $cible[1];
-			$niveau    = isset( $cible[2] ) ? (int) $cible[2] : 1;
-			$libelle   = isset( $libelles[ $nom ] ) ? $libelles[ $nom ] : $nom;
-
-			if ( ! isset( $ligne['termes'][ $taxonomie ] ) ) {
-				$ligne['termes'][ $taxonomie ] = array();
-				$ligne['champs'][]             = 'tax:' . $taxonomie;
-			}
-
-			$ligne['codes'][ $nom ] = array();
-
-			foreach ( ditl_import_decouper( $brut ) as $code_brut ) {
-				$code = ditl_import_normaliser_code( $code_brut );
-
-				if ( '' === $code ) {
-					ditl_import_message( $ligne, 'erreur', sprintf( '%1$s : code « %2$s » invalide.', $libelle, ditl_import_extrait( $code_brut, 40 ) ) );
-					continue;
-				}
-
-				$ligne['codes'][ $nom ][] = $code;
-
-				if ( '' === $lang ) {
-					continue;
-				}
-
-				$terme = ditl_import_terme( $taxonomie, $code, $lang );
-
-				if ( null === $terme ) {
-					ditl_import_message( $ligne, 'erreur', sprintf( '%1$s : code « %2$s » inconnu des référentiels en langue %3$s.', $libelle, $code, $lang ) );
-					continue;
-				}
-
-				if ( 1 === $niveau && 0 !== (int) $terme->parent ) {
-					ditl_import_message( $ligne, 'avertissement', sprintf( '%1$s : « %2$s » est un élément de niveau 2 (rattaché à un parent).', $libelle, $code ) );
-				} elseif ( 2 === $niveau && 0 === (int) $terme->parent ) {
-					ditl_import_message( $ligne, 'avertissement', sprintf( '%1$s : « %2$s » est un élément de niveau 1 (sans parent).', $libelle, $code ) );
-				}
-
-				if ( ! in_array( (int) $terme->term_id, $ligne['termes'][ $taxonomie ], true ) ) {
-					$ligne['termes'][ $taxonomie ][] = (int) $terme->term_id;
-				}
-			}
-
+			ditl_import_analyser_codes( $ligne, $nom, $brut, $cible, isset( $libelles[ $nom ] ) ? $libelles[ $nom ] : $nom, $lang );
 			continue;
 		}
 
-		if ( 'texte' === $type ) {
-			$propre = sanitize_text_field( $brut );
+		$propre = ditl_import_convertir_champ( $ligne, $nom, $brut, $type, $definition, $regles );
 
-			if ( ditl_import_contient_html( $brut ) ) {
-				ditl_import_message( $ligne, 'avertissement', sprintf( '%s : balises HTML retirées.', $nom ) );
-			}
-		} elseif ( 'texte_long' === $type ) {
-			$propre = sanitize_textarea_field( $brut );
-
-			if ( ditl_import_contient_html( $brut ) ) {
-				ditl_import_message( $ligne, 'avertissement', sprintf( '%s : balises HTML retirées.', $nom ) );
-			}
-		} elseif ( 'texte_riche' === $type ) {
-			$propre = ditl_import_texte_riche( $brut );
-
-			if ( ditl_import_contient_html( $brut ) ) {
-				ditl_import_message( $ligne, 'avertissement', sprintf( '%s : HTML détecté, affiché tel quel (mise en forme : retour à la ligne, « - » pour une puce, **gras**).', $nom ) );
-			}
-
-			if ( ! empty( $definition['minimum'] ) && isset( $regles[ $definition['minimum'] ] ) && $regles[ $definition['minimum'] ] > 0 ) {
-				$longueur = ditl_import_longueur( $brut );
-
-				if ( 0 === $longueur ) {
-					ditl_import_message( $ligne, 'avertissement', sprintf( '%s vide.', $nom ) );
-				} elseif ( $longueur < $regles[ $definition['minimum'] ] ) {
-					ditl_import_message( $ligne, 'avertissement', sprintf( '%1$s : %2$d caractères (minimum attendu : %3$d).', $nom, $longueur, $regles[ $definition['minimum'] ] ) );
-				}
-			}
-		} elseif ( 'urls' === $type ) {
-			$urls = array();
-
-			foreach ( ditl_import_decouper( $brut ) as $url_brute ) {
-				$url = ditl_import_url( $url_brute );
-
-				if ( '' === $url ) {
-					ditl_import_message( $ligne, 'avertissement', sprintf( '%1$s : URL invalide ignorée « %2$s ».', $nom, ditl_import_extrait( $url_brute, 60 ) ) );
-				} elseif ( ! in_array( $url, $urls, true ) ) {
-					$urls[] = $url;
-				}
-			}
-
-			$propre = (string) wp_json_encode( array_slice( $urls, 0, 100 ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-		} else {
+		if ( null === $propre ) {
 			continue;
 		}
 
@@ -506,51 +506,216 @@ function ditl_import_analyser_fiche( $enregistrement, $carte, $schema, $plan ) {
 			$ligne['champs'][]                      = $cible[1];
 		}
 	}
+}
 
-	// Fabricants : colonnes fabricant_N / fabricant_N_url, puis colonne
-	// "fabricants" (liste de noms, format de juillet).
-	if ( isset( $presentes['fabricants'] ) || array() !== $carte['fabricants'] ) {
-		$fabricants = array();
+/**
+ * Resout les codes d'une colonne de choix en termes de la langue de la
+ * ligne (taxonomie et niveau donnes par la cible du schema).
+ *
+ * @param array  $ligne   Ligne (par reference).
+ * @param string $nom     Nom canonique de la colonne.
+ * @param string $brut    Cellule (codes separes par "|").
+ * @param array  $cible   Cible { 'taxonomie', taxonomie, niveau }.
+ * @param string $libelle Libelle de la colonne pour les messages.
+ * @param string $lang    Langue validee (vide : codes non resolus).
+ */
+function ditl_import_analyser_codes( &$ligne, $nom, $brut, $cible, $libelle, $lang ) {
+	$taxonomie = (string) $cible[1];
+	$niveau    = isset( $cible[2] ) ? (int) $cible[2] : 1;
 
-		foreach ( $carte['fabricants'] as $numero => $parties ) {
-			$nom   = isset( $parties['nom'] ) && isset( $enregistrement['cellules'][ $parties['nom'] ] ) ? sanitize_text_field( (string) $enregistrement['cellules'][ $parties['nom'] ] ) : '';
-			$brute = isset( $parties['url'] ) && isset( $enregistrement['cellules'][ $parties['url'] ] ) ? ditl_import_rogner( (string) $enregistrement['cellules'][ $parties['url'] ] ) : '';
-			$url   = '' === $brute ? '' : ditl_import_url( $brute );
+	if ( ! isset( $ligne['termes'][ $taxonomie ] ) ) {
+		$ligne['termes'][ $taxonomie ] = array();
+		$ligne['champs'][]             = 'tax:' . $taxonomie;
+	}
 
-			if ( '' !== $brute && '' === $url ) {
-				ditl_import_message( $ligne, 'avertissement', sprintf( 'fabricant %1$d : URL invalide ignorée « %2$s ».', $numero, ditl_import_extrait( $brute, 60 ) ) );
-			}
+	$ligne['codes'][ $nom ] = array();
 
-			if ( '' === $nom && '' !== $url ) {
-				ditl_import_message( $ligne, 'avertissement', sprintf( 'fabricant %d : URL sans nom.', $numero ) );
-			}
+	foreach ( ditl_import_decouper( $brut ) as $code_brut ) {
+		$code = ditl_import_normaliser_code( $code_brut );
 
-			if ( '' !== $nom || '' !== $url ) {
+		if ( '' === $code ) {
+			ditl_import_message( $ligne, 'erreur', sprintf( '%1$s : code « %2$s » invalide.', $libelle, ditl_import_extrait( $code_brut, 40 ) ) );
+			continue;
+		}
+
+		$ligne['codes'][ $nom ][] = $code;
+
+		if ( '' === $lang ) {
+			continue;
+		}
+
+		$terme = ditl_import_terme( $taxonomie, $code, $lang );
+
+		if ( null === $terme ) {
+			ditl_import_message( $ligne, 'erreur', sprintf( '%1$s : code « %2$s » inconnu des référentiels en langue %3$s.', $libelle, $code, $lang ) );
+			continue;
+		}
+
+		if ( 1 === $niveau && 0 !== (int) $terme->parent ) {
+			ditl_import_message( $ligne, 'avertissement', sprintf( '%1$s : « %2$s » est un élément de niveau 2 (rattaché à un parent).', $libelle, $code ) );
+		} elseif ( 2 === $niveau && 0 === (int) $terme->parent ) {
+			ditl_import_message( $ligne, 'avertissement', sprintf( '%1$s : « %2$s » est un élément de niveau 1 (sans parent).', $libelle, $code ) );
+		}
+
+		if ( ! in_array( (int) $terme->term_id, $ligne['termes'][ $taxonomie ], true ) ) {
+			$ligne['termes'][ $taxonomie ][] = (int) $terme->term_id;
+		}
+	}
+}
+
+/**
+ * Convertit une cellule de texte selon son type.
+ *
+ * @param array  $ligne      Ligne (par reference).
+ * @param string $nom        Nom canonique de la colonne.
+ * @param string $brut       Cellule.
+ * @param string $type       texte, texte_long, texte_riche ou urls.
+ * @param array  $definition Definition de la colonne (schema).
+ * @param array  $regles     Regles de l'import.
+ * @return string|null Valeur convertie, null pour un type non gere.
+ */
+function ditl_import_convertir_champ( &$ligne, $nom, $brut, $type, $definition, $regles ) {
+	if ( 'texte' === $type || 'texte_long' === $type ) {
+		$propre = 'texte' === $type ? sanitize_text_field( $brut ) : sanitize_textarea_field( $brut );
+
+		if ( ditl_import_contient_html( $brut ) ) {
+			ditl_import_message( $ligne, 'avertissement', sprintf( '%s : balises HTML retirées.', $nom ) );
+		}
+
+		return $propre;
+	}
+
+	if ( 'texte_riche' === $type ) {
+		return ditl_import_convertir_texte_riche( $ligne, $nom, $brut, $definition, $regles );
+	}
+
+	if ( 'urls' === $type ) {
+		return ditl_import_convertir_urls( $ligne, $nom, $brut );
+	}
+
+	return null;
+}
+
+/**
+ * Convertit un texte riche (convention du 07/09) et controle sa longueur
+ * minimale (regle nommee par la definition de la colonne).
+ *
+ * @param array  $ligne      Ligne (par reference).
+ * @param string $nom        Nom canonique de la colonne.
+ * @param string $brut       Cellule.
+ * @param array  $definition Definition de la colonne (schema).
+ * @param array  $regles     Regles de l'import.
+ * @return string HTML.
+ */
+function ditl_import_convertir_texte_riche( &$ligne, $nom, $brut, $definition, $regles ) {
+	$propre = ditl_import_texte_riche( $brut );
+
+	if ( ditl_import_contient_html( $brut ) ) {
+		ditl_import_message( $ligne, 'avertissement', sprintf( '%s : HTML détecté, affiché tel quel (mise en forme : retour à la ligne, « - » pour une puce, **gras**).', $nom ) );
+	}
+
+	if ( ! empty( $definition['minimum'] ) && isset( $regles[ $definition['minimum'] ] ) && $regles[ $definition['minimum'] ] > 0 ) {
+		$longueur = ditl_import_longueur( $brut );
+
+		if ( 0 === $longueur ) {
+			ditl_import_message( $ligne, 'avertissement', sprintf( '%s vide.', $nom ) );
+		} elseif ( $longueur < $regles[ $definition['minimum'] ] ) {
+			ditl_import_message( $ligne, 'avertissement', sprintf( '%1$s : %2$d caractères (minimum attendu : %3$d).', $nom, $longueur, $regles[ $definition['minimum'] ] ) );
+		}
+	}
+
+	return $propre;
+}
+
+/**
+ * Convertit une liste d'URL separees par "|" (invalides ignorees, doublons
+ * retires, 100 au plus).
+ *
+ * @param array  $ligne Ligne (par reference).
+ * @param string $nom   Nom canonique de la colonne.
+ * @param string $brut  Cellule.
+ * @return string Liste JSON.
+ */
+function ditl_import_convertir_urls( &$ligne, $nom, $brut ) {
+	$urls = array();
+
+	foreach ( ditl_import_decouper( $brut ) as $url_brute ) {
+		$url = ditl_import_url( $url_brute );
+
+		if ( '' === $url ) {
+			ditl_import_message( $ligne, 'avertissement', sprintf( '%1$s : URL invalide ignorée « %2$s ».', $nom, ditl_import_extrait( $url_brute, 60 ) ) );
+		} elseif ( ! in_array( $url, $urls, true ) ) {
+			$urls[] = $url;
+		}
+	}
+
+	return (string) wp_json_encode( array_slice( $urls, 0, 100 ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+}
+
+/**
+ * Fabricants : colonnes fabricant_N / fabricant_N_url, puis colonne
+ * "fabricants" (liste de noms, format de juillet). Rien si aucune de ces
+ * colonnes n'est presente.
+ *
+ * @param array $ligne          Ligne (par reference).
+ * @param array $enregistrement Enregistrement lu.
+ * @param array $carte          Correspondance des colonnes.
+ * @param array $regles         Regles de l'import.
+ */
+function ditl_import_analyser_fabricants( &$ligne, $enregistrement, $carte, $regles ) {
+	$presentes = $carte['presentes'];
+
+	if ( ! isset( $presentes['fabricants'] ) && array() === $carte['fabricants'] ) {
+		return;
+	}
+
+	$fabricants = array();
+
+	foreach ( $carte['fabricants'] as $numero => $parties ) {
+		$nom   = isset( $parties['nom'] ) && isset( $enregistrement['cellules'][ $parties['nom'] ] ) ? sanitize_text_field( (string) $enregistrement['cellules'][ $parties['nom'] ] ) : '';
+		$brute = isset( $parties['url'] ) && isset( $enregistrement['cellules'][ $parties['url'] ] ) ? ditl_import_rogner( (string) $enregistrement['cellules'][ $parties['url'] ] ) : '';
+		$url   = '' === $brute ? '' : ditl_import_url( $brute );
+
+		if ( '' !== $brute && '' === $url ) {
+			ditl_import_message( $ligne, 'avertissement', sprintf( 'fabricant %1$d : URL invalide ignorée « %2$s ».', $numero, ditl_import_extrait( $brute, 60 ) ) );
+		}
+
+		if ( '' === $nom && '' !== $url ) {
+			ditl_import_message( $ligne, 'avertissement', sprintf( 'fabricant %d : URL sans nom.', $numero ) );
+		}
+
+		if ( '' !== $nom || '' !== $url ) {
+			$fabricants[] = array(
+				'nom' => $nom,
+				'url' => $url,
+			);
+		}
+	}
+
+	if ( isset( $presentes['fabricants'] ) ) {
+		foreach ( ditl_import_decouper( (string) ditl_import_valeur( $enregistrement, $presentes, 'fabricants' ) ) as $nom ) {
+			$nom = sanitize_text_field( $nom );
+
+			if ( '' !== $nom ) {
 				$fabricants[] = array(
 					'nom' => $nom,
-					'url' => $url,
+					'url' => '',
 				);
 			}
 		}
-
-		if ( isset( $presentes['fabricants'] ) ) {
-			foreach ( ditl_import_decouper( (string) ditl_import_valeur( $enregistrement, $presentes, 'fabricants' ) ) as $nom ) {
-				$nom = sanitize_text_field( $nom );
-
-				if ( '' !== $nom ) {
-					$fabricants[] = array(
-						'nom' => $nom,
-						'url' => '',
-					);
-				}
-			}
-		}
-
-		$ligne['valeurs']['metas']['_ditl_fabricants'] = (string) wp_json_encode( array_slice( $fabricants, 0, $regles['fabricants_max'] ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-		$ligne['champs'][]                             = '_ditl_fabricants';
 	}
 
-	// Champs de classement vides (fiche absente du questionnaire ou des filtres).
+	$ligne['valeurs']['metas']['_ditl_fabricants'] = (string) wp_json_encode( array_slice( $fabricants, 0, $regles['fabricants_max'] ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+	$ligne['champs'][]                             = '_ditl_fabricants';
+}
+
+/**
+ * Signale les champs de classement presents mais vides (fiche absente du
+ * questionnaire ou des filtres).
+ *
+ * @param array $ligne Ligne (par reference).
+ */
+function ditl_import_controler_classement( &$ligne ) {
 	$vides = array(
 		'type_compensation' => array( array( 'type_compensation' ), 'aucun type de compensation.' ),
 		'aptitude'          => array( array( 'difficulte', 'empechement' ), 'aucune difficulté ni aucun empêchement (questionnaire).' ),
@@ -573,11 +738,6 @@ function ditl_import_analyser_fiche( $enregistrement, $carte, $schema, $plan ) {
 			ditl_import_message( $ligne, 'avertissement', $controle[1] );
 		}
 	}
-
-	$ligne['champs'] = array_values( array_unique( $ligne['champs'] ) );
-	sort( $ligne['champs'] );
-
-	return $ligne;
 }
 
 /**
