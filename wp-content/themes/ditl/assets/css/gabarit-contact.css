@@ -5,13 +5,17 @@
  * La banniere et les conteneurs en boite sont dans gabarits-communs.css.
  * Breakpoints d'origine : tablette <= 1024px, mobile <= 767px.
  *
- * Les deux pages n'avaient pas la meme banniere Elementor : variantes
- * scopees par page (pattern .page-id-XXXX etabli sur les autres gabarits,
- * a generaliser lors de la migration des autres langues, phase 2).
+ * Les pages n'avaient pas toutes la meme banniere Elementor : variantes
+ * scopees par page (pattern .page-id-XXXX etabli sur les autres gabarits).
  * - 16   : page francaise (banniere de 570px, espaceur de 177px, titre de
  *          70px en #24458E, espace de 20px sous le titre).
  * - 2595 : page anglaise (banniere sans hauteur minimale, espaceur de 20vh,
  *          titre aux valeurs par defaut de la banniere commune).
+ * - 3142 (ES), 3122 (PT), 3175 (DE) : copies de la banniere francaise
+ *          (memes regles que 16), seul l'espaceur differe en PT (180px) et
+ *          en DE (170px). Leurs hauteurs minimales differentes (aucune en ES
+ *          sur grand ecran, 300px en DE) restent sous la hauteur du contenu :
+ *          sans effet, non reprises.
  *
  * @package DiTL
  */
@@ -161,25 +165,46 @@ ul.ditl-contact-bloc__texte li {
 }
 
 /* ---------------------------------------------------------------------------
- * Variante de la banniere de la page francaise (16)
+ * Variante de la banniere de la page francaise (16) et de ses copies
+ * ES/PT/DE (3142, 3122, 3175)
  * ------------------------------------------------------------------------ */
 
-.page-id-16 .ditl-hero {
+.page-id-16 .ditl-hero,
+.page-id-3142 .ditl-hero,
+.page-id-3122 .ditl-hero,
+.page-id-3175 .ditl-hero {
 	align-items: stretch;
 	min-height: 570px;
 	padding: 10px;
 }
 
-.page-id-16 .ditl-hero__col {
+.page-id-16 .ditl-hero__col,
+.page-id-3142 .ditl-hero__col,
+.page-id-3122 .ditl-hero__col,
+.page-id-3175 .ditl-hero__col {
 	justify-content: center;
 	gap: 0;
 }
 
-.page-id-16 .ditl-hero__spacer {
+.page-id-16 .ditl-hero__spacer,
+.page-id-3142 .ditl-hero__spacer,
+.page-id-3122 .ditl-hero__spacer,
+.page-id-3175 .ditl-hero__spacer {
 	height: 177px;
 }
 
-.page-id-16 h1.ditl-hero__title {
+.page-id-3122 .ditl-hero__spacer {
+	height: 180px;
+}
+
+.page-id-3175 .ditl-hero__spacer {
+	height: 170px;
+}
+
+.page-id-16 h1.ditl-hero__title,
+.page-id-3142 h1.ditl-hero__title,
+.page-id-3122 h1.ditl-hero__title,
+.page-id-3175 h1.ditl-hero__title {
 	margin-bottom: 20px;
 	color: #24458E;
 	font-size: 70px;
@@ -247,16 +272,33 @@ ul.ditl-contact-bloc__texte li {
 		font-size: 22px;
 	}
 
-	.page-id-16 .ditl-hero {
+	.page-id-16 .ditl-hero,
+	.page-id-3142 .ditl-hero,
+	.page-id-3122 .ditl-hero,
+	.page-id-3175 .ditl-hero {
 		min-height: 400px;
 	}
 
 	/* L'espaceur de la banniere francaise ne variait pas avec la largeur. */
-	.page-id-16 .ditl-hero__spacer {
+	.page-id-16 .ditl-hero__spacer,
+	.page-id-3142 .ditl-hero__spacer,
+	.page-id-3122 .ditl-hero__spacer,
+	.page-id-3175 .ditl-hero__spacer {
 		height: 177px;
 	}
 
-	.page-id-16 h1.ditl-hero__title {
+	.page-id-3122 .ditl-hero__spacer {
+		height: 180px;
+	}
+
+	.page-id-3175 .ditl-hero__spacer {
+		height: 170px;
+	}
+
+	.page-id-16 h1.ditl-hero__title,
+	.page-id-3142 h1.ditl-hero__title,
+	.page-id-3122 h1.ditl-hero__title,
+	.page-id-3175 h1.ditl-hero__title {
 		margin-bottom: 0;
 		font-size: 50px;
 		letter-spacing: 7px;
@@ -317,21 +359,41 @@ ul.ditl-contact-bloc__texte li {
 		font-size: 16px;
 	}
 
-	.page-id-16 .ditl-hero {
+	.page-id-16 .ditl-hero,
+	.page-id-3142 .ditl-hero,
+	.page-id-3122 .ditl-hero,
+	.page-id-3175 .ditl-hero {
 		min-height: 300px;
 	}
 
-	/* Les deux bannieres gardaient leur retrait de 10px en mobile. */
+	/* Toutes ces bannieres gardaient leur retrait de 10px en mobile. */
 	.page-id-16 .ditl-hero__col,
+	.page-id-3142 .ditl-hero__col,
+	.page-id-3122 .ditl-hero__col,
+	.page-id-3175 .ditl-hero__col,
 	.page-id-2595 .ditl-hero__col {
 		padding: 10px;
 	}
 
-	.page-id-16 .ditl-hero__spacer {
+	.page-id-16 .ditl-hero__spacer,
+	.page-id-3142 .ditl-hero__spacer,
+	.page-id-3122 .ditl-hero__spacer,
+	.page-id-3175 .ditl-hero__spacer {
 		height: 177px;
 	}
 
-	.page-id-16 h1.ditl-hero__title {
+	.page-id-3122 .ditl-hero__spacer {
+		height: 180px;
+	}
+
+	.page-id-3175 .ditl-hero__spacer {
+		height: 170px;
+	}
+
+	.page-id-16 h1.ditl-hero__title,
+	.page-id-3142 h1.ditl-hero__title,
+	.page-id-3122 h1.ditl-hero__title,
+	.page-id-3175 h1.ditl-hero__title {
 		font-size: 35px;
 		letter-spacing: 3px;
 	}

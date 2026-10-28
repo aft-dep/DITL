@@ -37,18 +37,63 @@ get_header(); ?>
 				$ditl_post_id = get_the_ID();
 
 				// Libelles selon la langue de la page (site multilingue sans
-				// fichiers de traduction du theme : francais, sinon anglais).
-				$ditl_fr     = ditl_page_est_francaise();
-				$ditl_labels = array(
-					'region' => $ditl_fr ? 'Dernières actualités' : 'Latest news',
-					'role'   => $ditl_fr ? 'carrousel' : 'carousel',
-					'slide'  => $ditl_fr ? 'Diapositive %1$d sur %2$d' : 'Slide %1$d of %2$d',
-					'prev'   => $ditl_fr ? 'Article précédent' : 'Previous post',
-					'next'   => $ditl_fr ? 'Article suivant' : 'Next post',
-					'pause'  => $ditl_fr ? 'Mettre en pause le défilement automatique' : 'Pause automatic sliding',
-					'resume' => $ditl_fr ? 'Reprendre le défilement automatique' : 'Resume automatic sliding',
-					'read'   => $ditl_fr ? 'Lire l\'article : %s' : 'Read the post: %s',
+				// fichiers de traduction pour les gabarits : les 5 langues du
+				// site en dur, l'anglais en repli, comme ditl_elearning_libelle).
+				// Traductions ES/PT/DE a faire relire par un locuteur natif.
+				$ditl_libelles = array(
+					'fr' => array(
+						'region' => 'Dernières actualités',
+						'role'   => 'carrousel',
+						'slide'  => 'Diapositive %1$d sur %2$d',
+						'prev'   => 'Article précédent',
+						'next'   => 'Article suivant',
+						'pause'  => 'Mettre en pause le défilement automatique',
+						'resume' => 'Reprendre le défilement automatique',
+						'read'   => 'Lire l\'article : %s',
+					),
+					'en' => array(
+						'region' => 'Latest news',
+						'role'   => 'carousel',
+						'slide'  => 'Slide %1$d of %2$d',
+						'prev'   => 'Previous post',
+						'next'   => 'Next post',
+						'pause'  => 'Pause automatic sliding',
+						'resume' => 'Resume automatic sliding',
+						'read'   => 'Read the post: %s',
+					),
+					'es' => array(
+						'region' => 'Últimas noticias',
+						'role'   => 'carrusel',
+						'slide'  => 'Diapositiva %1$d de %2$d',
+						'prev'   => 'Artículo anterior',
+						'next'   => 'Artículo siguiente',
+						'pause'  => 'Pausar el desplazamiento automático',
+						'resume' => 'Reanudar el desplazamiento automático',
+						'read'   => 'Leer el artículo: %s',
+					),
+					'pt' => array(
+						'region' => 'Últimas notícias',
+						'role'   => 'carrossel',
+						'slide'  => 'Diapositivo %1$d de %2$d',
+						'prev'   => 'Artigo anterior',
+						'next'   => 'Artigo seguinte',
+						'pause'  => 'Pausar o deslocamento automático',
+						'resume' => 'Retomar o deslocamento automático',
+						'read'   => 'Ler o artigo: %s',
+					),
+					'de' => array(
+						'region' => 'Neueste Nachrichten',
+						'role'   => 'Karussell',
+						'slide'  => 'Folie %1$d von %2$d',
+						'prev'   => 'Vorheriger Artikel',
+						'next'   => 'Nächster Artikel',
+						'pause'  => 'Automatischen Bildlauf anhalten',
+						'resume' => 'Automatischen Bildlauf fortsetzen',
+						'read'   => 'Artikel lesen: %s',
+					),
 				);
+				$ditl_langue = strtolower( substr( (string) get_locale(), 0, 2 ) );
+				$ditl_labels = isset( $ditl_libelles[ $ditl_langue ] ) ? $ditl_libelles[ $ditl_langue ] : $ditl_libelles['en'];
 
 				// Les 6 derniers articles publies (requete partagee avec le
 				// gabarit Accueil, voir functions.php).
