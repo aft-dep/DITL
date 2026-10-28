@@ -9,15 +9,19 @@
  * interlignes) vient des reglages globaux d'Astra, identiques a ceux qui
  * habillaient les widgets Elementor : seuls les ecarts sont poses ici.
  *
- * Les deux pages n'avaient pas la meme structure Elementor : variantes
- * scopees par page (pattern .page-id-XXXX etabli sur les autres gabarits,
- * a generaliser lors de la migration des autres langues, phase 2).
+ * Les pages n'avaient pas la meme structure Elementor : variantes
+ * scopees par page (pattern .page-id-XXXX etabli sur les autres gabarits).
  * - 1852 : page francaise (titres en Roboto via le kit, sections 1 et 2
  *          centrees, section 2 posee dans une grille aux deux premieres
  *          rangees egalisees - respiration heritee de l'original).
  * - 4108 : page anglaise (H1 dans une boite de 1600px, titres de section
  *          de 24px gras avec marges dediees, contenu aux marges heritees
  *          du decoupage en widgets de l'original).
+ * - 4113 (ES), 4115 (PT), 4111 (DE) : titre de page en h2 dans Elementor
+ *          (rendu en H1 avec la taille du h2 d'Astra, aligne a gauche),
+ *          titres des sections 1 et 2 centres dans la police du theme.
+ *          Le titre PT d'origine (HTML colle, lignes chevauchees) n'est
+ *          pas reproduit : il prend le rendu des pages ES et DE.
  *
  * La police Roboto (titres de la page francaise) est chargee par le theme
  * sur ce gabarit (graisse 400 seule, auto-hebergee : voir
@@ -204,11 +208,43 @@ hr.ditl-liv-separateur {
 	margin-top: calc(1.5rem + 20px);
 }
 
+/* ---------------------------------------------------------------------------
+ * Variantes des pages ES (4113), PT (4115) et DE (4111)
+ * ------------------------------------------------------------------------ */
+
+/* Titre de page : un h2 dans Elementor, aux valeurs du theme (taille et
+   interligne des h2 d'Astra, aligne a gauche). Rendu en H1 (correction
+   d'accessibilite, la page n'en avait pas), style d'origine conserve. */
+.page-id-4113 h1.ditl-liv-titre-page,
+.page-id-4115 h1.ditl-liv-titre-page,
+.page-id-4111 h1.ditl-liv-titre-page {
+	font-size: 2.7333333333333rem;
+	line-height: 1.3em;
+	text-align: left;
+}
+
+/* Sections 1 et 2 : titre centre (police du theme, sans la Roboto de la
+   page francaise) ; les sections 3 et 4 restent alignees a gauche. */
+.page-id-4113 .ditl-liv-section--1 h2.ditl-liv-titre,
+.page-id-4113 .ditl-liv-section--2 h2.ditl-liv-titre,
+.page-id-4115 .ditl-liv-section--1 h2.ditl-liv-titre,
+.page-id-4115 .ditl-liv-section--2 h2.ditl-liv-titre,
+.page-id-4111 .ditl-liv-section--1 h2.ditl-liv-titre,
+.page-id-4111 .ditl-liv-section--2 h2.ditl-liv-titre {
+	text-align: center;
+}
+
 /* Sous 921px, le texte courant d'Astra passe a 1.0666rem : la marge basse
-   des listes (1.5em) suit. */
+   des listes (1.5em) suit. Les h2 du theme passent a 25px. */
 @media (max-width: 921px) {
 
 	.page-id-4108 .ditl-liv-contenu > ul + h3 {
 		margin-top: calc(1.6rem + 20px);
+	}
+
+	.page-id-4113 h1.ditl-liv-titre-page,
+	.page-id-4115 h1.ditl-liv-titre-page,
+	.page-id-4111 h1.ditl-liv-titre-page {
+		font-size: 25px;
 	}
 }

@@ -8,13 +8,23 @@
  * parcourue dans l'ordre du document :
  * - heading h1      -> _ditl_hero_title (texte simple, entites decodees) ;
  *                      ce gabarit n'a pas d'image de banniere (_ditl_hero_image_id
- *                      reste a 0, valeur par defaut de la meta)
+ *                      reste a 0, valeur par defaut de la meta). Sans h1 (pages
+ *                      ES/PT/DE), le 1er heading place AVANT la carte en tient
+ *                      lieu, en texte nettoye (balises retirees, entites
+ *                      decodees : le titre PT contient du HTML colle) ; le
+ *                      gabarit le rend en H1 (correction d'accessibilite
+ *                      volontaire signalee par le script, style d'origine
+ *                      repris par le CSS de la page)
  * - widget igmap    -> map_id de _ditl_livrable_carte (le plugin Interactive
  *                      Geo Maps est conserve)
  * - heading h2      -> OUVRE une nouvelle section de _ditl_livrables (titre
  *                      brut conserve tel quel : certains h2 portent un span
  *                      avec style inline, fidelite au rendu existant)
- * - text-editor     -> concatene au contenu de la section en cours
+ * - text-editor     -> concatene au contenu de la section en cours ; les
+ *                      blocs <style> colles dans le texte (page PT 4115,
+ *                      section 3) sont retires avec leur contenu : invisibles
+ *                      dans l'original, ils s'afficheraient en clair une fois
+ *                      la balise retiree par wp_kses_post (signale par le script)
  * - heading h3      -> concatene <h3>titre brut</h3> au contenu de la section
  *                      en cours (la page EN separe ses h3 "Report Highlights" /
  *                      "Objectives" en widgets distincts la ou la page FR les
@@ -27,9 +37,9 @@
  *
  * L'alternative textuelle de la carte (accessibilite : information des
  * tooltips, pays et villes du projet) est pre-remplie depuis la meta
- * "map_info" du post igmap reference (regions et marqueurs). Libelles FR ou
- * EN selon la langue Polylang de la page migree, comme les libelles a11y des
- * gabarits precedents (dette multilingue connue, phase 2).
+ * "map_info" du post igmap reference (regions et marqueurs). Phrases dans la
+ * langue Polylang de la page migree (FR, EN, ES, PT, DE ; anglais en repli),
+ * les noms de pays et de villes venant de la carte de cette langue.
  *
  * Les URLs des boutons sont des PDF internes : rendues relatives comme sur
  * les gabarits precedents. Un fichier introuvable sur le disque local est
@@ -42,13 +52,20 @@
  * Les metas Elementor (_elementor_data, _elementor_edit_mode, ...) ne sont
  * PAS modifiees : elles restent en place comme sauvegarde dormante.
  *
- * Script idempotent, rejouable sans degat (local, preprod, prod).
+ * Script idempotent, rejouable sans degat (local, preprod, prod). Sous
+ * WordPress 7.1.3 et suivants, un rejeu sur la page EN 4108 deja migree
+ * reecrit toutefois _ditl_livrables (word-spacing: 0px desormais conserve
+ * dans les styles en ligne, sans effet visuel) : ne pas rejouer le script
+ * sur une page deja migree.
  *
  * Usage :
  *   wp eval-file wp-content/themes/ditl/cli/migrate-livrable.php 1852 4108 dry-run
  *   wp eval-file wp-content/themes/ditl/cli/migrate-livrable.php 1852 4108
  *
- * Le mode simulation accepte "dry-run" ou "--dry-run" en argument.
+ *   wp eval-file wp-content/themes/ditl/cli/migrate-livrable.php 4113 4115 4111 dry-run
+ *
+ * Le mode simulation accepte "dry-run" ou "--dry-run" en argument. Tout
+ * autre argument qui n'est pas un ID est REFUSE (arret, rien n'est ecrit).
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
@@ -116,13 +133,23 @@ if ( ! function_exists( 'ditl_migration_livrable_alternative' ) ) {
 	 *
 	 * Reprend l'information portee par les tooltips de la carte : noms des
 	 * regions (pays partenaires) et contenus des marqueurs (villes). Texte
-	 * simple, FR ou EN selon la langue de la page migree.
+	 * simple, dans la langue de la page migree (anglais en repli). Phrases
+	 * ES/PT/DE a faire relire par un locuteur natif.
 	 *
-	 * @param int  $map_id ID du post igmap reference.
-	 * @param bool $est_fr True pour les libelles francais, false pour l'anglais.
+	 * @param int    $map_id ID du post igmap reference.
+	 * @param string $langue Code de langue Polylang de la page (fr, en, es, pt, de).
 	 * @return string Alternative textuelle ('' si map_info illisible ou vide).
 	 */
-	function ditl_migration_livrable_alternative( $map_id, $est_fr ) {
+	function ditl_migration_livrable_alternative( $map_id, $langue ) {
+		$libelles = array(
+			'fr' => array( 'Carte de l\'Europe mettant en évidence les pays partenaires du projet DiTL : %s.', 'Villes partenaires signalées : %s.' ),
+			'en' => array( 'Map of Europe highlighting the partner countries of the DiTL project: %s.', 'Partner cities shown: %s.' ),
+			'es' => array( 'Mapa de Europa que destaca los países socios del proyecto DiTL: %s.', 'Ciudades socias señaladas: %s.' ),
+			'pt' => array( 'Mapa da Europa que destaca os países parceiros do projeto DiTL: %s.', 'Cidades parceiras assinaladas: %s.' ),
+			'de' => array( 'Europakarte mit den Partnerländern des DiTL-Projekts: %s.', 'Markierte Partnerstädte: %s.' ),
+		);
+		$phrase = isset( $libelles[ $langue ] ) ? $libelles[ $langue ] : $libelles['en'];
+
 		$info = get_post_meta( $map_id, 'map_info', true );
 
 		if ( ! is_array( $info ) ) {
@@ -164,21 +191,11 @@ if ( ! function_exists( 'ditl_migration_livrable_alternative' ) ) {
 		$phrases = array();
 
 		if ( array() !== $pays ) {
-			$phrases[] = sprintf(
-				$est_fr
-					? 'Carte de l\'Europe mettant en évidence les pays partenaires du projet DiTL : %s.'
-					: 'Map of Europe highlighting the partner countries of the DiTL project: %s.',
-				implode( ', ', $pays )
-			);
+			$phrases[] = sprintf( $phrase[0], implode( ', ', $pays ) );
 		}
 
 		if ( array() !== $villes ) {
-			$phrases[] = sprintf(
-				$est_fr
-					? 'Villes partenaires signalées : %s.'
-					: 'Partner cities shown: %s.',
-				implode( ', ', $villes )
-			);
+			$phrases[] = sprintf( $phrase[1], implode( ', ', $villes ) );
 		}
 
 		return implode( ' ', $phrases );
@@ -216,10 +233,22 @@ if ( ! function_exists( 'ditl_migration_livrable_extraire' ) ) {
 
 						if ( 'h1' === $niveau ) {
 							if ( '' === $data['hero_title'] ) {
-								$data['hero_title'] = $titre_texte;
+								$data['hero_title']        = $titre_texte;
+								$data['hero_title_niveau'] = 'h1';
+							} elseif ( 'h1' !== $data['hero_title_niveau'] ) {
+								// Un heading place avant le h1 avait ete pris pour titre :
+								// le h1 reste prioritaire.
+								WP_CLI::warning( sprintf( 'Heading %s place avant le h1 ignore comme titre : "%s"', $data['hero_title_niveau'], $data['hero_title'] ) );
+								$data['hero_title']        = $titre_texte;
+								$data['hero_title_niveau'] = 'h1';
 							} else {
 								WP_CLI::warning( sprintf( 'Heading h1 surnumeraire ignore : "%s"', $titre_texte ) );
 							}
+						} elseif ( '' === $data['hero_title'] && 0 === $data['map_id'] && empty( $data['sections'] ) ) {
+							// Pas de h1 : le 1er heading avant la carte est le titre
+							// de la page (pages ES/PT/DE, ou il est en h2).
+							$data['hero_title']        = $titre_texte;
+							$data['hero_title_niveau'] = $niveau;
 						} elseif ( 'h2' === $niveau ) {
 							// Nouvelle section de livrable (titre brut conserve tel quel).
 							$data['sections'][] = array(
@@ -255,6 +284,19 @@ if ( ! function_exists( 'ditl_migration_livrable_extraire' ) ) {
 						// Le HTML est conserve tel quel ; wp_kses_post est applique
 						// a l'enregistrement par le sanitize_callback de la meta.
 						$html = isset( $reglages['editor'] ) ? trim( (string) $reglages['editor'] ) : '';
+
+						// Bloc <style> colle (invisible dans l'original) : retire
+						// avec son contenu, chaine de remplacement fixe.
+						$sans_style = preg_replace( '#<style\b[^>]*>.*?</style\s*>#is', '', $html );
+
+						if ( null !== $sans_style && $sans_style !== $html ) {
+							WP_CLI::warning( 'Bloc <style> colle dans un texte retire (invisible dans l\'original, il s\'afficherait en clair).' );
+							$html = trim( $sans_style );
+						}
+
+						if ( null === $sans_style || false !== stripos( $html, '<style' ) ) {
+							WP_CLI::warning( 'Balise <style> non retiree dans un texte (non fermee ?) : verifier le rendu de la section.' );
+						}
 
 						if ( '' === $html ) {
 							break;
@@ -302,7 +344,7 @@ if ( ! function_exists( 'ditl_migration_livrable_extraire' ) ) {
 // Lecture des arguments : IDs de pages + mode simulation eventuel.
 // ---------------------------------------------------------------------------
 
-$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page' );
+$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page', true );
 $ditl_dry_run  = $ditl_modes['dry_run'];
 $ditl_page_ids = $ditl_modes['ids'];
 
@@ -318,9 +360,10 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 	}
 
 	$ditl_data = array(
-		'hero_title' => '',
-		'map_id'     => 0,
-		'sections'   => array(),
+		'hero_title'        => '',
+		'hero_title_niveau' => '',
+		'map_id'            => 0,
+		'sections'          => array(),
 	);
 
 	ditl_migration_livrable_extraire( $ditl_elements, $ditl_data );
@@ -328,6 +371,13 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 	// Controles de coherence : les pages de prod comptent 4 sections chacune.
 	if ( '' === $ditl_data['hero_title'] ) {
 		WP_CLI::warning( sprintf( 'Page %d : aucun titre H1 trouve pour la banniere.', $ditl_page_id ) );
+	} elseif ( 'h1' !== $ditl_data['hero_title_niveau'] ) {
+		WP_CLI::warning( sprintf(
+			'Page %d : le titre de page "%s" est un %s dans Elementor (page sans H1). Migre comme titre de page : le gabarit le rendra en H1 (correction d\'accessibilite volontaire, style d\'origine repris par le CSS de la page).',
+			$ditl_page_id,
+			$ditl_data['hero_title'],
+			strtoupper( $ditl_data['hero_title_niveau'] )
+		) );
 	}
 
 	if ( 0 === $ditl_data['map_id'] ) {
@@ -356,13 +406,13 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 		}
 	}
 
-	// Alternative textuelle de la carte : pre-remplie depuis map_info, libelles
-	// FR ou EN selon la langue Polylang de la page (dette multilingue, phase 2).
+	// Alternative textuelle de la carte : pre-remplie depuis map_info, phrases
+	// dans la langue Polylang de la page (anglais en repli).
 	$ditl_langue      = function_exists( 'pll_get_post_language' ) ? (string) pll_get_post_language( $ditl_page_id ) : '';
 	$ditl_alternative = '';
 
 	if ( $ditl_data['map_id'] > 0 && 'igmap' === get_post_type( $ditl_data['map_id'] ) ) {
-		$ditl_alternative = ditl_migration_livrable_alternative( $ditl_data['map_id'], 'fr' === $ditl_langue );
+		$ditl_alternative = ditl_migration_livrable_alternative( $ditl_data['map_id'], $ditl_langue );
 
 		if ( '' === $ditl_alternative ) {
 			WP_CLI::warning( sprintf(
@@ -374,7 +424,11 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 	}
 
 	// Recapitulatif lisible des valeurs extraites.
-	WP_CLI::log( sprintf( '  _ditl_hero_title     : %s', $ditl_data['hero_title'] ) );
+	WP_CLI::log( sprintf(
+		'  _ditl_hero_title     : %s%s',
+		$ditl_data['hero_title'],
+		'' !== $ditl_data['hero_title_niveau'] ? ' (' . strtoupper( $ditl_data['hero_title_niveau'] ) . ' dans Elementor)' : ''
+	) );
 	WP_CLI::log( sprintf( '  _ditl_livrable_carte : carte %d | alternative %d caracteres', $ditl_data['map_id'], mb_strlen( $ditl_alternative ) ) );
 	WP_CLI::log( sprintf( '  _ditl_livrables      : %d section(s)', count( $ditl_data['sections'] ) ) );
 
