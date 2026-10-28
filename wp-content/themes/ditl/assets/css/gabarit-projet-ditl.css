@@ -93,6 +93,76 @@ h3.ditl-section__title {
 }
 
 /* ---------------------------------------------------------------------------
+ * Variante des traductions : ES 3132 (rangee en PT par Polylang), PT 3104,
+ * DE 2593, et doublon anglais 3004 (/ditl-project-2/).
+ * Leur page Elementor n'avait ni la typographie de l'intro ni les sections
+ * de la version francaise : titre d'intro aux valeurs du theme (h2 d'Astra,
+ * aligne a gauche), tout le texte dans un seul bloc (paragraphes sans
+ * espacement, intertitres h4 du theme en ES et DE, paragraphes en gras en
+ * PT et 3004) pose dans une grille de deux lignes
+ * egales dont seule la premiere est occupee (meme principe que la galerie).
+ * ------------------------------------------------------------------------ */
+
+.page-id-3132 h2.ditl-intro__title,
+.page-id-3104 h2.ditl-intro__title,
+.page-id-2593 h2.ditl-intro__title,
+.page-id-3004 h2.ditl-intro__title {
+	font-size: 2.7333333333333rem;
+	line-height: 1.3em;
+	text-align: left;
+}
+
+.page-id-3132 .ditl-sections .ditl-boxed__inner,
+.page-id-3104 .ditl-sections .ditl-boxed__inner,
+.page-id-2593 .ditl-sections .ditl-boxed__inner,
+.page-id-3004 .ditl-sections .ditl-boxed__inner {
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: repeat(2, 1fr);
+}
+
+.page-id-3132 .ditl-section__content p + p,
+.page-id-3104 .ditl-section__content p + p,
+.page-id-2593 .ditl-section__content p + p,
+.page-id-3004 .ditl-section__content p + p {
+	margin-top: 0;
+}
+
+/*
+ * Page ES 3132 : banniere d'une hauteur minimale de 100vh sur grand ecran
+ * (60vh ailleurs) ; tablette et mobile gardent les valeurs communes.
+ */
+@media (min-width: 1025px) {
+
+	.page-id-3132 .ditl-hero {
+		min-height: 100vh;
+	}
+}
+
+/*
+ * Doublon anglais 3004 : banniere en boite (contenu de 1140px centre), sans
+ * image, titre seul sous l'espaceur.
+ */
+.page-id-3004 .ditl-hero__col {
+	max-width: 1140px;
+	margin: 0 auto;
+}
+
+/* ---------------------------------------------------------------------------
+ * Theme Astra (<= 921px) : taille des h2 reduite par le theme.
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 921px) {
+
+	.page-id-3132 h2.ditl-intro__title,
+	.page-id-3104 h2.ditl-intro__title,
+	.page-id-2593 h2.ditl-intro__title,
+	.page-id-3004 h2.ditl-intro__title {
+		font-size: 25px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
  * Mobile (<= 767px)
  * ------------------------------------------------------------------------ */
 

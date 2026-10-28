@@ -95,16 +95,20 @@ if ( ! function_exists( 'ditl_cli_lire_ids_et_dry_run' ) ) {
 	 * Lit les arguments d'un script de migration : IDs de contenus + dry-run.
 	 *
 	 * Le mode simulation accepte "dry-run" ou "--dry-run". Les arguments qui
-	 * ne sont pas des IDs valides sont signales et ignores. Sans aucun ID,
-	 * le script s'arrete en erreur. En mode simulation, la banniere
-	 * "MODE SIMULATION" est affichee ici.
+	 * ne sont pas des IDs valides sont signales et ignores, ou refuses (arret
+	 * en erreur, rien n'est execute) en mode strict : une faute de frappe sur
+	 * "dry-run" lancerait sinon une vraie migration. Sans aucun ID, le script
+	 * s'arrete en erreur. En mode simulation, la banniere "MODE SIMULATION"
+	 * est affichee ici.
 	 *
 	 * @param array  $args       Arguments recus par le script (wp eval-file).
 	 * @param string $libelle_id Libelle des IDs pour les messages
 	 *                           ("de page" ou "d'article").
+	 * @param bool   $strict     True pour refuser tout argument inconnu
+	 *                           (false par defaut : comportement historique).
 	 * @return array Tableau { dry_run => bool, ids => int[] }.
 	 */
-	function ditl_cli_lire_ids_et_dry_run( $args, $libelle_id ) {
+	function ditl_cli_lire_ids_et_dry_run( $args, $libelle_id, $strict = false ) {
 		$dry_run = false;
 		$ids     = array();
 
@@ -114,10 +118,13 @@ if ( ! function_exists( 'ditl_cli_lire_ids_et_dry_run' ) ) {
 				continue;
 			}
 
-			$id = absint( $arg );
+			// ctype_digit : "12abc" ou "-3" ne passent pas pour un ID en mode strict.
+			$id = is_scalar( $arg ) && ( ! $strict || ctype_digit( (string) $arg ) ) ? absint( $arg ) : 0;
 
 			if ( $id > 0 ) {
 				$ids[] = $id;
+			} elseif ( $strict ) {
+				WP_CLI::error( sprintf( 'Argument inconnu refuse (ID %s invalide) : %s. Rien n\'a ete fait.', $libelle_id, $arg ) );
 			} else {
 				WP_CLI::warning( sprintf( 'Argument ignore (ID %s invalide) : %s', $libelle_id, $arg ) );
 			}
