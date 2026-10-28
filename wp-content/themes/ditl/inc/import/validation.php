@@ -422,8 +422,13 @@ function ditl_import_analyser_slug( &$ligne, $slug ) {
 }
 
 /**
- * Resout l'image d'une ligne (colonne facultative) : vide = illustration
- * retiree ; nom refuse ou image introuvable = illustration non modifiee.
+ * Resout l'image d'une ligne (colonne et cellule facultatives) : cellule
+ * vide = pas d'image fournie, illustration inchangee (jamais retiree par
+ * l'import : le retrait se fait dans l'administration) ; nom refuse ou image
+ * introuvable = illustration non modifiee. L'image a la une n'entre dans les
+ * champs suivis que pour une image fournie et trouvee : une image ajoutee
+ * dans l'administration a une fiche importee sans image ne la rend pas
+ * "modifiee".
  *
  * @param array       $ligne Ligne (par reference).
  * @param string|null $image Nom de fichier saisi, null si la colonne est absente.
@@ -437,8 +442,8 @@ function ditl_import_analyser_image( &$ligne, $image, $plan ) {
 	$image = ditl_import_rogner( $image );
 
 	if ( '' === $image ) {
-		$ligne['image']    = array( 'nom' => '' );
-		$ligne['champs'][] = '_thumbnail_id';
+		// Retenue pour les controles de groupe et l'empreinte de la ligne, sans champ suivi.
+		$ligne['image'] = array( 'nom' => '' );
 		return;
 	}
 
@@ -986,7 +991,7 @@ function ditl_import_controler_groupes( &$plan ) {
 			$presentes[] = $ligne['lang'];
 
 			if ( null !== $ligne['image'] ) {
-				$images[ ditl_import_cle_image( $ligne['image']['nom'] ) ] = $ligne['image']['nom'];
+				$images[ ditl_import_cle_image( $ligne['image']['nom'] ) ] = '' === $ligne['image']['nom'] ? 'cellule vide' : $ligne['image']['nom'];
 			}
 
 			foreach ( $ligne['codes'] as $colonne => $liste ) {
@@ -1007,7 +1012,7 @@ function ditl_import_controler_groupes( &$plan ) {
 		if ( count( $images ) > 1 ) {
 			$messages[] = array(
 				'niveau' => 'avertissement',
-				'texte'  => sprintf( 'image différente selon la langue (%s) : elle devrait être identique.', implode( ', ', array_map( 'ditl_import_extrait', array_values( $images ) ) ) ),
+				'texte'  => sprintf( 'image différente selon la langue (%1$s) : elle devrait être identique%2$s.', implode( ', ', array_map( 'ditl_import_extrait', array_values( $images ) ) ), isset( $images[''] ) ? ' ; une cellule vide laisse l\'illustration de sa fiche inchangée' : '' ),
 			);
 		}
 

@@ -31,6 +31,15 @@
  * - images : nom de fichier dans la colonne image, cherche dans le dossier
  *   images=<dossier> puis dans la mediatheque (deja importee, ou deposee
  *   par le client sous ce nom) ; televersee une seule fois (sha1) ;
+ *   FACULTATIVE : cellule vide = illustration inchangee (jamais retiree par
+ *   l'import) ; les images manquantes s'ajoutent plus tard en relancant
+ *   l'import du meme fichier, colonnes image et image_alt completees : image
+ *   posee sur toute fiche qui n'en a pas, y compris une fiche retouchee dans
+ *   l'administration (image SEULE, plus le texte alternatif si la fiche n'en
+ *   a pas ; le reste de la fiche n'est pas touche), sauf si son image a ete
+ *   retiree dans l'administration ; une illustration choisie ou retiree dans
+ *   l'administration est conservee avec son texte alternatif
+ *   (avertissement), sauf argument "ecraser" ;
  * - un seul import a la fois (verrou global partage avec l'ecran
  *   d'administration) : si un import est deja en cours, erreur fatale.
  *
@@ -72,6 +81,13 @@
  *    le client (longueurs, langues manquantes, images introuvables...).
  * 6. Un rejeu est sans risque (lignes inchangees = zero ecriture ; fiches
  *    retouchees dans l'admin ignorees sauf "ecraser").
+ *    IMAGES LIVREES PLUS TARD : deposer le meme fichier, colonnes image et
+ *    image_alt completees, et les nouvelles images, puis rejouer les etapes
+ *    3 et 4 (simulation d'abord, SANS "ecraser" pour garder les retouches du
+ *    client) : chaque fiche sans image recoit la sienne, sauf si son image a
+ *    ete retiree dans l'admin ; une fiche retouchee dans l'admin ne recoit
+ *    que l'image et, si elle n'en a pas, le texte alternatif (rapport :
+ *    "image ajoutee ; le reste de la fiche ... n'est pas modifie").
  * 7. JAMAIS "annuler ... confirmer" en production apres le debut de la
  *    saisie ou de la relecture du client : suppression definitive.
  * 8. Supprimer ensuite les fichiers deposes a l'etape 1 (donnees du client).

@@ -415,11 +415,11 @@ function ditl_import_admin_accueil() {
 	<h2><?php esc_html_e( 'Mode d\'emploi', 'ditl' ); ?></h2>
 	<ol class="ditl-import-aide">
 		<li><?php esc_html_e( 'Importer d\'abord les RÉFÉRENTIELS (listes de choix : types, sous-types, difficultés, empêchements, métiers, tâches, environnements, avec leurs libellés dans chaque langue). Les fiches y font référence par leurs codes.', 'ditl' ); ?></li>
-		<li><?php esc_html_e( 'Préparer les IMAGES : soit une archive .zip envoyée avec le fichier de fiches, soit (archive trop lourde) un dépôt préalable par la Médiathèque, sous le nom de fichier indiqué dans la colonne image.', 'ditl' ); ?></li>
+		<li><?php esc_html_e( 'Préparer les IMAGES : soit une archive .zip envoyée avec le fichier de fiches, soit (archive trop lourde) un dépôt préalable par la Médiathèque, sous le nom de fichier indiqué dans la colonne image. L\'image est facultative : une cellule image vide laisse l\'illustration de la fiche inchangée (une image se retire dans l\'administration). Les images manquantes peuvent être ajoutées plus tard : compléter les colonnes image et image_alt (texte alternatif) du même fichier et relancer l\'import.', 'ditl' ); ?></li>
 		<li><?php esc_html_e( 'Importer enfin les FICHES. Chaque envoi commence par une analyse complète sans aucune écriture : l\'import ne se lance qu\'après lecture du rapport.', 'ditl' ); ?></li>
 	</ol>
 	<p><?php esc_html_e( 'Format : CSV UTF-8, séparateur point-virgule (Excel : « CSV UTF-8 »). Une ligne = une fiche dans une langue ; group_id identique pour les traductions d\'une même fiche ; id unique sur l\'ensemble des fichiers, à ne jamais renuméroter. Plusieurs valeurs dans une cellule : séparées par |. Textes longs : un retour à la ligne = un paragraphe, une ligne commençant par « - » = une puce, **texte** = gras. Fabricants et sources sont communs à toutes les langues d\'une fiche.', 'ditl' ); ?></p>
-	<p><?php esc_html_e( 'Un nouvel import du même fichier est sans risque : les lignes identiques ne sont pas réécrites, les fiches modifiées dans l\'administration depuis le dernier import sont ignorées (sauf option ci-dessous), aucune fiche n\'est jamais supprimée. Les nouvelles fiches sont créées en brouillon.', 'ditl' ); ?></p>
+	<p><?php esc_html_e( 'Un nouvel import du même fichier est sans risque : les lignes identiques ne sont pas réécrites, les fiches modifiées dans l\'administration depuis le dernier import sont ignorées (sauf option ci-dessous), aucune fiche n\'est jamais supprimée. Seule exception : une fiche modifiée dans l\'administration et encore sans image reçoit l\'image fournie (et son texte alternatif si la fiche n\'en a pas), sans que le reste de la fiche soit touché, sauf si son image a été retirée dans l\'administration. Une image choisie dans l\'administration n\'est jamais remplacée (sauf option ci-dessous). Les nouvelles fiches sont créées en brouillon.', 'ditl' ); ?></p>
 	<p>
 		<?php
 		echo esc_html(
@@ -563,7 +563,7 @@ function ditl_import_admin_rapport( $jeton, $travail ) {
 		<?php if ( '' !== $rapport['encodage'] ) : ?>
 			<li><?php echo esc_html( sprintf( /* translators: 1: separateur, 2: encodage. */ __( 'Séparateur : %1$s ; encodage : %2$s', 'ditl' ), "\t" === $rapport['separateur'] ? __( 'tabulation', 'ditl' ) : $rapport['separateur'], $rapport['encodage'] ) ); ?></li>
 		<?php endif; ?>
-		<li><?php echo ! empty( $travail['options']['ecraser'] ) ? esc_html__( 'Option : les fiches modifiées dans l\'administration seront écrasées.', 'ditl' ) : esc_html__( 'Les fiches modifiées dans l\'administration depuis le dernier import seront ignorées.', 'ditl' ); ?></li>
+		<li><?php echo ! empty( $travail['options']['ecraser'] ) ? esc_html__( 'Option : les fiches modifiées dans l\'administration seront écrasées.', 'ditl' ) : esc_html__( 'Les fiches modifiées dans l\'administration depuis le dernier import seront ignorées (seule une image manquante leur sera ajoutée).', 'ditl' ); ?></li>
 		<?php if ( $en_cours ) : ?>
 			<li><strong><?php echo esc_html( sprintf( /* translators: 1: position, 2: total. */ __( 'Import interrompu : %1$d ligne(s) traitée(s) sur %2$d.', 'ditl' ), (int) $travail['position'], (int) $travail['total'] ) ); ?></strong></li>
 		<?php endif; ?>

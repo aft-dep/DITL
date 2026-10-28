@@ -11,6 +11,16 @@
  * - fiche en corbeille : ignoree ;
  * - sinon creation ou mise a jour ; jamais de suppression d'une fiche
  *   absente du fichier.
+ * Image a la une (facultative, ajoutable plus tard par un nouvel import) :
+ * cellule vide = illustration inchangee, jamais retiree par l'import ; une
+ * image fournie est posee sur une fiche qui n'en a pas, y compris une fiche
+ * retouchee dans l'administration (image SEULE, plus le texte alternatif de
+ * la ligne si la fiche n'en a pas ; le reste n'est pas touche), sauf si
+ * l'image posee par un import precedent y a ete retiree ; elle ne remplace
+ * une autre image que si c'est celle du dernier import (fiche non
+ * retouchee) ou avec l'option "ecraser" : une illustration choisie ou
+ * retiree dans l'administration est conservee avec son texte alternatif
+ * (celui du fichier n'est pas applique ; avertissement).
  * Statut : brouillon par defaut a la creation. En mise a jour, le statut ne
  * change que pour PUBLIER : un "brouillon" du fichier ne depublie jamais une
  * fiche mise en ligne dans l'administration (decision de relecture du
@@ -460,7 +470,10 @@ function ditl_import_traiter_fiche( $ligne, $plan, $simulation ) {
 
 	$empreinte = ditl_import_empreinte_ligne( $ligne );
 	$existant  = $ligne['existant'];
+	$ecraser   = ! empty( $plan['options']['ecraser'] );
 	$post_id   = 0;
+	// Sort de l'image : '' (aucune fournie), 'poser', 'identique' ou 'conservee'.
+	$sort_image = ditl_import_image_fournie( $ligne['image'] ) ? 'poser' : '';
 
 	if ( null !== $existant ) {
 		$post_id           = (int) $existant['ID'];
@@ -472,15 +485,33 @@ function ditl_import_traiter_fiche( $ligne, $plan, $simulation ) {
 			return $resultat;
 		}
 
-		$modifiee = ditl_import_fiche_modifiee( $post_id );
+		$modifiee   = ditl_import_fiche_modifiee( $post_id );
+		$sort_image = ditl_import_sort_image( $ligne['image'], $post_id, $modifiee );
 
-		if ( $modifiee && empty( $plan['options']['ecraser'] ) ) {
-			ditl_import_message( $resultat, 'avertissement', sprintf( 'fiche %d modifiée dans l\'administration depuis le dernier import : ignorée (option « écraser » pour la remplacer).', $post_id ) );
-			$resultat['action'] = 'ignoree';
-			return $resultat;
+		if ( 'conservee' === $sort_image && $ecraser ) {
+			$sort_image = 'poser';
 		}
 
-		if ( ! $modifiee && get_post_meta( $post_id, '_ditl_import_empreinte', true ) === $empreinte ) {
+		if ( $modifiee && ! $ecraser ) {
+			// Fiche retouchee encore sans image : l'image fournie est posee seule.
+			if ( 'poser' === $sort_image ) {
+				return ditl_import_ajouter_image( $ligne, $resultat, $post_id, $simulation );
+			}
+
+			return ditl_import_ignorer_fiche( $resultat, $post_id, 'conservee' === $sort_image ? $ligne['image']['nom'] : '' );
+		}
+
+		if ( 'conservee' === $sort_image ) {
+			// Illustration choisie ou retiree dans l'administration : conservee
+			// avec son texte alternatif (celui du fichier decrirait une image
+			// non affichee) ; le reste de la ligne est applique.
+			$alt_ligne = isset( $ligne['valeurs']['metas']['_ditl_image_alt'] ) ? (string) $ligne['valeurs']['metas']['_ditl_image_alt'] : '';
+			unset( $ligne['valeurs']['metas']['_ditl_image_alt'] );
+			ditl_import_message( $resultat, 'avertissement', sprintf( 'image « %1$s » non posée, la fiche ou son illustration ayant été modifiée dans l\'administration : illustration actuelle conservée%2$s (option « écraser » pour la remplacer).', ditl_import_extrait( $ligne['image']['nom'], 60 ), '' !== $alt_ligne ? ', texte alternatif du fichier non appliqué' : '' ) );
+		}
+
+		// Une image a poser (fiche sans image) fait reprendre une ligne deja importee.
+		if ( ! $modifiee && 'poser' !== $sort_image && get_post_meta( $post_id, '_ditl_import_empreinte', true ) === $empreinte ) {
 			$resultat['action'] = 'inchangee';
 
 			if ( ! $simulation ) {
@@ -488,7 +519,7 @@ function ditl_import_traiter_fiche( $ligne, $plan, $simulation ) {
 
 				// Etat absent alors que l'empreinte est a jour : il est recree.
 				if ( '' === (string) get_post_meta( $post_id, '_ditl_import_etat', true ) ) {
-					ditl_import_enregistrer_etat( $post_id, $ligne['champs'] );
+					ditl_import_enregistrer_etat( $post_id, ditl_import_champs_ligne( $ligne['champs'], 'conservee' !== $sort_image ) );
 				}
 			}
 
@@ -505,14 +536,170 @@ function ditl_import_traiter_fiche( $ligne, $plan, $simulation ) {
 	}
 
 	if ( $simulation ) {
-		if ( null !== $ligne['image'] && '' !== $ligne['image']['nom'] && 'dossier' === $ligne['image']['source'] && 0 === ditl_import_media_par_sha1( $ligne['image']['sha1'] ) ) {
-			ditl_import_message( $resultat, 'info', sprintf( 'image « %s » : sera ajoutée à la médiathèque.', ditl_import_extrait( $ligne['image']['nom'], 60 ) ) );
+		if ( 'poser' === $sort_image ) {
+			ditl_import_annoncer_media( $ligne['image'], $resultat );
 		}
 
 		return $resultat;
 	}
 
-	return ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte );
+	return ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte, $sort_image );
+}
+
+/**
+ * Fiche retouchee dans l'administration depuis le dernier import : ignoree
+ * (sans option "ecraser").
+ *
+ * @param array  $resultat Resultat en cours.
+ * @param int    $post_id  ID de la fiche.
+ * @param string $image    Image du fichier non posee (illustration actuelle
+ *                         conservee), chaine vide sinon.
+ * @return array Resultat de la ligne.
+ */
+function ditl_import_ignorer_fiche( $resultat, $post_id, $image = '' ) {
+	ditl_import_message( $resultat, 'avertissement', sprintf( 'fiche %1$d modifiée dans l\'administration depuis le dernier import : ignorée%2$s (option « écraser » pour la remplacer).', $post_id, '' !== $image ? sprintf( ', illustration actuelle conservée (image « %s » du fichier non posée)', ditl_import_extrait( $image, 60 ) ) : '' ) );
+	$resultat['action'] = 'ignoree';
+
+	return $resultat;
+}
+
+/**
+ * Champs suivis d'une ligne une fois ecrite : l'image a la une n'est suivie
+ * que si l'image de la ligne est sur la fiche (posee, ou deja la meme) ; une
+ * illustration conservee ou un televersement impossible la laissent hors
+ * suivi (une image choisie dans l'administration n'est jamais "geree" par
+ * l'import).
+ *
+ * @param string[] $champs          Champs de la ligne.
+ * @param bool     $image_sur_fiche True si l'image de la ligne est sur la fiche.
+ * @return string[] Champs a suivre.
+ */
+function ditl_import_champs_ligne( $champs, $image_sur_fiche ) {
+	return $image_sur_fiche ? $champs : array_values( array_diff( (array) $champs, array( '_thumbnail_id' ) ) );
+}
+
+/**
+ * Indique si une ligne fournit une image (cellule remplie, nom accepte et
+ * image trouvee a l'analyse).
+ *
+ * @param array|null $image Image de la ligne (null = colonne absente ou
+ *                          image refusee ; nom vide = cellule vide).
+ * @return bool True si une image est fournie.
+ */
+function ditl_import_image_fournie( $image ) {
+	return is_array( $image ) && isset( $image['nom'], $image['source'] ) && '' !== $image['nom'];
+}
+
+/**
+ * Sort de l'image fournie par une ligne pour une fiche existante.
+ *
+ * - fiche sans image a la une : image posee, sauf si l'import en avait deja
+ *   pose une (image a la une suivie) que l'administration a retiree depuis ;
+ * - meme image (meme media, ou meme empreinte sha1) : rien a faire ;
+ * - autre image : remplacee seulement si c'est celle du dernier import
+ *   (image suivie, fiche non retouchee) ; sinon (image choisie dans
+ *   l'administration) conservee. L'option "ecraser" est appliquee par
+ *   l'appelant.
+ *
+ * @param array|null $image    Image de la ligne.
+ * @param int        $post_id  ID de la fiche.
+ * @param bool       $modifiee Fiche modifiee dans l'administration depuis le
+ *                             dernier import.
+ * @return string '' (aucune image fournie), 'poser', 'identique' ou 'conservee'.
+ */
+function ditl_import_sort_image( $image, $post_id, $modifiee ) {
+	if ( ! ditl_import_image_fournie( $image ) ) {
+		return '';
+	}
+
+	$actuelle = (int) get_post_thumbnail_id( $post_id );
+	$suivie   = in_array( '_thumbnail_id', ditl_import_champs_suivis( $post_id ), true );
+
+	if ( 0 === $actuelle ) {
+		return $modifiee && $suivie ? 'conservee' : 'poser';
+	}
+
+	if ( 'mediatheque' === $image['source'] && (int) $image['attachment_id'] === $actuelle ) {
+		return 'identique';
+	}
+
+	$sha1 = 'dossier' === $image['source'] ? $image['sha1'] : ditl_import_sha1_media( (int) $image['attachment_id'] );
+
+	if ( '' !== $sha1 && ditl_import_sha1_media( $actuelle ) === $sha1 ) {
+		return 'identique';
+	}
+
+	return ! $modifiee && $suivie ? 'poser' : 'conservee';
+}
+
+/**
+ * Simulation : annonce le televersement d'une image du dossier absente de
+ * la mediatheque.
+ *
+ * @param array|null $image    Image de la ligne.
+ * @param array      $resultat Resultat de ligne (par reference, messages).
+ */
+function ditl_import_annoncer_media( $image, &$resultat ) {
+	if ( ditl_import_image_fournie( $image ) && 'dossier' === $image['source'] && 0 === ditl_import_media_par_sha1( $image['sha1'] ) ) {
+		ditl_import_message( $resultat, 'info', sprintf( 'image « %s » : sera ajoutée à la médiathèque.', ditl_import_extrait( $image['nom'], 60 ) ) );
+	}
+}
+
+/**
+ * Pose l'image fournie par une ligne sur une fiche retouchee dans
+ * l'administration et encore sans image a la une : l'image SEULE est posee,
+ * avec le texte alternatif de la ligne si la fiche n'en a pas (jamais a la
+ * place d'un texte saisi dans l'administration ; sinon avertissement s'il
+ * manque). Contenu, termes, autres metas, etat suivi et empreinte de la
+ * ligne ne changent pas : la fiche reste "modifiee" (ses retouches, texte
+ * alternatif compris, restent protegees aux rejeux suivants) et l'image,
+ * posee hors suivi, ne compte pas comme une retouche. Televersement
+ * impossible : fiche ignoree, rien n'est ecrit.
+ *
+ * @param array $ligne      Ligne du plan.
+ * @param array $resultat   Resultat en cours.
+ * @param int   $post_id    ID de la fiche.
+ * @param bool  $simulation True : aucune ecriture.
+ * @return array Resultat de la ligne.
+ */
+function ditl_import_ajouter_image( $ligne, $resultat, $post_id, $simulation ) {
+	$alt_fiche = trim( (string) get_post_meta( $post_id, '_ditl_image_alt', true ) );
+	$alt_ligne = isset( $ligne['valeurs']['metas']['_ditl_image_alt'] ) ? (string) $ligne['valeurs']['metas']['_ditl_image_alt'] : '';
+	$poser_alt = '' === $alt_fiche && '' !== $alt_ligne;
+	$texte     = sprintf( 'fiche %1$d modifiée dans l\'administration depuis le dernier import : %2$s ; le reste de la fiche, retouché dans l\'administration, n\'est pas modifié (option « écraser » pour le remplacer).', $post_id, $poser_alt ? 'image et texte alternatif ajoutés' : 'image ajoutée' );
+
+	if ( $simulation ) {
+		ditl_import_annoncer_media( $ligne['image'], $resultat );
+	} else {
+		$attachment_id = ditl_import_media_fiche( $ligne['image'], $resultat );
+
+		ditl_import_poser_image( $post_id, $attachment_id );
+
+		if ( null === $attachment_id || (int) get_post_thumbnail_id( $post_id ) !== $attachment_id ) {
+			return ditl_import_ignorer_fiche( $resultat, $post_id );
+		}
+
+		if ( $poser_alt ) {
+			update_post_meta( $post_id, '_ditl_image_alt', wp_slash( $alt_ligne ) );
+		}
+
+		// Fiche en ligne : une purge du cache de pages en fin de lot.
+		if ( 'publish' === get_post_status( $post_id ) ) {
+			++$GLOBALS['ditl_import_publications'];
+		}
+	}
+
+	// Meme ordre en simulation et a l'execution : avertissements, puis informations.
+	ditl_import_message( $resultat, 'avertissement', $texte );
+
+	if ( '' === $alt_fiche && ! $poser_alt ) {
+		ditl_import_message( $resultat, 'avertissement', 'texte alternatif de l\'image à saisir dans l\'administration (colonne image_alt absente ou vide).' );
+	}
+
+	$resultat['action']   = 'mise_a_jour';
+	$resultat['messages'] = ditl_import_trier_messages( $resultat['messages'] );
+
+	return $resultat;
 }
 
 /**
@@ -522,18 +709,22 @@ function ditl_import_traiter_fiche( $ligne, $plan, $simulation ) {
  * langue, metas, termes, image, metas techniques, traductions, etat, et
  * l'empreinte de la ligne EN DERNIER.
  *
- * @param array  $ligne     Ligne du plan.
- * @param array  $resultat  Resultat en cours.
- * @param int    $post_id   ID de la fiche existante (0 = creation).
- * @param string $empreinte Empreinte de la ligne source.
+ * @param array  $ligne      Ligne du plan.
+ * @param array  $resultat   Resultat en cours.
+ * @param int    $post_id    ID de la fiche existante (0 = creation).
+ * @param string $empreinte  Empreinte de la ligne source.
+ * @param string $sort_image Sort de l'image (ditl_import_sort_image) : seul
+ *                           "poser" pose l'image de la ligne.
  * @return array Resultat de la ligne.
  */
-function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
+function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte, $sort_image ) {
 	// Champs deja suivis : conserves dans le nouvel etat (union).
 	$suivis = 0 === $post_id ? array() : ditl_import_champs_suivis( $post_id );
 
-	// Image : null = inchangee, 0 = retiree, sinon ID du media.
-	$attachment_id = ditl_import_media_fiche( $ligne['image'], $resultat );
+	// Image : null = inchangee, sinon ID du media.
+	$attachment_id = 'poser' === $sort_image ? ditl_import_media_fiche( $ligne['image'], $resultat ) : null;
+
+	$champs = ditl_import_champs_ligne( $ligne['champs'], null !== $attachment_id || 'identique' === $sort_image );
 
 	$post_id = ditl_import_enregistrer_post( $ligne, $resultat, $post_id );
 
@@ -557,7 +748,7 @@ function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
 
 	ditl_import_lier_groupe( $ligne['groupe'], $resultat );
 
-	ditl_import_enregistrer_etat( $post_id, array_merge( $suivis, $ligne['champs'] ) );
+	ditl_import_enregistrer_etat( $post_id, array_merge( $suivis, $champs ) );
 
 	foreach ( $traductions_propres as $traduction ) {
 		$champs_traduction = ditl_import_champs_suivis( $traduction );
@@ -578,17 +769,14 @@ function ditl_import_ecrire_fiche( $ligne, $resultat, $post_id, $empreinte ) {
  * de la mediatheque (sha1) y est televersee.
  *
  * @param array|null $image    Image de la ligne (null = colonne absente ou
- *                             image refusee a l'analyse).
+ *                             image refusee a l'analyse ; nom vide =
+ *                             cellule vide).
  * @param array      $resultat Resultat de ligne (par reference, messages).
- * @return int|null null = illustration inchangee, 0 = retiree, sinon ID du media.
+ * @return int|null null = illustration inchangee, sinon ID du media.
  */
 function ditl_import_media_fiche( $image, &$resultat ) {
-	if ( null === $image ) {
+	if ( ! ditl_import_image_fournie( $image ) ) {
 		return null;
-	}
-
-	if ( '' === $image['nom'] ) {
-		return 0;
 	}
 
 	if ( 'mediatheque' === $image['source'] ) {
@@ -762,17 +950,14 @@ function ditl_import_poser_termes( $post_id, $termes, &$resultat ) {
 }
 
 /**
- * Pose, retire ou laisse l'image a la une d'une fiche.
+ * Pose ou laisse l'image a la une d'une fiche (l'import ne la retire jamais :
+ * le retrait se fait dans l'administration).
  *
  * @param int      $post_id       ID de la fiche.
- * @param int|null $attachment_id null = inchangee, 0 = retiree, sinon ID du media.
+ * @param int|null $attachment_id null = inchangee, sinon ID du media.
  */
 function ditl_import_poser_image( $post_id, $attachment_id ) {
-	if ( 0 === $attachment_id ) {
-		if ( has_post_thumbnail( $post_id ) ) {
-			delete_post_thumbnail( $post_id );
-		}
-	} elseif ( null !== $attachment_id && (int) get_post_thumbnail_id( $post_id ) !== $attachment_id ) {
+	if ( null !== $attachment_id && (int) get_post_thumbnail_id( $post_id ) !== $attachment_id ) {
 		set_post_thumbnail( $post_id, $attachment_id );
 	}
 }

@@ -262,7 +262,8 @@ function ditl_import_media_par_nom( $nom ) {
 	$id = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- recherche ponctuelle, mise en cache pour la requete.
 		$wpdb->prepare(
 			"SELECT p.ID FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID
-			WHERE p.post_type = 'attachment' AND m.meta_key = '_ditl_import_image' AND m.meta_value = %s
+			WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE 'image/%%' AND p.post_status <> 'trash'
+			AND m.meta_key = '_ditl_import_image' AND m.meta_value = %s
 			ORDER BY p.ID ASC LIMIT 1",
 			$nom
 		)
@@ -294,7 +295,8 @@ function ditl_import_media_par_nom( $nom ) {
 		$lignes = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- recherche ponctuelle, mise en cache pour la requete.
 			$wpdb->prepare(
 				"SELECT p.ID, m.meta_value FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID
-				WHERE p.post_type = 'attachment' AND m.meta_key = '_wp_attached_file' AND (" . implode( ' OR ', $clauses ) . ')
+				WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE 'image/%%' AND p.post_status <> 'trash'
+				AND m.meta_key = '_wp_attached_file' AND (" . implode( ' OR ', $clauses ) . ')
 				ORDER BY p.ID ASC',
 				$valeurs
 			)

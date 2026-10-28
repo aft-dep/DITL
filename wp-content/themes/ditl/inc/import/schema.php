@@ -16,7 +16,9 @@
  *
  * Regle de mise a jour : une colonne ABSENTE du fichier ne touche pas le
  * champ correspondant d'une fiche existante (import partiel possible) ; une
- * colonne presente mais vide vide le champ.
+ * colonne presente mais vide vide le champ, SAUF l'image : cellule vide =
+ * illustration inchangee (image facultative, ajoutable par un import
+ * ulterieur ; le retrait se fait dans l'administration).
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
