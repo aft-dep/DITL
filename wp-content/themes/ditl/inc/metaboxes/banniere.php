@@ -48,31 +48,43 @@ function ditl_gabarits_templates() {
  * Empeche Polylang de propager les gabarits DiTL aux traductions.
  *
  * Le reglage Polylang du site synchronise _wp_page_template entre les
- * langues. Or la migration des gabarits est progressive : quand une page
- * FR/EN recoit un gabarit DiTL, ses traductions ES/PT/DE n'ont pas encore
- * les metas _ditl_* (hors synchronisation, car protegees) - la propagation
- * du seul template rendrait leur contenu vide. Constate en local sur 6
- * pages (05/08/2026), et se reproduirait a chaque rejeu des migrations en
- * preprod/prod : le template d'un gabarit DiTL n'est donc jamais propage.
- * La synchronisation redevient normale pour tout autre modele de page.
+ * langues. Or la migration des gabarits est progressive : une page peut
+ * avoir un gabarit DiTL (et ses metas _ditl_*, hors synchronisation car
+ * protegees) alors que ses traductions sont encore sur l'ancien modele.
+ * La synchronisation est donc bloquee dans les deux sens :
+ * - SOURCE en gabarit DiTL : le template propage aux traductions non
+ *   migrees rendrait leur contenu vide. Constate en local sur 6 pages
+ *   (05/08/2026), et se reproduirait a chaque rejeu des migrations.
+ * - CIBLE en gabarit DiTL : enregistrer une traduction non migree (modele
+ *   par defaut) recopierait son modele, ou supprimerait celui de la cible,
+ *   qui perdrait son gabarit (contenu brut). Reproduit en local le
+ *   28/10/2026 (Contact ES -> EN, Projet PT -> FR).
+ * La synchronisation reste normale entre deux pages hors gabarit DiTL.
+ * Les IDs ont une valeur par defaut : l'API WPML historique de Polylang
+ * applique ce filtre avec deux arguments seulement.
  * Garde a retirer en phase 2, quand toutes les langues seront migrees
  * (et Polylang remplace par WPML).
  *
  * @param string[] $metas Cles de metas que Polylang s'apprete a copier.
  * @param bool     $sync  True pour une synchronisation, false pour une copie.
- * @param int      $from  ID du contenu source.
+ * @param int      $from  ID du contenu source (0 si non transmis).
+ * @param int      $to    ID du contenu cible (0 si non transmis).
  * @return string[] Cles filtrees.
  */
-function ditl_gabarits_bloquer_sync_template( $metas, $sync, $from ) {
-	if ( is_array( $metas )
-		&& in_array( '_wp_page_template', $metas, true )
-		&& in_array( get_page_template_slug( $from ), ditl_gabarits_templates(), true ) ) {
-		$metas = array_values( array_diff( $metas, array( '_wp_page_template' ) ) );
+function ditl_gabarits_bloquer_sync_template( $metas, $sync = false, $from = 0, $to = 0 ) {
+	if ( ! is_array( $metas ) || ! in_array( '_wp_page_template', $metas, true ) ) {
+		return $metas;
+	}
+
+	foreach ( array( $from, $to ) as $post_id ) {
+		if ( $post_id && in_array( get_page_template_slug( $post_id ), ditl_gabarits_templates(), true ) ) {
+			return array_values( array_diff( $metas, array( '_wp_page_template' ) ) );
+		}
 	}
 
 	return $metas;
 }
-add_filter( 'pll_copy_post_metas', 'ditl_gabarits_bloquer_sync_template', 10, 3 );
+add_filter( 'pll_copy_post_metas', 'ditl_gabarits_bloquer_sync_template', 10, 4 );
 
 /**
  * Declare les metas de banniere communes aux gabarits (protegees).
