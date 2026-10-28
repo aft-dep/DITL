@@ -120,11 +120,14 @@
  * 10. PREPROD (base de reference depuis le 22/10/2026, l'AFT peut y avoir
  *    change des reglages d'extensions) : ne poser QUE le bloc .htaccess avec
  *    le mode "htaccess", apres une copie du fichier hors htdocs. Depuis le
- *    dossier du vhost, WP-CLI lance avec --path=htdocs (eval-file cherche le
- *    script par rapport au dossier courant) :
+ *    dossier du vhost, avec le wp-cli.phar qui s'y trouve (la commande wp
+ *    du systeme echoue en console : "failed to set securebits") ; eval-file
+ *    cherche le script par rapport au dossier courant :
+ *      cd /srv/data/web/vhosts/preprod.ditlproject.eu
+ *      wp() { php -d error_reporting=24575 wp-cli.phar --path=htdocs "$@"; }
  *      cp htdocs/.htaccess htaccess-avant-acces.bak
- *      wp --path=htdocs eval-file htdocs/wp-content/themes/ditl/cli/configurer-extensions.php htaccess dry-run
- *      wp --path=htdocs eval-file htdocs/wp-content/themes/ditl/cli/configurer-extensions.php htaccess
+ *      wp eval-file htdocs/wp-content/themes/ditl/cli/configurer-extensions.php htaccess dry-run
+ *      wp eval-file htdocs/wp-content/themes/ditl/cli/configurer-extensions.php htaccess
  *    Verifier dans la minute : /wp-config.php et /wp-content/debug.log ->
  *    403, un dossier d'uploads sans index -> 403, la home -> 200 avec
  *    X-Frame-Options SAMEORIGIN et CSP frame-ancestors 'self', une page
