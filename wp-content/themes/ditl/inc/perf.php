@@ -8,16 +8,18 @@
  * reels dans le HTML rendu, diff avant/apres du <head>.
  *
  * Ce fichier ne retire QUE ce qui est demontre inutile :
- * - emojis WordPress (aucun emoji dans les contenus, remplacement client
- *   twemoji superflu) ;
+ * - emojis WordPress (script de remplacement Twemoji et sa feuille : les
+ *   emojis des contenus s'affichent en glyphes natifs ; la regle qui
+ *   dimensionne les emojis stockes en image est reprise dans style.css) ;
  * - jquery-migrate (aucun script charge n'utilise d'API jQuery supprimee :
  *   jquery.validate et WPForms supportent jQuery 3 sans migrate. Depuis le
  *   remplacement de la recherche d'en-tete par le composant natif du theme
  *   (inc/recherche.php, 08/09/2026), WPForms est le seul consommateur de
  *   jQuery et il ne reste charge que sur les pages a formulaire) ;
- * - feuille commune des blocs wp-block-library (aucun consommateur : le
- *   body n'utilise ni .wp-element-button, ni classes .has-*, ni variables
- *   --wp--preset-- ; les feuilles PAR BLOC reellement consommees
+ * - feuille commune des blocs wp-block-library (seules les regles
+ *   .has-text-align-* ont un consommateur et sont reprises dans style.css ;
+ *   le body n'utilise ni .wp-element-button, ni les autres classes .has-*
+ *   de cette feuille, ni variables --wp--preset-- ; les feuilles PAR BLOC reellement consommees
  *   (wp-block-image, wp-block-list, wp-block-paragraph) et global-styles
  *   (marge body, text-decoration des liens) sont CONSERVEES) ;
  * - script Site Kit de suivi des formulaires WPForms sur les pages sans
@@ -46,10 +48,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Desactive les emojis WordPress (front, admin, flux et mails).
  *
- * Aucun contenu du site n'utilise d'emoji : le detecteur (JSON de reglages
- * + script module en pied de page, environ 3 Ko) et sa feuille de style
- * inline (340 octets) ne servent a rien. Le filtre emoji_svg_url coupe
- * aussi le dns-prefetch vers s.w.org. Retrait classique complet, identique
+ * Le detecteur (JSON de reglages + script module en pied de page, environ
+ * 3 Ko) ne remplace plus les emojis par des images Twemoji : les emojis
+ * saisis dans les contenus (18 articles) s'affichent en glyphes natifs du
+ * systeme (arbitrage natif / Twemoji ouvert, ecart connu avec la prod).
+ * Les emojis stockes en dur en image dans un contenu (<img class="emoji">,
+ * article "premiere newsletter" dans les 5 langues) restent dimensionnes :
+ * la feuille inline du coeur (img.emoji a 1em) est reprise a l'identique
+ * dans style.css. Le filtre emoji_svg_url coupe aussi le dns-prefetch
+ * vers s.w.org. Retrait classique complet, identique
  * a celui que propose l'option dediee de WP Fastest Cache (non activee :
  * le retrait est porte par le theme pour rester actif quel que soit le
  * plugin de cache).
@@ -71,12 +78,11 @@ add_action( 'init', 'ditl_desactiver_emojis' );
  * Retire jquery-migrate des dependances de jQuery sur le front.
  *
  * jQuery Migrate 3.4.1 (7,7 Ko) ne retablit que des APIs supprimees de
- * jQuery 3.x. Inventaire des scripts charges sur le front : le seul
- * consommateur de jQuery est ivory-search.min.js (recherche du header),
- * qui n'emploie que l'alias .click(), toujours fonctionnel en jQuery
- * 3.7.1 ; sur le gabarit Contact s'ajoutent jquery.validate 1.21 et
- * WPForms 1.9.9, tous deux compatibles jQuery 3 sans migrate. La recherche
- * du header (ouverture du champ + soumission) a ete testee apres retrait.
+ * jQuery 3.x. Inventaire des scripts charges sur le front : depuis le
+ * remplacement de la recherche du header (Ivory Search, 08/09/2026,
+ * extension supprimee le 22/10/2026), jQuery n'est plus charge que sur le
+ * gabarit Contact, pour jquery.validate 1.21 et WPForms 1.9.9, tous deux
+ * compatibles jQuery 3 sans migrate.
  *
  * L'admin n'est pas touche (les extensions y chargent leurs propres
  * scripts, hors perimetre).
@@ -97,20 +103,23 @@ function ditl_retirer_jquery_migrate( $scripts ) {
 add_action( 'wp_default_scripts', 'ditl_retirer_jquery_migrate' );
 
 /**
- * Retire la feuille commune des blocs (wp-block-library), sans consommateur.
+ * Retire la feuille commune des blocs (wp-block-library).
  *
  * Astra charge les assets de blocs SEPAREMENT (une petite feuille inline
  * par bloc reellement present : wp-block-image, wp-block-list,
  * wp-block-paragraph - toutes trois consommees par les contenus migres et
  * les widgets de pied de page, donc conservees). La feuille commune
- * wp-block-library (3,6 Ko inline par page) ne contient que des regles
- * sans consommateur dans le HTML rendu : .wp-element-button, classes
- * .has-* (couleurs et degrades de la palette), variables d'admin et
- * tailles --wp--preset--font-size-* (utilisees nulle part, ni dans les
- * body, ni dans les CSS du theme). global-styles est CONSERVEE : ses
+ * wp-block-library (3,6 Ko inline par page) ne contient, a une exception
+ * pres, que des regles sans consommateur dans le HTML rendu :
+ * .wp-element-button, classes .has-* (couleurs et degrades de la palette),
+ * variables d'admin et tailles --wp--preset--font-size-* (utilisees nulle
+ * part, ni dans le body, ni dans les CSS du theme). global-styles est CONSERVEE : ses
  * regles hors presets s'appliquent reellement (marge du body,
  * text-decoration des liens, layouts). classic-theme-styles n'est pas
- * enqueue sur ce site (rien a retirer).
+ * enqueue sur ce site (rien a retirer). Exception : les trois regles
+ * .has-text-align-* (paragraphe "In progress" centre des pages Livrable 2,
+ * 3 et 4) sont reprises a l'identique dans style.css plutot que de
+ * recharger toute la feuille.
  */
 function ditl_retirer_css_blocs_sans_consommateur() {
 	wp_dequeue_style( 'wp-block-library' );

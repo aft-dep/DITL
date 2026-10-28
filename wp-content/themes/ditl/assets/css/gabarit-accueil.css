@@ -302,8 +302,16 @@ h2.ditl-accueil-actus__titre {
 	counter-reset: ditl-actu;
 }
 
+/*
+ * Carte flex a centrage vertical, comme l'original (upk-item upk-flex
+ * upk-flex-middle) : dans une rangee de la grille, le contenu d'une carte
+ * moins haute que sa voisine (titre plus court) est centre verticalement
+ * au lieu d'etre colle en haut (mesure du 28/10/2026 en production).
+ */
 .ditl-actu-item {
 	position: relative;
+	display: flex;
+	align-items: center;
 	overflow: hidden;
 	transition: all 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
 }
@@ -311,6 +319,8 @@ h2.ditl-accueil-actus__titre {
 /* Image a la une en fond de carte, revelee au survol (voile blanc au repos). */
 .ditl-actu-item__img-wrap {
 	position: absolute;
+	top: 0;
+	left: 0;
 	width: 100%;
 	height: 100%;
 }
@@ -415,14 +425,21 @@ h3.ditl-actu-item__titre {
 }
 
 /*
- * Auteur puis date sur deux lignes : c'est le rendu effectif du widget
- * d'origine sur les deux pages (la date passait systematiquement a la
- * ligne sous l'auteur). Balise <p> (RGAA 8.9), marges a 0 : les regles
- * d'Astra sur les paragraphes du contenu ne s'appliquent pas.
+ * Auteur puis date sur une seule ligne, comme le widget d'origine en
+ * production (mesure du 28/10/2026 sur les deux pages a 1440, 1280, 1024,
+ * 768 et 390 : une ligne partout ; la date passait a la ligne en juillet,
+ * la production a change depuis). Conteneur flex avec retour a la ligne
+ * autorise et centrage vertical, comme l'original : la date ne passe
+ * dessous que si la ligne deborde (nom d'auteur tres long). Les span
+ * enfants deviennent des elements flex. Balise <p> (RGAA 8.9), marges a
+ * 0 : les regles d'Astra sur les paragraphes du contenu ne s'appliquent
+ * pas.
  */
 p.ditl-actu-item__meta {
 	position: relative;
-	display: block;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
 	order: 3;
 	margin: 0;
 	padding-top: 10px;
@@ -432,15 +449,6 @@ p.ditl-actu-item__meta {
 	line-height: 1;
 	text-transform: uppercase;
 	transition: color 0.3s cubic-bezier(0.34, 0.01, 0.58, 1);
-}
-
-/*
- * Bloc flex de niveau bloc (comme le widget d'origine) : il occupe sa
- * propre ligne, ce qui pousse la date a la ligne suivante. La specificite
- * doit depasser celle de la regle generique ".__meta > span" ci-dessous.
- */
-.ditl-actu-item__meta .ditl-actu-item__auteur {
-	display: flex;
 }
 
 .ditl-actu-item__par {
