@@ -18,6 +18,10 @@
  *                                  - bouton_url     : URL du bouton (externe en general) ;
  *                                  - image_extra_id : image optionnelle affichee apres le
  *                                    bouton (ID d'attachement, 0 si absente).
+ * - _ditl_variante      (string) : "traduction" sur les pages ES/PT/DE (titre dans la
+ *                                  banniere, sans filet), absente sinon (structure FR/EN).
+ *                                  Posee par cli/migrate-partenaires.php seulement :
+ *                                  absente de la metabox, conservee a l'enregistrement.
  *
  * Dans la metabox, les partenaires sont saisis en lignes repetables a plat,
  * chacune portant son pays : a l'enregistrement, les lignes consecutives de
@@ -154,7 +158,17 @@ function ditl_partenaires_sanitize_json( $value ) {
 }
 
 /**
- * Declare la meta du gabarit (protegee, avec controle d'acces).
+ * Assainit la variante de structure (liste fermee).
+ *
+ * @param mixed $valeur Valeur brute.
+ * @return string "traduction" ou chaine vide.
+ */
+function ditl_partenaires_sanitize_variante( $valeur ) {
+	return 'traduction' === $valeur ? 'traduction' : '';
+}
+
+/**
+ * Declare les metas du gabarit (protegees, avec controle d'acces).
  *
  * La meta _ditl_intro_content n'est pas redeclaree ici : elle est deja
  * enregistree par resultats.php (meme format, meme sanitize).
@@ -168,6 +182,19 @@ function ditl_partenaires_register_meta() {
 			'single'            => true,
 			'default'           => '[]',
 			'sanitize_callback' => 'ditl_partenaires_sanitize_json',
+			'auth_callback'     => 'ditl_meta_auth_callback',
+			'show_in_rest'      => false,
+		)
+	);
+
+	register_post_meta(
+		'page',
+		'_ditl_variante',
+		array(
+			'type'              => 'string',
+			'single'            => true,
+			'default'           => '',
+			'sanitize_callback' => 'ditl_partenaires_sanitize_variante',
 			'auth_callback'     => 'ditl_meta_auth_callback',
 			'show_in_rest'      => false,
 		)

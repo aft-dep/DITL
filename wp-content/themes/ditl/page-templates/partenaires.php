@@ -16,8 +16,12 @@
  * migration des autres langues, phase 2) :
  * - pages francaises : H1 dans la banniere, espace final avant le footer,
  *   logo du dernier partenaire en taille reelle ;
- * - autres langues (reference : page anglaise) : banniere haute sans titre,
- *   H1 affiche au-dessus de l'introduction.
+ * - page anglaise : banniere haute sans titre, H1 affiche au-dessus de
+ *   l'introduction ;
+ * - traductions ES/PT/DE (meta _ditl_variante = "traduction", posee par la
+ *   migration) : H1 dans la banniere comme la page francaise, sans les
+ *   particularites de celle-ci (logo final en taille reelle, espace final)
+ *   ni filet entre deux partenaires d'un meme pays (absents de l'original).
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
@@ -51,8 +55,11 @@ get_header(); ?>
 				$ditl_groupes       = ditl_get_meta_json( $ditl_post_id, '_ditl_partenaires' );
 				$ditl_hero_title    = (string) get_post_meta( $ditl_post_id, '_ditl_hero_title', true );
 
-				// Variante de structure selon la langue de la page (voir en-tete).
-				$ditl_variante_fr = ditl_page_est_francaise();
+				// Variante de structure (voir en-tete) : traductions reperees
+				// par leur meta, sinon page francaise ou anglaise par la langue.
+				$ditl_traduction     = 'traduction' === get_post_meta( $ditl_post_id, '_ditl_variante', true );
+				$ditl_variante_fr    = ! $ditl_traduction && ditl_page_est_francaise();
+				$ditl_titre_banniere = $ditl_variante_fr || $ditl_traduction;
 
 				// Les groupes sans partenaire ne rendent rien : on les ecarte
 				// avant de compter (la detection du dernier partenaire, qui
@@ -92,19 +99,19 @@ get_header(); ?>
 					<div class="entry-content clear" itemprop="text">
 
 						<?php
-						// Variante francaise : H1 dans la banniere ; sinon la
-						// banniere reste muette et le H1 est rendu ci-dessous.
+						// Variante francaise et traductions : H1 dans la banniere ;
+						// sinon la banniere reste muette et le H1 est rendu ci-dessous.
 						get_template_part(
 							'template-parts/gabarit-hero',
 							null,
-							array( 'afficher_titre' => $ditl_variante_fr )
+							array( 'afficher_titre' => $ditl_titre_banniere )
 						);
 						?>
 
-						<?php if ( ( ! $ditl_variante_fr && '' !== $ditl_hero_title ) || '' !== $ditl_intro_content ) { ?>
+						<?php if ( ( ! $ditl_titre_banniere && '' !== $ditl_hero_title ) || '' !== $ditl_intro_content ) { ?>
 						<div class="ditl-boxed ditl-part-entete">
 							<div class="ditl-boxed__inner">
-								<?php if ( ! $ditl_variante_fr && '' !== $ditl_hero_title ) { ?>
+								<?php if ( ! $ditl_titre_banniere && '' !== $ditl_hero_title ) { ?>
 								<h1 class="ditl-hero__title"><?php echo esc_html( $ditl_hero_title ); ?></h1>
 								<?php } ?>
 								<?php if ( '' !== $ditl_intro_content ) { ?>
@@ -148,8 +155,9 @@ get_header(); ?>
 								$ditl_bouton_href = ditl_href_from_meta_url( $ditl_bouton_url );
 
 								// Filet horizontal entre deux partenaires d'un meme
-								// pays (l'original n'en mettait pas entre les pays).
-								if ( $ditl_index_part > 0 ) {
+								// pays (l'original n'en mettait pas entre les pays, ni
+								// aucun sur les traductions).
+								if ( $ditl_index_part > 0 && ! $ditl_traduction ) {
 									?>
 						<div class="ditl-boxed ditl-part-filet">
 							<div class="ditl-boxed__inner">

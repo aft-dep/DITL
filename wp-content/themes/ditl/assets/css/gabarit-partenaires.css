@@ -6,14 +6,15 @@
  * Breakpoints d'origine : tablette <= 1024px, mobile <= 767px, plus le
  * point de bascule Astra a 921px (tailles de titres par defaut du theme).
  *
- * Les deux pages n'avaient pas la meme structure Elementor : variantes
- * scopees par page (pattern .page-id-XXXX etabli sur les autres gabarits,
- * a generaliser lors de la migration des autres langues, phase 2).
+ * Les pages n'avaient pas la meme structure Elementor : variantes scopees
+ * par page (pattern .page-id-XXXX etabli sur les autres gabarits).
  * - 2420 : page francaise (H1 dans la banniere de 60vh - reglages par
  *   defaut de la banniere commune -, titres des deux premiers pays a
  *   taille fixe, espace final avant le footer).
  * - 3169 : page anglaise (banniere de 82vh sans titre, H1 detache rendu
  *   au-dessus de l'introduction, marge sous l'introduction).
+ * - 3135 (ES), 3109 (PT), 2601 (DE) : traductions (meta _ditl_variante),
+ *   titre dans la banniere, intro et titres de pays aux valeurs d'Astra.
  *
  * @package DiTL
  */
@@ -162,6 +163,37 @@ hr.ditl-part-separateur {
 }
 
 /* ---------------------------------------------------------------------------
+ * Variantes des traductions ES (3135), PT (3109) et DE (2601)
+ * (meta _ditl_variante = traduction : titre dans la banniere, pas de filet).
+ * Intro : un titre de l'original aux valeurs du theme (h2 d'Astra en ES et
+ * PT, h3 en DE), a gauche. Pays : h3 du theme (28px, graisse 600), sans
+ * marge, couleur de la charte.
+ * ------------------------------------------------------------------------ */
+
+.page-id-3135 .ditl-part-intro,
+.page-id-3109 .ditl-part-intro,
+.page-id-2601 .ditl-part-intro {
+	color: #0F172A;
+	font-family: "Exo", sans-serif;
+	font-size: 2.7333333333333rem;
+	font-weight: 400;
+	line-height: 1.3em;
+}
+
+.page-id-2601 .ditl-part-intro {
+	font-size: 1.8666666666667rem;
+	font-weight: 600;
+}
+
+.page-id-3135 h2.ditl-part-pays__titre,
+.page-id-3109 h2.ditl-part-pays__titre,
+.page-id-2601 h2.ditl-part-pays__titre {
+	margin: 0;
+	font-size: 1.8666666666667rem;
+	font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------
  * Tablette (<= 1024px)
  * ------------------------------------------------------------------------ */
 
@@ -179,7 +211,8 @@ hr.ditl-part-separateur {
 /* ---------------------------------------------------------------------------
  * Bascule Astra (<= 921px) : variante de la page francaise (2420), les
  * titres des deux premiers pays gardaient une taille fixe de 41px
- * (typographie Elementor), les autres suivent le theme (25px)
+ * (typographie Elementor), les autres suivent le theme (25px) ; reglages
+ * des traductions ES/PT/DE
  * ------------------------------------------------------------------------ */
 
 @media (max-width: 921px) {
@@ -187,6 +220,19 @@ hr.ditl-part-separateur {
 	.page-id-2420 .ditl-part-pays--1 h2.ditl-part-pays__titre,
 	.page-id-2420 .ditl-part-pays--2 h2.ditl-part-pays__titre {
 		font-size: 41px;
+	}
+
+	/* Traductions : tailles du theme sous 921px (h2 25px, h3 28px fixes). */
+	.page-id-3135 .ditl-part-intro,
+	.page-id-3109 .ditl-part-intro {
+		font-size: 25px;
+	}
+
+	.page-id-2601 .ditl-part-intro,
+	.page-id-3135 h2.ditl-part-pays__titre,
+	.page-id-3109 h2.ditl-part-pays__titre,
+	.page-id-2601 h2.ditl-part-pays__titre {
+		font-size: 28px;
 	}
 }
 

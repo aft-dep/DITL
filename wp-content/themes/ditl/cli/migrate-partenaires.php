@@ -27,6 +27,20 @@
  * image complementaire et spacer final FR uniquement) sont absorbees par la
  * grammaire ci-dessus : aucune correction de contenu n'est appliquee.
  *
+ * GRAMMAIRE DES TRADUCTIONS (pages ES 3135, PT 3109, DE 2601), choisie
+ * automatiquement quand l'arbre n'a ni heading h1 ni heading de niveau "p" :
+ * - 1er heading de la banniere (1er container racine, h5) -> _ditl_hero_title
+ *   (rendu en H1 dans la banniere, correction d'accessibilite volontaire) ;
+ * - 1er heading suivant, avant tout pays (h2, h3 en DE) -> _ditl_intro_content ;
+ * - heading h3 -> nouveau groupe pays ;
+ * - chaque image ouvre un partenaire (pas de divider), dont le nom reste dans
+ *   le texte (titre vide) ; une image dont l'attachement n'existe plus (4847,
+ *   deja 404 en prod, meme cas que la FR) est ignoree et signalee ;
+ * - _ditl_variante = "traduction" : le gabarit place le titre dans la
+ *   banniere et ne trace pas de filet entre partenaires.
+ * Les pages FR 2420 et EN 3169 gardent la grammaire d'origine : resultat
+ * inchange pour elles (aucune meta _ditl_variante ecrite).
+ *
  * Pose aussi _wp_page_template = page-templates/partenaires.php.
  *
  * Les metas Elementor (_elementor_data, _elementor_edit_mode, ...) ne sont
@@ -37,8 +51,10 @@
  * Usage :
  *   wp eval-file wp-content/themes/ditl/cli/migrate-partenaires.php 2420 3169 dry-run
  *   wp eval-file wp-content/themes/ditl/cli/migrate-partenaires.php 2420 3169
+ *   wp eval-file wp-content/themes/ditl/cli/migrate-partenaires.php 3135 3109 2601 dry-run
  *
- * Le mode simulation accepte "dry-run" ou "--dry-run" en argument.
+ * Le mode simulation accepte "dry-run" ou "--dry-run" en argument. Tout
+ * autre argument qui n'est pas un ID est REFUSE (arret, rien n'est ecrit).
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
@@ -92,6 +108,34 @@ if ( ! function_exists( 'ditl_migration_partenaires_bouton' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ditl_migration_partenaires_grammaire' ) ) {
+	/**
+	 * Detecte la grammaire de la page : "origine" (FR/EN : h1 et heading de
+	 * niveau "p") ou "traduction" (ES/PT/DE : ni l'un ni l'autre).
+	 *
+	 * @param array $elements Elements Elementor.
+	 * @return string "origine" ou "traduction".
+	 */
+	function ditl_migration_partenaires_grammaire( $elements ) {
+		foreach ( $elements as $element ) {
+			if ( isset( $element['widgetType'] ) && 'heading' === $element['widgetType'] ) {
+				$niveau = isset( $element['settings']['header_size'] ) ? (string) $element['settings']['header_size'] : '';
+
+				if ( 'h1' === $niveau || 'p' === $niveau ) {
+					return 'origine';
+				}
+			}
+
+			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] )
+				&& 'origine' === ditl_migration_partenaires_grammaire( $element['elements'] ) ) {
+				return 'origine';
+			}
+		}
+
+		return 'traduction';
+	}
+}
+
 if ( ! function_exists( 'ditl_migration_partenaires_extraire' ) ) {
 	/**
 	 * Parcourt recursivement l'arbre Elementor et collecte les donnees du gabarit.
@@ -101,10 +145,11 @@ if ( ! function_exists( 'ditl_migration_partenaires_extraire' ) ) {
 	 * - nouveau_partenaire : true quand la prochaine image ouvre un nouveau
 	 *   partenaire (apres un titre de pays ou un divider).
 	 *
-	 * @param array $elements Elements Elementor (containers et widgets).
-	 * @param array $data     Donnees collectees (passees par reference).
+	 * @param array  $elements Elements Elementor (containers et widgets).
+	 * @param array  $data     Donnees collectees (passees par reference).
+	 * @param string $zone     "hero" dans le 1er container racine, "contenu" ailleurs.
 	 */
-	function ditl_migration_partenaires_extraire( $elements, &$data ) {
+	function ditl_migration_partenaires_extraire( $elements, &$data, $zone = 'contenu' ) {
 		foreach ( $elements as $element ) {
 			if ( isset( $element['elType'] ) && 'widget' === $element['elType'] ) {
 				$type     = isset( $element['widgetType'] ) ? $element['widgetType'] : '';
@@ -122,6 +167,23 @@ if ( ! function_exists( 'ditl_migration_partenaires_extraire' ) ) {
 						$titre_texte = sanitize_text_field( html_entity_decode( wp_strip_all_tags( $titre_brut ), ENT_QUOTES, 'UTF-8' ) );
 						// h2 est la valeur par defaut d'Elementor quand header_size est absent.
 						$niveau = isset( $reglages['header_size'] ) && '' !== $reglages['header_size'] ? $reglages['header_size'] : 'h2';
+
+						if ( 'traduction' === $data['grammaire'] ) {
+							if ( 'hero' === $zone && '' === $data['hero_title'] ) {
+								$data['hero_title']        = $titre_texte;
+								$data['hero_title_niveau'] = $niveau;
+							} elseif ( '' === $data['intro'] && $idx_groupe < 0 ) {
+								$data['intro'] = trim( $titre_brut );
+							} elseif ( 'h3' === $niveau ) {
+								$data['groupes'][] = array(
+									'pays'        => $titre_texte,
+									'partenaires' => array(),
+								);
+							} else {
+								WP_CLI::warning( sprintf( 'Heading %s inattendu ignore : "%s"', $niveau, $titre_texte ) );
+							}
+							break;
+						}
 
 						if ( 'h1' === $niveau && '' === $data['hero_title'] ) {
 							$data['hero_title'] = $titre_texte;
@@ -151,6 +213,24 @@ if ( ! function_exists( 'ditl_migration_partenaires_extraire' ) ) {
 
 					case 'image':
 						$image_id = isset( $reglages['image']['id'] ) ? absint( $reglages['image']['id'] ) : 0;
+
+						if ( 'traduction' === $data['grammaire'] && $idx_groupe >= 0 ) {
+							if ( 'attachment' !== get_post_type( $image_id ) ) {
+								// Image supprimee de la mediatheque (4847, deja 404 en prod).
+								WP_CLI::warning( sprintf( 'Image %d absente de la mediatheque (deja 404 en prod) ignoree, comme sur la page FR.', $image_id ) );
+							} else {
+								// Chaque image ouvre un partenaire (pas de divider).
+								$data['groupes'][ $idx_groupe ]['partenaires'][] = array(
+									'logo_id'        => $image_id,
+									'titre'          => '',
+									'texte'          => '',
+									'bouton_texte'   => '',
+									'bouton_url'     => '',
+									'image_extra_id' => 0,
+								);
+							}
+							break;
+						}
 
 						if ( 0 === $data['hero_image_id'] && $idx_groupe < 0 ) {
 							// Avant tout groupe : image de la banniere commune.
@@ -230,7 +310,7 @@ if ( ! function_exists( 'ditl_migration_partenaires_extraire' ) ) {
 			}
 
 			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
-				ditl_migration_partenaires_extraire( $element['elements'], $data );
+				ditl_migration_partenaires_extraire( $element['elements'], $data, $zone );
 			}
 		}
 	}
@@ -240,7 +320,7 @@ if ( ! function_exists( 'ditl_migration_partenaires_extraire' ) ) {
 // Lecture des arguments : IDs de pages + mode simulation eventuel.
 // ---------------------------------------------------------------------------
 
-$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page' );
+$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page', true );
 $ditl_dry_run  = $ditl_modes['dry_run'];
 $ditl_page_ids = $ditl_modes['ids'];
 
@@ -261,9 +341,16 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 		'intro'              => '',
 		'groupes'            => array(),
 		'nouveau_partenaire' => false,
+		'grammaire'          => ditl_migration_partenaires_grammaire( $ditl_elements ),
+		'hero_title_niveau'  => '',
 	);
 
-	ditl_migration_partenaires_extraire( $ditl_elements, $ditl_data );
+	// Le premier container racine est la banniere, les suivants le contenu.
+	foreach ( array_values( $ditl_elements ) as $ditl_index => $ditl_racine ) {
+		ditl_migration_partenaires_extraire( array( $ditl_racine ), $ditl_data, 0 === $ditl_index ? 'hero' : 'contenu' );
+	}
+
+	$ditl_traduction = 'traduction' === $ditl_data['grammaire'];
 
 	// Controles de coherence : la page de prod compte 5 pays et 8 partenaires.
 	$ditl_nb_partenaires = 0;
@@ -272,7 +359,8 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 		$ditl_nb_partenaires += count( $ditl_groupe['partenaires'] );
 
 		foreach ( $ditl_groupe['partenaires'] as $ditl_i => $ditl_partenaire ) {
-			foreach ( array( 'titre', 'texte', 'bouton_texte' ) as $ditl_champ ) {
+			// Traductions : le nom du partenaire reste dans le texte (titre vide).
+			foreach ( $ditl_traduction ? array( 'texte', 'bouton_texte' ) : array( 'titre', 'texte', 'bouton_texte' ) as $ditl_champ ) {
 				if ( '' === $ditl_partenaire[ $ditl_champ ] ) {
 					WP_CLI::warning( sprintf(
 						'Partenaire n.%d du groupe "%s" : champ "%s" vide, verifier le decoupage.',
@@ -292,6 +380,13 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 
 	if ( '' === $ditl_data['hero_title'] ) {
 		WP_CLI::warning( sprintf( 'Page %d : aucun titre H1 trouve pour la banniere.', $ditl_page_id ) );
+	} elseif ( $ditl_traduction && 'h1' !== $ditl_data['hero_title_niveau'] ) {
+		WP_CLI::warning( sprintf(
+			'Page %d : le titre de banniere "%s" est un %s dans Elementor (page sans H1). Migre comme titre de page : la banniere partagee le rendra en H1 (correction d\'accessibilite volontaire, style inchange).',
+			$ditl_page_id,
+			$ditl_data['hero_title'],
+			strtoupper( $ditl_data['hero_title_niveau'] )
+		) );
 	}
 
 	if ( '' === $ditl_data['intro'] ) {
@@ -299,6 +394,10 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 	}
 
 	// Recapitulatif lisible des valeurs extraites.
+	if ( $ditl_traduction ) {
+		WP_CLI::log( '  grammaire           : traduction (_ditl_variante = traduction)' );
+	}
+
 	WP_CLI::log( sprintf( '  _ditl_hero_image_id : %d', $ditl_data['hero_image_id'] ) );
 	WP_CLI::log( sprintf( '  _ditl_hero_title    : %s', $ditl_data['hero_title'] ) );
 	WP_CLI::log( sprintf( '  _ditl_intro_content : %d caracteres', strlen( $ditl_data['intro'] ) ) );
@@ -334,6 +433,10 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 	update_post_meta( $ditl_page_id, '_ditl_hero_title', wp_slash( $ditl_data['hero_title'] ) );
 	update_post_meta( $ditl_page_id, '_ditl_intro_content', wp_slash( $ditl_data['intro'] ) );
 	update_post_meta( $ditl_page_id, '_ditl_partenaires', wp_slash( (string) wp_json_encode( $ditl_data['groupes'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) ) );
+	if ( $ditl_traduction ) {
+		update_post_meta( $ditl_page_id, '_ditl_variante', 'traduction' );
+	}
+
 	update_post_meta( $ditl_page_id, '_wp_page_template', 'page-templates/partenaires.php' );
 
 	WP_CLI::success( sprintf( 'Page %d migree.', $ditl_page_id ) );
