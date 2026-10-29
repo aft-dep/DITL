@@ -122,9 +122,13 @@ p.ditl-hero__sous-titre {
 	margin: 80px 0 100px;
 }
 
-/* La page anglaise avait un conteneur intermediaire (10px de boite en plus). */
+/*
+ * La page anglaise avait un conteneur intermediaire (10px de boite en plus,
+ * et 10px de retrait lateral, visible sous 1160px de large).
+ */
 .page-id-3035 .ditl-accueil-pres {
 	margin: 90px 0 110px;
+	padding: 0 10px;
 }
 
 .ditl-accueil-pres__inner {
@@ -276,6 +280,18 @@ h2.ditl-accueil-livr__titre {
 	gap: 20px;
 	justify-items: center;
 	padding: 10px;
+}
+
+/*
+ * Comme les widgets Elementor d'origine (min-width: 0, max-width: 100%) :
+ * l'icone et le texte ne debordent jamais de leur colonne. Sur les colonnes
+ * etroites (tablette, 768 a 1024px), le texte est plafonne a sa colonne et
+ * ses mots longs sont coupes par le overflow-wrap herite, comme en prod.
+ */
+.ditl-accueil-livr__icone,
+.ditl-accueil-livr__texte {
+	min-width: 0;
+	max-width: 100%;
 }
 
 .ditl-accueil-livr__icone {
@@ -752,6 +768,27 @@ ul.ditl-accueil-part__grille {
 
 .ditl-carousel__nav--next {
 	right: 10px;
+}
+
+/*
+ * Logo Escola del Treball (media repare, emplacement vide en prod) : seul
+ * logo du carrousel sans pastille dessinee dans l'image (PNG rectangulaire
+ * transparent ; les autres sont des carres de 500px portant un disque blanc
+ * de 472px decale de 15px). Pastille reproduite aux memes proportions :
+ * disque de 94,4 % de la diapositive, decale de 3 %, logo contenu a 70 % du
+ * disque (proportions des autres logos : 61 a 90 %). Disque peint en fond
+ * (degrade radial) et non par border-radius, qui rognerait les coins du
+ * logo. Cible par le nom du fichier : aucune classe propre au media dans le
+ * balisage, et nth-child est inutilisable (le script clone les diapositives).
+ */
+.page-id-3035 .ditl-carousel__slide img[src*="logo-escola-del-treball"] {
+	width: 94.4%;
+	height: auto;
+	aspect-ratio: 1 / 1;
+	margin: 3% 2.6% 2.6% 3%;
+	padding: 14.2%;
+	background-image: radial-gradient(circle closest-side, #FFFFFF calc(100% - 1px), rgba(255, 255, 255, 0) 100%);
+	object-fit: contain;
 }
 
 /* ---------------------------------------------------------------------------

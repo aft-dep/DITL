@@ -296,8 +296,13 @@ hr.ditl-res-separateur {
 		letter-spacing: normal;
 	}
 
-	.page-id-3171 .ditl-hero {
-		min-height: 400px;
+	/*
+	 * Hauteur minimale du conteneur de l'image d'origine (400px, retrait de
+	 * 10px de part et d'autre compris) : portee par le bloc image seul, pas
+	 * par la banniere entiere (titre compris), qui reste a min-height 0.
+	 */
+	.page-id-3171 .ditl-hero__media {
+		min-height: 380px;
 	}
 
 	.page-id-3171 .ditl-hero__spacer {
@@ -345,15 +350,16 @@ hr.ditl-res-separateur {
 		letter-spacing: normal;
 	}
 
-	.page-id-3171 .ditl-hero {
-		min-height: 300px;
-	}
-
 	.page-id-3171 .ditl-hero__col {
 		padding: 10px;
 	}
 
+	/*
+	 * 300px d'origine moins 2 x 10px de retrait (280px) : 8,5px vides sous
+	 * l'image a 390px de large, comme en prod.
+	 */
 	.page-id-3171 .ditl-hero__media {
+		min-height: 280px;
 		padding: 0;
 	}
 
