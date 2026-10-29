@@ -45,8 +45,10 @@
  * AUCUNE meta description n'est saisie (travail editorial ulterieur).
  *
  * Les ecarts que les options ne couvrent pas (meta robots etendue par
- * Yoast, robots.txt virtuel remplace) sont neutralises par le theme dans
- * inc/seo.php (filtre wp_robots + regles robots.txt reinjectees).
+ * Yoast, robots.txt virtuel remplace, titres de la recherche et de la page
+ * 404 non traduits, numero de page au format de Yoast, typographie des
+ * titres) sont neutralises par le theme dans inc/seo.php (filtre
+ * wp_robots, regles robots.txt reinjectees, filtres de titre Yoast).
  *
  * Script idempotent, rejouable sans degat (local, preprod, prod).
  *
@@ -124,8 +126,11 @@ $ditl_options_cibles = array(
 	'title-author-wpseo'    => '%%name%% %%page%% %%sep%% %%sitename%%',
 	// Recherche : chaine du coeur (locale EN du site), guillemets
 	// typographiques inclus. Le coeur localise cette chaine par langue,
-	// pas Yoast : ecart residuel assume sur les recherches non anglaises
-	// (pages noindex de toute facon).
+	// pas Yoast : depuis le 29/10/2026, le theme (inc/seo.php) reconstruit
+	// le titre de la recherche et de la page 404 avec les chaines traduites
+	// du coeur ; cette option et title-404-wpseo (valeur par defaut de
+	// Yoast, verifiee plus bas) ne s'appliquent donc plus a ces vues
+	// (conservees comme valeurs de repli sans le theme).
 	'title-search-wpseo'    => 'Search Results for “%%searchphrase%%” %%page%% %%sep%% %%sitename%%',
 	// Breadcrumbs : le theme n'en affiche pas, on n'active rien.
 	'breadcrumbs-enable'    => false,

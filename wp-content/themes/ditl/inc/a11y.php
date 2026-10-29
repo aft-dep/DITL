@@ -351,8 +351,7 @@ add_filter( 'astra_pagination_markup', 'ditl_a11y_pagination_liste' );
  * unique pour toutes les langues ("Search Results for:"). Seule correction
  * du lot qui change un texte visible, validee : le h1 des resultats FR
  * devient "Resultats de recherche pour :", l'anglais reste inchange. Le
- * <title> de la page (gabarit de recherche Yoast) reste a traiter cote
- * configuration Yoast.
+ * <title> de la page est traduit par inc/seo.php (chaine du coeur).
  *
  * @param mixed $valeur Valeur de l'option.
  * @return mixed
