@@ -116,9 +116,8 @@ get_header(); ?>
 					'resume' => $ditl_fr ? 'Reprendre le défilement automatique' : 'Resume automatic sliding',
 				);
 
-				// Passages anglais laisses en dur (sous-titre de la banniere =
-				// slogan du projet, "by" des cartes, comme sur le site
-				// d'origine) : signales par lang="en" sur les pages qui ne
+				// Passage anglais laisse en dur ("by" des cartes, comme sur le
+				// site d'origine) : signale par lang="en" sur les pages qui ne
 				// sont pas en anglais (RGAA 8.7), rien d'emis sinon.
 				$ditl_lang_en      = ditl_page_est_anglaise() ? '' : 'en';
 				$ditl_lang_en_attr = '' !== $ditl_lang_en ? ' lang="en"' : '';
@@ -153,7 +152,10 @@ get_header(); ?>
 							null,
 							array(
 								'sous_titre'      => isset( $ditl_hero['sous_titre'] ) ? (string) $ditl_hero['sous_titre'] : '',
-								'sous_titre_lang' => $ditl_lang_en,
+								// Sous-titre en anglais sur la page francaise seulement
+								// (slogan du projet laisse en anglais) ; les pages ES,
+								// PT et DE ont un sous-titre traduit (RGAA 8.7).
+								'sous_titre_lang' => $ditl_fr ? 'en' : '',
 								'bouton_texte'    => isset( $ditl_hero['bouton_texte'] ) ? (string) $ditl_hero['bouton_texte'] : '',
 								'bouton_url'      => isset( $ditl_hero['bouton_url'] ) ? (string) $ditl_hero['bouton_url'] : '',
 							)

@@ -30,7 +30,11 @@
  * - CORRECTION VOLONTAIRE : dans le carrousel EN, l'attachment 4993 (logo
  *   INSTITUT ESCOLA DEL TREBALL, supprime de la mediatheque, fichier 404 en
  *   prod) est remplace par 5803 (logo-escola-del-treball.png), deja utilise
- *   par la page FR. Seul ecart de contenu de la migration, a signaler au client.
+ *   par la page FR. A signaler au client.
+ * - CORRECTION VOLONTAIRE (decision d'Aurélien du 28/10) : dans la grille des
+ *   accueils PT (3094) et DE (3159), l'attachment 5506 (logo URE, supprime de
+ *   la mediatheque, fichier absent : case vide en prod) est remplace par 5452
+ *   (logo URE de la page FR). A signaler au client.
  * - Les URLs internes de boutons sont stockees RELATIVES ; celles dont la
  *   cible ne resout vers aucun contenu local (ex. /en/ditl-project/, prefixe
  *   /en/ inhabituel herite de la prod) sont migrees telles quelles et
@@ -47,8 +51,10 @@
  * Usage :
  *   wp eval-file wp-content/themes/ditl/cli/migrate-accueil.php 3075 3035 dry-run
  *   wp eval-file wp-content/themes/ditl/cli/migrate-accueil.php 3075 3035
+ *   wp eval-file wp-content/themes/ditl/cli/migrate-accueil.php 3150 3094 3159 dry-run
  *
- * Le mode simulation accepte "dry-run" ou "--dry-run" en argument.
+ * Le mode simulation accepte "dry-run" ou "--dry-run" en argument. Tout
+ * autre argument qui n'est pas un ID est REFUSE (arret, rien n'est ecrit).
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
@@ -377,9 +383,21 @@ if ( ! function_exists( 'ditl_migration_accueil_extraire' ) ) {
 // Lecture des arguments : IDs de pages + mode simulation eventuel.
 // ---------------------------------------------------------------------------
 
-$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page' );
+$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page', true );
 $ditl_dry_run  = $ditl_modes['dry_run'];
 $ditl_page_ids = $ditl_modes['ids'];
+
+// CORRECTIONS VOLONTAIRES : logos partenaires dont l'attachment a ete
+// supprime de la mediatheque (logo casse ou case vide en prod), remplaces
+// par le logo equivalent deja utilise sur la page FR.
+// - 4993 (INSTITUT ESCOLA DEL TREBALL, carrousel EN) -> 5803
+//   (logo-escola-del-treball.png, juillet 2026) ;
+// - 5506 (URE, grilles PT et DE, fichier absent) -> 5452 (logo URE de la
+//   grille FR), decision d'Aurélien du 28/10.
+$ditl_logos_remplaces = array(
+	4993 => array( 5803, 'Logo-INSTITUT-ESCOLA-DEL-TREBALL', 'logo-escola-del-treball.png' ),
+	5506 => array( 5452, '00-URE-LOGO-5', '00-URE-LOGO-1.jpg' ),
+);
 
 // ---------------------------------------------------------------------------
 // Traitement page par page.
@@ -432,17 +450,18 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 		WP_CLI::warning( sprintf( 'Page %d : %d titre(s) H2 trouve(s) au lieu des 5 attendus, verifier le decoupage des blocs.', $ditl_page_id, $ditl_data['h2_count'] ) );
 	}
 
-	// CORRECTION VOLONTAIRE (seul ecart de contenu de la migration) : le logo
-	// INSTITUT ESCOLA DEL TREBALL du carrousel EN reference l'attachment 4993,
-	// supprime de la mediatheque (fichier 404 en prod, logo casse sur la home
-	// EN en ligne). La page FR utilise deja son remplacant 5803
-	// (logo-escola-del-treball.png, juillet 2026).
 	foreach ( $ditl_data['partenaires']['logo_ids'] as $ditl_i => $ditl_logo_id ) {
-		if ( 4993 === $ditl_logo_id ) {
-			$ditl_data['partenaires']['logo_ids'][ $ditl_i ] = 5803;
+		if ( isset( $ditl_logos_remplaces[ $ditl_logo_id ] ) ) {
+			$ditl_remplacement = $ditl_logos_remplaces[ $ditl_logo_id ];
+
+			$ditl_data['partenaires']['logo_ids'][ $ditl_i ] = $ditl_remplacement[0];
 			WP_CLI::warning( sprintf(
-				'Page %d : CORRECTION VOLONTAIRE - logo partenaire 4993 (Logo-INSTITUT-ESCOLA-DEL-TREBALL, attachment supprime, fichier 404 en prod) remplace par 5803 (logo-escola-del-treball.png, deja utilise sur la page FR). A signaler au client.',
-				$ditl_page_id
+				'Page %d : CORRECTION VOLONTAIRE - logo partenaire %d (%s, attachment supprime, absent en prod) remplace par %d (%s, deja utilise sur la page FR). A signaler au client.',
+				$ditl_page_id,
+				$ditl_logo_id,
+				$ditl_remplacement[1],
+				$ditl_remplacement[0],
+				$ditl_remplacement[2]
 			) );
 		}
 	}

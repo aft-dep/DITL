@@ -12,6 +12,12 @@
  * - 3075 : page francaise (grille de logos, vignettes a 80%).
  * - 3035 : page anglaise (carrousel de logos, conteneur intermediaire
  *   autour de la presentation, fond degrade sur le bloc partenaires).
+ * - 3150 (ES), 3094 (PT), 3159 (DE) : structure de la page francaise
+ *   (grille de logos, vignettes a 80% ; ligne vide sous l'intro des
+ *   livrables en PT seulement), sauf le bloc Actualites, pose dans un
+ *   conteneur simple (sans la rangee vide de la version francaise) ;
+ *   ES : espaceur entre
+ *   l'image et le titre de la banniere.
  *
  * @package DiTL
  */
@@ -28,6 +34,22 @@
 /* Pas d'espaceur au-dessus de l'image sur l'accueil : image collee au header. */
 .ditl-hero__spacer {
 	display: none;
+}
+
+/*
+ * Page ES : un espaceur separait l'image du titre (hauteurs communes de
+ * l'espaceur de banniere : 25vh, 150px en tablette, 120px en mobile).
+ * L'espaceur precede l'image dans le gabarit : replace sous elle par order.
+ */
+.page-id-3150 .ditl-hero__spacer {
+	display: block;
+	order: 1;
+}
+
+.page-id-3150 .ditl-hero__title,
+.page-id-3150 .ditl-hero__sous-titre,
+.page-id-3150 .ditl-hero__action {
+	order: 2;
 }
 
 /*
@@ -217,9 +239,11 @@ h2.ditl-accueil-livr__titre {
  * de la police du corps de page). Reproduite par un pseudo-element aux memes
  * metriques. La page anglaise n'avait rien (conteneur reellement vide,
  * hauteur nulle) : variante scopee, comme les autres ecarts FR/EN du
- * gabarit (generalisation en phase 2 avec les autres langues).
+ * gabarit. La page PT (3094) a la meme ligne vide en prod ; les pages ES et
+ * DE ne l'ont pas.
  */
-.page-id-3075 .ditl-accueil-livr__intro--normalisee::after {
+.page-id-3075 .ditl-accueil-livr__intro--normalisee::after,
+.page-id-3094 .ditl-accueil-livr__intro--normalisee::after {
 	content: "\00a0";
 	display: block;
 }
@@ -264,8 +288,11 @@ h2.ditl-accueil-livr__titre {
 		width: 73%;
 	}
 
-	/* Vignettes a 80% de leur cellule sur la page francaise uniquement. */
-	.page-id-3075 .ditl-accueil-livr__cell {
+	/* Vignettes a 80% de leur cellule sur les pages FR, ES, PT et DE (pas EN). */
+	.page-id-3075 .ditl-accueil-livr__cell,
+	.page-id-3150 .ditl-accueil-livr__cell,
+	.page-id-3094 .ditl-accueil-livr__cell,
+	.page-id-3159 .ditl-accueil-livr__cell {
 		width: 80%;
 	}
 }
@@ -293,6 +320,13 @@ h2.ditl-accueil-actus__titre {
 	grid-template-columns: 1fr;
 	grid-template-rows: repeat(2, 1fr);
 	gap: 20px;
+}
+
+/* Pages ES/PT/DE : conteneur simple, pas de rangee vide sous la liste. */
+.page-id-3150 .ditl-accueil-actus .ditl-boxed__inner,
+.page-id-3094 .ditl-accueil-actus .ditl-boxed__inner,
+.page-id-3159 .ditl-accueil-actus .ditl-boxed__inner {
+	display: block;
 }
 
 .ditl-actus-liste {
@@ -891,5 +925,17 @@ ul.ditl-accueil-part__grille {
 
 	ul.ditl-accueil-part__grille {
 		grid-template-columns: repeat(1, 1fr);
+	}
+
+	/*
+	 * Pages ES/PT/DE : le logo Escola del Treball (5e logo de la grille)
+	 * etait servi en taille "medium" (300px de large) : plafonne a 300px,
+	 * sans depasser sa colonne sur les petits ecrans. Limite au mobile :
+	 * sur les grilles a plusieurs colonnes, la regle elargissait la colonne.
+	 */
+	.page-id-3150 .ditl-accueil-part__logo-item:nth-child(5) .ditl-accueil-part__logo,
+	.page-id-3094 .ditl-accueil-part__logo-item:nth-child(5) .ditl-accueil-part__logo,
+	.page-id-3159 .ditl-accueil-part__logo-item:nth-child(5) .ditl-accueil-part__logo {
+		max-width: min(300px, 100%);
 	}
 }
