@@ -367,3 +367,160 @@ hr.ditl-res-separateur {
 		letter-spacing: 3px;
 	}
 }
+
+/* ---------------------------------------------------------------------------
+ * Variantes des pages ES (3137), PT (3114) et DE (2591)
+ *
+ * Banniere du type de la page Contact francaise (retrait de 10px, espaceur
+ * de 170px en ES et DE, aucun en PT, titre de 70px a l'espacement de 8,5px) ;
+ * intro en texte courant (noir en ES et DE) ; titres d'activites aux valeurs
+ * du h2 d'Astra, a gauche, sans marge ; paragraphes sans espacement ;
+ * section 2 ES/DE : deux blocs de texte sur deux rangees egales (cellules
+ * .ditl-res-cellule posees par la migration) ; PT : second bloc de texte en
+ * section sans titre, intertitres h3 aux valeurs d'Astra.
+ * ------------------------------------------------------------------------ */
+
+.page-id-3137 .ditl-hero,
+.page-id-3114 .ditl-hero,
+.page-id-2591 .ditl-hero {
+	align-items: stretch;
+	min-height: 0;
+	padding: 10px;
+}
+
+.page-id-3137 .ditl-hero__col,
+.page-id-3114 .ditl-hero__col,
+.page-id-2591 .ditl-hero__col {
+	justify-content: center;
+	gap: 0;
+	padding: 10px;
+}
+
+.page-id-3137 .ditl-hero__spacer,
+.page-id-2591 .ditl-hero__spacer {
+	height: 170px;
+}
+
+.page-id-3114 .ditl-hero__spacer {
+	display: none;
+}
+
+.page-id-3137 h1.ditl-hero__title,
+.page-id-3114 h1.ditl-hero__title,
+.page-id-2591 h1.ditl-hero__title {
+	margin-bottom: 20px;
+	font-size: 70px;
+	line-height: 1.4em;
+	letter-spacing: 8.5px;
+}
+
+.page-id-3137 .ditl-res-corps,
+.page-id-3114 .ditl-res-corps {
+	padding-bottom: 10px;
+}
+
+/* Page DE : deux conteneurs vides en fin de page (grille vide de 40px et
+   conteneur vide de 20px). */
+.page-id-2591 .ditl-res-corps {
+	padding-bottom: 70px;
+}
+
+.page-id-3137 .ditl-res-intro,
+.page-id-3114 .ditl-res-intro,
+.page-id-2591 .ditl-res-intro {
+	font-size: inherit;
+	line-height: inherit;
+	text-align: left;
+}
+
+.page-id-3137 .ditl-res-intro,
+.page-id-2591 .ditl-res-intro {
+	color: #000000;
+}
+
+.page-id-3137 h2.ditl-res-section__title,
+.page-id-2591 h2.ditl-res-section__title {
+	margin: 0;
+	font-size: 2.7333333333333rem;
+	font-weight: 400;
+	text-align: left;
+}
+
+.page-id-3137 .ditl-res-section__content p,
+.page-id-3114 .ditl-res-section__content p,
+.page-id-2591 .ditl-res-section__content p {
+	margin: 0;
+}
+
+.page-id-3137 .ditl-res-section__content p + ul,
+.page-id-3114 .ditl-res-section__content p + ul,
+.page-id-2591 .ditl-res-section__content p + ul {
+	margin-top: 0;
+}
+
+.page-id-3114 .ditl-res-section__content h3 {
+	margin: 0 0 20px;
+	color: #0F172A;
+	font-size: 1.8666666666667rem;
+	font-weight: 600;
+}
+
+/* Blocs de texte d'une meme section (.ditl-res-bloc, poses par la
+   migration) : ecart de 20px entre widgets de l'original. */
+.page-id-3137 .ditl-res-section__content,
+.page-id-2591 .ditl-res-section__content {
+	gap: 20px;
+}
+
+.page-id-3137 .ditl-res-section__content:has(> .ditl-res-cellule),
+.page-id-2591 .ditl-res-section__content:has(> .ditl-res-cellule) {
+	display: grid;
+	grid-auto-rows: 1fr;
+}
+
+@media (max-width: 1024px) {
+
+	/* Hauteurs minimales de la banniere (contenu centre verticalement). */
+	.page-id-3137 .ditl-hero,
+	.page-id-3114 .ditl-hero,
+	.page-id-2591 .ditl-hero {
+		min-height: 400px;
+	}
+
+	.page-id-3137 h1.ditl-hero__title,
+	.page-id-3114 h1.ditl-hero__title,
+	.page-id-2591 h1.ditl-hero__title {
+		margin-bottom: 0;
+		font-size: 50px;
+		letter-spacing: 7px;
+	}
+}
+
+@media (max-width: 921px) {
+
+	.page-id-3137 h2.ditl-res-section__title,
+	.page-id-2591 h2.ditl-res-section__title {
+		font-size: 25px;
+	}
+
+	/* Comme Astra : h3 a 28px fixes sous 921px. */
+	.page-id-3114 .ditl-res-section__content h3 {
+		font-size: 28px;
+	}
+}
+
+@media (max-width: 767px) {
+
+	.page-id-3137 .ditl-hero,
+	.page-id-3114 .ditl-hero,
+	.page-id-2591 .ditl-hero {
+		min-height: 300px;
+	}
+
+	.page-id-3137 h1.ditl-hero__title,
+	.page-id-3114 h1.ditl-hero__title,
+	.page-id-2591 h1.ditl-hero__title {
+		font-size: 35px;
+		letter-spacing: 3px;
+	}
+}

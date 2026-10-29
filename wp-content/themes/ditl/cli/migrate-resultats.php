@@ -6,7 +6,10 @@
  * metas du gabarit (contrat decrit dans inc/metaboxes/resultats.php) :
  * - 1er widget image                  -> _ditl_hero_image_id (ID d'attachement, jamais l'URL)
  * - heading h1                        -> _ditl_hero_title
- * - text-editors avant le premier h2  -> _ditl_intro_content (concatenes, vides ignores)
+ * - 1er text-editor avant le premier h2 -> _ditl_intro_content (vides ignores) ; un
+ *                                        2e text-editor avant tout h2 ouvre une section
+ *                                        SANS titre (page PT 3114 : deux blocs de texte
+ *                                        separes de 20px, sans aucun h2)
  * - chaque heading h2 (defaut)        -> nouvelle section {title, content}
  * - text-editors et headings h3       -> contenu de la section courante, dans l'ordre du
  *                                        document (les h3 serialises en <h3>texte</h3>)
@@ -16,7 +19,20 @@
  *                                        _ditl_bandeau_bouton_texte, _ditl_bandeau_bouton_url
  *                                        (URL interne stockee RELATIVE pour survivre aux
  *                                        changements d'environnement)
- * Les spacers et les text-editors vides sont ignores.
+ * Les spacers et les text-editors vides sont ignores. Un text-editor pose dans un
+ * container Elementor de type grille (section 2 des pages ES 3137 et DE 2591 :
+ * deux blocs de texte sur deux rangees egales) est enveloppe dans un
+ * <div class="ditl-res-cellule"> : le CSS du gabarit reproduit les rangees.
+ * Sinon, sur les pages traduites (langue Polylang es, pt ou de), chaque
+ * text-editor d'une section est enveloppe dans un
+ * <div class="ditl-res-bloc"> : l'original espacait de 20px les blocs de
+ * texte consecutifs, la concatenation perdait cet ecart. La langue est lue
+ * dans Polylang : ne pas rejouer le script sur ces pages apres la bascule
+ * vers WPML (les blocs disparaitraient). Une couleur de
+ * texte reglee sur le widget (text_color, couleur hexadecimale validee) est
+ * reportee sur l'enveloppe (cellule ou bloc).
+ * Les pages FR 3538 et EN 3171 n'ont ni grille ni second bloc d'intro, et
+ * ne recoivent pas de blocs : resultat inchange pour elles.
  * Pose aussi _wp_page_template = page-templates/resultats.php.
  *
  * L'arbre Elementor est parcouru recursivement dans l'ordre du document :
@@ -31,8 +47,10 @@
  * Usage :
  *   wp eval-file wp-content/themes/ditl/cli/migrate-resultats.php 3538 3171 dry-run
  *   wp eval-file wp-content/themes/ditl/cli/migrate-resultats.php 3538 3171
+ *   wp eval-file wp-content/themes/ditl/cli/migrate-resultats.php 3137 3114 2591 dry-run
  *
- * Le mode simulation accepte "dry-run" ou "--dry-run" en argument.
+ * Le mode simulation accepte "dry-run" ou "--dry-run" en argument. Tout
+ * autre argument qui n'est pas un ID est REFUSE (arret, rien n'est ecrit).
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
@@ -55,8 +73,10 @@ if ( ! function_exists( 'ditl_migration_resultats_extraire' ) ) {
 	 *
 	 * @param array $elements Elements Elementor (containers et widgets).
 	 * @param array $data     Donnees collectees (passees par reference).
+	 * @param bool  $grille   True si les elements sont les enfants directs d'un
+	 *                        container Elementor de type grille.
 	 */
-	function ditl_migration_resultats_extraire( $elements, &$data ) {
+	function ditl_migration_resultats_extraire( $elements, &$data, $grille = false ) {
 		foreach ( $elements as $element ) {
 			if ( isset( $element['elType'] ) && 'widget' === $element['elType'] ) {
 				$type     = isset( $element['widgetType'] ) ? $element['widgetType'] : '';
@@ -113,9 +133,28 @@ if ( ! function_exists( 'ditl_migration_resultats_extraire' ) ) {
 							break;
 						}
 
-						if ( empty( $data['sections'] ) ) {
+						// Couleur de texte propre au widget, reportee sur l'enveloppe.
+						$couleur = isset( $reglages['text_color'] ) && is_string( $reglages['text_color'] ) ? (string) sanitize_hex_color( $reglages['text_color'] ) : '';
+						$style   = '' !== $couleur ? ' style="color: ' . $couleur . ';"' : '';
+
+						if ( $grille ) {
+							// Cellule d'une grille Elementor (rangees egales).
+							$html = '<div class="ditl-res-cellule"' . $style . '>' . $html . '</div>';
+						} elseif ( $data['blocs_separes'] && ! empty( $data['sections'] ) ) {
+							// Page traduite : bloc de texte distinct (ecart de 20px).
+							$html = '<div class="ditl-res-bloc"' . $style . '>' . $html . '</div>';
+						}
+
+						if ( empty( $data['sections'] ) && empty( $data['intro_parts'] ) ) {
 							// Avant le premier h2 : texte d'introduction.
 							$data['intro_parts'][] = $html;
+						} elseif ( empty( $data['sections'] ) ) {
+							// Second bloc avant tout h2 : section sans titre.
+							$data['sections'][]      = array(
+								'title'   => '',
+								'content' => $html,
+							);
+							$data['section_ouverte'] = true;
 						} elseif ( $data['section_ouverte'] ) {
 							$derniere = count( $data['sections'] ) - 1;
 
@@ -160,7 +199,10 @@ if ( ! function_exists( 'ditl_migration_resultats_extraire' ) ) {
 			}
 
 			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
-				ditl_migration_resultats_extraire( $element['elements'], $data );
+				$enfants_grille = isset( $element['elType'], $element['settings']['container_type'] )
+					&& 'container' === $element['elType'] && 'grid' === $element['settings']['container_type'];
+
+				ditl_migration_resultats_extraire( $element['elements'], $data, $enfants_grille );
 			}
 		}
 	}
@@ -170,7 +212,7 @@ if ( ! function_exists( 'ditl_migration_resultats_extraire' ) ) {
 // Lecture des arguments : IDs de pages + mode simulation eventuel.
 // ---------------------------------------------------------------------------
 
-$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page' );
+$ditl_modes    = ditl_cli_lire_ids_et_dry_run( $args, 'de page', true );
 $ditl_dry_run  = $ditl_modes['dry_run'];
 $ditl_page_ids = $ditl_modes['ids'];
 
@@ -185,12 +227,22 @@ foreach ( $ditl_page_ids as $ditl_page_id ) {
 		continue;
 	}
 
+	// Langue Polylang de la page : seules les traductions ES/PT/DE recoivent
+	// des blocs separes (FR, EN et page sans langue : comportement d'origine).
+	$ditl_langue = function_exists( 'pll_get_post_language' ) ? (string) pll_get_post_language( $ditl_page_id ) : '';
+
+	if ( '' === $ditl_langue ) {
+		WP_CLI::warning( sprintf( 'Page %d : langue Polylang introuvable (extension absente ou page sans langue), blocs de texte non separes.', $ditl_page_id ) );
+	}
+
 	$ditl_data = array(
 		'hero_image_id'        => 0,
 		'hero_title'           => '',
 		'intro_parts'          => array(),
 		'sections'             => array(),
 		'section_ouverte'      => false,
+		// Pages traduites (ni FR ni EN) : blocs de texte separes.
+		'blocs_separes'        => in_array( $ditl_langue, array( 'es', 'pt', 'de' ), true ),
 		'bandeau_image_id'     => 0,
 		'bandeau_texte'        => '',
 		'bandeau_bouton_texte' => '',
