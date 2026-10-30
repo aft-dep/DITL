@@ -68,6 +68,34 @@
  * L'ecriture est sautee si les blocs cibles sont deja en place (la ligne
  * "# Modified Time" du plugin est ignoree dans la comparaison).
  *
+ * SERVICE PAR APACHE DERRIERE LE FRONTAL GANDI (30/10/2026) : le bloc
+ * mod_rewrite du plugin commence par "RewriteCond %{HTTPS} on" des que le
+ * site est en https. Chez Gandi le HTTPS est termine par le frontal
+ * (Varnish), %{HTTPS} vaut "off" pour Apache : la regle ne s'appliquait
+ * jamais et toutes les pages en cache passaient par PHP (commentaire
+ * "via php" en fin de page, environ 60 a 70 ms de plus par page). La
+ * constante officielle du plugin WPFC_DISABLE_REDIRECTION, lue a chaque
+ * ecriture complete du bloc (WpFastestCacheAdmin::prefixRedirect), retire
+ * cette condition et la condition d'hote qui la suit ; les autres
+ * conditions (connectes, POST, chaines de requete, cookies, exclusions) sont
+ * inchangees. Elle est posee dans le wp-config.php de CHAQUE ENVIRONNEMENT
+ * derriere le frontal, et seulement la ou la redirection http -> https est
+ * faite par le frontal avant Apache (sinon une requete en clair recevrait
+ * la page en cache sans redirection) : pas dans le theme, qui est deploye
+ * partout. Sans elle, les pages repassent par PHP : plus lent, jamais faux.
+ * Ce script indique si la condition est encore generee.
+ *
+ * BLOC "DITL Cache navigateur" (30/10/2026) : le bloc LBCWpFastestCache du
+ * plugin pose sur les statiques un en-tete Expires invalide (Header set
+ * Expires "max-age=A10368000, public" en 1.5.0, "max-age=10368000, public"
+ * en 1.5.3 : une date est attendue), qui ecrase l'Expires valide de
+ * mod_expires. Le plugin ne reecrit jamais un bloc LBC deja present
+ * (insertLBCRule) et le reposerait tel quel a sa reactivation : corriger sa
+ * ligne ne tiendrait pas. Ce script pose donc son propre bloc, place apres
+ * ceux du plugin (toujours ecrits en tete du fichier), qui retire l'en-tete
+ * Expires des memes fichiers. Reste Cache-Control: max-age=10368000 de
+ * mod_expires, qui prime de toute facon sur Expires (RFC 9111).
+ *
  * Script idempotent, rejouable sans degat (local, preprod, prod) :
  * un rejeu sans changement n'ecrit rien (ni base, ni .htaccess).
  *
@@ -75,12 +103,23 @@
  * Le fichier .htaccess n'est PAS versionne : les blocs du plugin doivent etre
  * ecrits SUR CHAQUE ENVIRONNEMENT en rejouant ce script (les blocs contiennent
  * le nom d'hote de l'environnement).
- * 1. Deployer le code (le plugin wp-fastest-cache 1.5.0 est versionne).
+ * 1. Deployer le code (le plugin wp-fastest-cache est versionne, 1.5.3).
+ *    Hote derriere le frontal Gandi : verifier d'abord que la redirection
+ *    http -> https est faite par le frontal, puis poser la constante :
+ *      curl -sI http://<hote>/   ->  301, "Server: Varnish", Location en https
+ *      wp config set WPFC_DISABLE_REDIRECTION true --raw --type=constant
  * 2. Simulation :   wp eval-file wp-content/themes/ditl/cli/configurer-cache.php dry-run
  * 3. Application :  wp eval-file wp-content/themes/ditl/cli/configurer-cache.php
  *    (active le plugin si besoin, pose options + exclusions + crons, ecrit le .htaccess)
  * 4. Verifier le .htaccess : blocs "BEGIN WpFastestCache", "BEGIN GzipWpFastestCache",
- *    "BEGIN LBCWpFastestCache" presents AVANT le bloc "BEGIN WordPress".
+ *    "BEGIN LBCWpFastestCache" presents AVANT le bloc "BEGIN WordPress", bloc
+ *    "BEGIN DITL Cache navigateur" present, et AUCUNE ligne
+ *    "RewriteCond %{HTTPS} on" dans le bloc WpFastestCache sur un hote derriere
+ *    le frontal (sinon WPFC_DISABLE_REDIRECTION manque au wp-config.php :
+ *    pages servies via PHP, voir le point 1).
+ *    Puis, sur une page publique visitee deux fois (la 1re cree le fichier) :
+ *    plus de commentaire "via php" en fin de page, en-tetes de la page en
+ *    cache "Cache-Control: max-age=0, no-cache, no-store, must-revalidate".
  *    NB : le bloc WpFastestCache contient les logins des administrateurs en
  *    clair (condition d'exclusion par cookie, comportement natif du plugin,
  *    bloc regenere aux hooks user_register / profile_update). C'est attendu
@@ -109,8 +148,8 @@
  * Le mode simulation accepte "dry-run" ou "--dry-run", l'annulation
  * "annuler" ou "--annuler" (combinables). Le mode annuler desactive le
  * plugin (son hook de desactivation retire les blocs .htaccess et purge le
- * cache), supprime les crons et les options posees, et efface le repertoire
- * wp-content/cache/.
+ * cache), retire le bloc DITL Cache navigateur, supprime les crons et les
+ * options posees, et efface le repertoire wp-content/cache/.
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
  *
@@ -215,6 +254,126 @@ if ( ! function_exists( 'ditl_cache_supprimer_repertoire' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ditl_cache_bloc_navigateur' ) ) {
+	/**
+	 * Contenu du bloc .htaccess "DITL Cache navigateur" : retire l'en-tete
+	 * Expires invalide pose par le bloc LBCWpFastestCache du plugin (voir le
+	 * docblock du script). Meme motif de fichiers que le bloc du plugin, pour
+	 * ne toucher a rien d'autre (pages en cache index.html exclues).
+	 *
+	 * @return string Bloc complet, marqueurs inclus, termine par un saut de ligne.
+	 */
+	function ditl_cache_bloc_navigateur() {
+		$lignes = array(
+			'# BEGIN DITL Cache navigateur',
+			'# En-tete Expires invalide ("max-age=..., public" au lieu d\'une date)',
+			'# pose par le bloc LBCWpFastestCache sur les fichiers statiques : retire',
+			'# ici (directive lue apres celle du plugin). Reste Cache-Control max-age',
+			'# de mod_expires. Bloc gere par le script WP-CLI',
+			'# wp-content/themes/ditl/cli/configurer-cache.php - ne pas editer a la main.',
+			'<IfModule mod_headers.c>',
+			'<FilesMatch "\.(webm|ogg|mp4|ico|pdf|flv|avif|jpg|jpeg|png|gif|webp|js|css|swf|x-html|xml|woff|woff2|otf|ttf|svg|eot)(\.gz)?$">',
+			'Header unset Expires',
+			'</FilesMatch>',
+			'</IfModule>',
+			'# END DITL Cache navigateur',
+		);
+
+		return implode( "\n", $lignes ) . "\n";
+	}
+}
+
+if ( ! function_exists( 'ditl_cache_poser_bloc_navigateur' ) ) {
+	/**
+	 * Pose, met a jour ou retire le bloc DITL Cache navigateur du .htaccess.
+	 *
+	 * Insere AVANT le bloc WordPress, donc apres les blocs du plugin (que
+	 * WP Fastest Cache ecrit toujours en tete du fichier) : ses directives
+	 * Header sont appliquees apres celles du bloc LBCWpFastestCache. Les
+	 * autres blocs ne sont jamais touches. Mise a jour et retrait par
+	 * str_replace du bloc capture (jamais de preg_replace avec du contenu en
+	 * chaine de remplacement, lecon du 20/08).
+	 *
+	 * @param string $fichier Chemin du .htaccess.
+	 * @param bool   $dry_run True pour simuler sans ecrire.
+	 * @param bool   $retirer True pour retirer le bloc (mode annuler).
+	 * @return int Nombre d'ecritures effectuees (0 ou 1).
+	 */
+	function ditl_cache_poser_bloc_navigateur( $fichier, $dry_run, $retirer = false ) {
+		if ( ! file_exists( $fichier ) ) {
+			WP_CLI::warning( sprintf( '.htaccess introuvable (%s) : bloc DITL Cache navigateur non traite.', $fichier ) );
+			return 0;
+		}
+
+		$contenu = file_get_contents( $fichier );
+
+		if ( false === $contenu ) {
+			WP_CLI::warning( sprintf( '.htaccess illisible (%s) : bloc DITL Cache navigateur non traite.', $fichier ) );
+			return 0;
+		}
+
+		$nb_debuts = substr_count( $contenu, '# BEGIN DITL Cache navigateur' );
+
+		if ( substr_count( $contenu, '# END DITL Cache navigateur' ) !== $nb_debuts || $nb_debuts > 1 ) {
+			WP_CLI::warning( 'Marqueurs "DITL Cache navigateur" desequilibres ou en double dans le .htaccess (edition manuelle ?) : bloc non touche, a reparer a la main.' );
+			return 0;
+		}
+
+		// Bloc et ligne vide qui le suit (ajoutee a l'insertion) : un retrait
+		// rend le fichier a l'identique.
+		preg_match( '/# BEGIN DITL Cache navigateur.*?# END DITL Cache navigateur\n?\n?/s', $contenu, $existant );
+		$present = ! empty( $existant );
+		$bloc    = ditl_cache_bloc_navigateur();
+
+		if ( $retirer ) {
+			if ( ! $present ) {
+				WP_CLI::log( '  Bloc DITL Cache navigateur : absent, rien a faire.' );
+				return 0;
+			}
+			if ( $dry_run ) {
+				WP_CLI::log( '  [dry-run] Bloc DITL Cache navigateur : serait retire.' );
+				return 0;
+			}
+			$nouveau = str_replace( $existant[0], '', $contenu );
+		} else {
+			if ( $present && trim( $existant[0] ) === trim( $bloc ) ) {
+				WP_CLI::log( '  Bloc DITL Cache navigateur deja en place et a jour, rien a faire.' );
+				return 0;
+			}
+			if ( $dry_run ) {
+				WP_CLI::log( sprintf( '  [dry-run] Bloc DITL Cache navigateur : serait %s.', $present ? 'mis a jour' : 'insere avant le bloc WordPress' ) );
+				WP_CLI::log( $bloc );
+				return 0;
+			}
+			if ( $present ) {
+				$nouveau = str_replace( rtrim( $existant[0], "\n" ), rtrim( $bloc, "\n" ), $contenu );
+			} else {
+				// Marqueur ancre en debut de ligne (jamais au milieu d'un commentaire).
+				if ( ! preg_match( '/^# BEGIN WordPress$/m', $contenu, $marqueur, PREG_OFFSET_CAPTURE ) ) {
+					WP_CLI::warning( 'Bloc "# BEGIN WordPress" introuvable dans le .htaccess : bloc DITL Cache navigateur non insere, a verifier a la main.' );
+					return 0;
+				}
+
+				$position = $marqueur[0][1];
+				$nouveau  = substr( $contenu, 0, $position ) . $bloc . "\n" . substr( $contenu, $position );
+			}
+		}
+
+		if ( ! is_writable( $fichier ) || false === @file_put_contents( $fichier, $nouveau ) ) {
+			WP_CLI::warning( 'Ecriture du .htaccess impossible (fichier non inscriptible) : bloc DITL Cache navigateur non traite.' );
+			return 0;
+		}
+
+		if ( $retirer ) {
+			WP_CLI::log( '  Bloc DITL Cache navigateur : retire.' );
+		} else {
+			WP_CLI::log( $present ? '  Bloc DITL Cache navigateur : mis a jour.' : '  Bloc DITL Cache navigateur : insere avant le bloc WordPress.' );
+		}
+
+		return 1;
+	}
+}
+
 // ---------------------------------------------------------------------------
 // MODE ANNULER : retour a l'etat anterieur au chantier cache.
 // ---------------------------------------------------------------------------
@@ -243,6 +402,10 @@ if ( $ditl_annuler ) {
 			WP_CLI::warning( 'Des blocs WpFastestCache subsistent dans le .htaccess alors que le plugin est inactif : les retirer manuellement.' );
 		}
 	}
+
+	// 1 bis. Bloc DITL Cache navigateur pose par ce script (le plugin ne le
+	// connait pas et ne le retire donc pas).
+	ditl_cache_poser_bloc_navigateur( ABSPATH . '.htaccess', $ditl_dry_run, true );
 
 	// 2. Crons du plugin (purge quotidienne, preload, eventuel hook historique).
 	$ditl_crons = ditl_cache_lister_crons_wpfc();
@@ -573,9 +736,25 @@ $ditl_htaccess_cible = $ditl_admin_wpfc->insertGzipRule( $ditl_htaccess_cible, $
 $ditl_htaccess_cible = $ditl_admin_wpfc->insertRewriteRule( $ditl_htaccess_cible, $ditl_options_cache );
 $ditl_htaccess_cible = $ditl_admin_wpfc->to_move_gtranslate_rules( $ditl_htaccess_cible );
 
-// La ligne "# Modified Time" change a chaque generation : ignoree.
+// Condition https du plugin : jamais satisfaite derriere le frontal Gandi
+// (voir le docblock). Normale sur un hote qui recoit le HTTPS lui-meme
+// (local) ; derriere le frontal, elle signale un wp-config.php sans la
+// constante WPFC_DISABLE_REDIRECTION.
+if ( preg_match( '/# BEGIN WpFastestCache\n.*?# END WpFastestCache/s', $ditl_htaccess_cible, $ditl_bloc_reecriture )
+	&& false !== strpos( $ditl_bloc_reecriture[0], 'RewriteCond %{HTTPS} on' ) ) {
+	WP_CLI::log( '  Condition "RewriteCond %{HTTPS} on" presente dans le bloc genere : normal si cet hote recoit le HTTPS lui-meme ; derriere le frontal Gandi, les pages en cache seront servies via PHP tant que WPFC_DISABLE_REDIRECTION manque au wp-config.php (runbook, point 1).' );
+} else {
+	WP_CLI::log( '  Condition "RewriteCond %{HTTPS} on" absente du bloc genere : pages en cache servies par Apache (WPFC_DISABLE_REDIRECTION).' );
+}
+
+// La ligne "# Modified Time" change a chaque generation : ignoree. Les lignes
+// vides aussi : le plugin les deplace d'une generation a l'autre (il retire
+// ses blocs avec les blancs qui les entourent puis les reecrit en tete), ce
+// qui imposait un second passage sans aucun changement de directive.
 $ditl_normaliser_ht = static function ( $contenu ) {
-	return preg_replace( '/^# Modified Time:.*$/m', '', (string) $contenu );
+	$contenu = preg_replace( '/^# Modified Time:.*$/m', '', (string) $contenu );
+
+	return trim( preg_replace( '/\n\s*\n/', "\n", $contenu ) );
 };
 
 if ( $ditl_normaliser_ht( $ditl_htaccess_avant ) === $ditl_normaliser_ht( $ditl_htaccess_cible ) ) {
@@ -622,6 +801,15 @@ if ( ! $ditl_dry_run ) {
 		WP_CLI::log( '  Repertoires wp-content/cache/ et cache/all/ : prets.' );
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Etape 7 : bloc DITL Cache navigateur (en-tete Expires invalide du plugin),
+// apres l'ecriture des blocs du plugin, sur le fichier tel qu'il est alors.
+// ---------------------------------------------------------------------------
+
+WP_CLI::log( '--- Bloc .htaccess DITL Cache navigateur (en-tete Expires des statiques) ---' );
+
+$ditl_ecritures += ditl_cache_poser_bloc_navigateur( $ditl_chemin_ht, $ditl_dry_run );
 
 // ---------------------------------------------------------------------------
 // Rappels (aucune modification ici).

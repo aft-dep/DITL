@@ -56,3 +56,42 @@ add_filter( 'cmplz_whitelisted_script_tags', 'ditl_ext_gtag_hors_liste_blanche',
 function ditl_ext_gtag_hors_liste_blanche( $tags ) {
 	return array_values( array_diff( (array) $tags, array( 'google_gtagjs-js', 'google_gtagjs-js-after' ) ) );
 }
+
+/*
+ * WP Fastest Cache : aucune page affichant un formulaire WPForms n'est mise
+ * en cache.
+ *
+ * Le formulaire embarque un jeton anti-spam dans le HTML (raison de
+ * l'exclusion des pages /fr/contact/ et /contact-us/ posee par
+ * cli/configurer-cache.php). Les pages Contact ES, PT et DE (/es/contacto/,
+ * /pt/contato/, /de/kontakt/) n'y figuraient pas et etaient mises en cache
+ * avec leur jeton (constate en local le 30/10/2026). Plutot qu'une liste
+ * d'URL a tenir a jour (langues, futures URL WPML), le rendu du formulaire
+ * exclut lui-meme la page en cours : wpfc_exclude_current_page() est la
+ * fonction publique prevue par le plugin pour cela (aucun fichier de cache
+ * cree, commentaire "This page has been excluded" en fin de page).
+ * Le hook wpforms_frontend_output_before est declenche a chaque affichage
+ * d'un formulaire, quel que soit le mode d'insertion (bloc, code court).
+ */
+add_action( 'wpforms_frontend_output_before', 'ditl_ext_exclure_page_formulaire_du_cache' );
+function ditl_ext_exclure_page_formulaire_du_cache() {
+	if ( function_exists( 'wpfc_exclude_current_page' ) ) {
+		wpfc_exclude_current_page();
+	}
+}
+
+/*
+ * WP Fastest Cache : les pages de resultats de recherche ne sont pas mises en
+ * cache.
+ *
+ * Le plugin cache les recherches en URL propre (/search/<terme>/) : chaque
+ * terme saisi creerait un fichier, sans limite, et rien ne les purge sur un
+ * environnement sans WP-Cron (preprod). Contenu public, aucun gain utile :
+ * meme exclusion par la fonction publique du plugin.
+ */
+add_action( 'template_redirect', 'ditl_ext_exclure_recherche_du_cache' );
+function ditl_ext_exclure_recherche_du_cache() {
+	if ( is_search() && function_exists( 'wpfc_exclude_current_page' ) ) {
+		wpfc_exclude_current_page();
+	}
+}
