@@ -13,6 +13,7 @@ class PageTitle extends SmartTag {
 	 * Get smart tag value.
 	 *
 	 * @since 1.6.7
+	 * @since 2.0.3 Return the page title as plain text in every branch.
 	 *
 	 * @param array  $form_data Form data.
 	 * @param array  $fields    List of fields.
@@ -25,20 +26,20 @@ class PageTitle extends SmartTag {
 		$page_title = $this->get_meta( $entry_id, 'page_title' );
 
 		if ( ! empty( $page_title ) ) {
-			return wp_kses_post( $page_title );
+			return wpforms_neutralize_html_tags( $page_title );
 		}
 
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		if ( ! empty( $_POST['page_title'] ) && ! is_array( $_POST['page_title'] ) ) {
-			return wp_kses_post( wp_unslash( $_POST['page_title'] ) );
+			return wpforms_neutralize_html_tags( wp_unslash( $_POST['page_title'] ) );
 		}
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		if ( is_front_page() ) {
-			return wp_kses_post( is_page() ? get_the_title( get_the_ID() ) : get_bloginfo( 'name' ) );
+			return wpforms_neutralize_html_tags( is_page() ? get_the_title( get_the_ID() ) : get_bloginfo( 'name' ) );
 		}
 
-		return wp_kses_post( $this->get_wp_title() );
+		return wpforms_neutralize_html_tags( $this->get_wp_title() );
 	}
 
 	/**

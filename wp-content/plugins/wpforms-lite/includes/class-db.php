@@ -368,6 +368,7 @@ abstract class WPForms_DB {
 	 * Clone of $wpdb->get_results() with caching.
 	 *
 	 * @since        1.9.0
+	 * @since 2.0.3 Non-array cache hits are treated as misses.
 	 *
 	 * @param string|null $query  SQL query.
 	 * @param string      $output Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
@@ -387,7 +388,7 @@ abstract class WPForms_DB {
 		$key     = md5( __METHOD__ . $query . $output );
 		$results = $this->cache_get( $key, $found );
 
-		if ( $found ) {
+		if ( $found && is_array( $results ) ) {
 			return $results;
 		}
 
@@ -403,6 +404,7 @@ abstract class WPForms_DB {
 	 * Clone of $wpdb->get_col() with caching.
 	 *
 	 * @since 1.9.4
+	 * @since 2.0.3 Non-array cache hits are treated as misses.
 	 *
 	 * @param string|null $query SQL query.
 	 * @param int         $x     Column to return. Indexed from 0.
@@ -422,7 +424,7 @@ abstract class WPForms_DB {
 		$key = md5( __METHOD__ . $query . $x );
 		$col = $this->cache_get( $key, $found );
 
-		if ( $found ) {
+		if ( $found && is_array( $col ) ) {
 			return $col;
 		}
 
@@ -859,7 +861,9 @@ abstract class WPForms_DB {
 			return false;
 		}
 
-		$data = wp_cache_get( $key, $this->cache_group, false, $found );
+		// Do not let the index lookup's $found leak into the data lookup.
+		$found = false;
+		$data  = wp_cache_get( $key, $this->cache_group, false, $found );
 
 		return $found ? $data : false;
 	}
@@ -881,6 +885,8 @@ abstract class WPForms_DB {
 			return false;
 		}
 
+		// Some object cache drop-ins never touch the by-reference $found.
+		$found    = false;
 		$all_keys = wp_cache_get( self::ALL_KEYS, $this->cache_group, false, $found );
 		$all_keys = $found ? array_unique( array_merge( (array) $all_keys, [ $key ] ) ) : [ $key ];
 
@@ -904,6 +910,8 @@ abstract class WPForms_DB {
 			return false;
 		}
 
+		// Some object cache drop-ins never touch the by-reference $found.
+		$found    = false;
 		$all_keys = wp_cache_get( self::ALL_KEYS, $this->cache_group, false, $found );
 
 		if ( ! $found ) {

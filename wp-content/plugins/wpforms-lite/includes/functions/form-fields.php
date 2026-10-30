@@ -814,3 +814,36 @@ function wpforms_flatten_field_value( $value ): string {
 
 	return implode( "\n", wpforms_get_field_value_list( $value ) );
 }
+
+/**
+ * Check if a field type supports the "Other" choice option.
+ *
+ * This function determines whether a given field type can have an "Other" choice
+ * that allows users to enter custom text. By default, Radio and Checkbox fields
+ * support this feature.
+ *
+ * @since 2.0.3
+ *
+ * @param array $field Field data.
+ *
+ * @return bool True if a field type supports the Other option, false otherwise.
+ */
+function wpforms_field_supports_other_choice( array $field ): bool {
+
+	$supported_types = [ 'radio', 'checkbox' ];
+
+	/**
+	 * Filter the list of field types that support the "Other" choice option.
+	 *
+	 * This allows addons or custom field types to add or remove support for
+	 * the Other choice feature.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param array $supported_types Array of field type slugs that support Other choice.
+	 * @param array $field           Field settings.
+	 */
+	$supported_types = (array) apply_filters( 'wpforms_field_supports_other_choice', $supported_types, $field );
+
+	return in_array( $field['type'], $supported_types, true );
+}

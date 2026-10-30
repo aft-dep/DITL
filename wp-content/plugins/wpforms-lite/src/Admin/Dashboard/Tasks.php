@@ -2,7 +2,6 @@
 
 namespace WPForms\Admin\Dashboard;
 
-use WPForms\Pro\Db\Dashboard\RollupRepository;
 use WPForms\Pro\Tasks\Actions\DashboardBackfillTask;
 use WPForms\Pro\Tasks\Actions\DashboardRollupTask;
 use WPForms\Tasks\Actions\DashboardCacheRefreshTask;
@@ -42,10 +41,12 @@ class Tasks {
 	/**
 	 * Append the Dashboard tasks to the manager's class list.
 	 *
-	 * The rollup tasks read the Pro rollup tables directly, so they are only
-	 * registered once those tables exist.
+	 * The rollup tasks are registered without checking their tables: this filter runs on
+	 * every request, front-end included, and each task callback already returns early
+	 * while the rollup tables are missing.
 	 *
 	 * @since 2.0.2
+	 * @since 2.0.3 Registers the rollup tasks without probing their tables.
 	 *
 	 * @param array|mixed $tasks Task class list.
 	 *
@@ -56,7 +57,7 @@ class Tasks {
 		$tasks   = (array) $tasks;
 		$tasks[] = DashboardCacheRefreshTask::class;
 
-		if ( ! wpforms()->is_pro() || ! RollupRepository::tables_exist() ) {
+		if ( ! wpforms()->is_pro() ) {
 			return $tasks;
 		}
 

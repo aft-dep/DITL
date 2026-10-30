@@ -13,6 +13,7 @@ class FieldValueId extends SmartTag {
 	 * Get smart tag value.
 	 *
 	 * @since 1.6.7
+	 * @since 2.0.3.1 Escape a plain-text value printed into front-end markup.
 	 *
 	 * @param array  $form_data Form data.
 	 * @param array  $fields    List of fields.
@@ -40,6 +41,6 @@ class FieldValueId extends SmartTag {
 
 		$value = $this->get_formatted_field_value( (int) $field_id, (array) $fields, $field_key, $form_data );
 
-		return wp_kses_post( wp_unslash( $value ) );
+		return $this->sanitize_field_value( $value, (array) $fields[ $field_id ] );
 	}
 }

@@ -284,7 +284,7 @@ class Cache {
 				'total_payments'   => $this->get_payment_count( $payments['tiles']['total_payments'] ?? 0 ),
 				'total_sales'      => (string) ( $payments['tiles']['total_sales'] ?? '0' ),
 				'coupons_redeemed' => $this->get_payment_count( $payments['tiles']['coupons'] ?? 0 ),
-				'total_refunded'   => $this->get_refunded_amount( $payments['tiles']['total_refunded'] ?? '0' ),
+				'total_refunded'   => PaymentStats::parse_amount_tile( $payments['tiles']['total_refunded'] ?? '0' )['amount'],
 			],
 			'entries'   => [
 				'graph' => [],
@@ -684,28 +684,6 @@ class Cache {
 	 */
 	private function get_payment_count( $tile ): int {
 
-		return (int) str_replace( ',', '', (string) $tile );
-	}
-
-	/**
-	 * Extract the refunded amount from a `total_refunded` payment tile value.
-	 *
-	 * Handles both the scalar string and array shapes returned by `StatsAggregator` and the empty fallback.
-	 *
-	 * @since 2.0.2
-	 *
-	 * @param array|string $tile Raw `total_refunded` tile value.
-	 *
-	 * @return string
-	 */
-	private function get_refunded_amount( $tile ): string {
-
-		if ( is_array( $tile ) ) {
-			return (string) ( $tile['amount'] ?? '0' );
-		}
-
-		$amount = explode( ' ', (string) $tile )[0];
-
-		return $amount === '' ? '0' : $amount;
+		return PaymentStats::parse_tile_count( $tile );
 	}
 }

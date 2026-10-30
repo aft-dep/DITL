@@ -3,6 +3,7 @@
 namespace WPForms\SetupChecklist;
 
 use WPForms\Education\ActiveLayer\Helper as ActiveLayer;
+use WPForms\Helpers\PaymentGatewayDetector;
 use WPForms\Integrations\LiteConnect\Integration;
 use WPForms\SetupWizard\Service\PluginDetector;
 use WPForms\SetupWizard\Service\SettingsDetector;
@@ -294,14 +295,7 @@ class CompletionDetector {
 	 */
 	private function is_payment_gateway_connected(): bool {
 
-		$detector = new SettingsDetector();
-
 		// Any supported gateway — Stripe, PayPal Commerce, Square, Authorize.Net, Mercado Pago, or Paystack — connected in the CURRENT payment mode completes the item.
-		return $detector->is_stripe_configured()
-			|| $detector->is_paypal_commerce_configured()
-			|| $detector->is_square_configured()
-			|| $detector->is_authorize_net_configured()
-			|| $detector->is_mercado_pago_configured()
-			|| $detector->is_paystack_configured();
+		return PaymentGatewayDetector::is_any_payment_gateway_configured();
 	}
 }

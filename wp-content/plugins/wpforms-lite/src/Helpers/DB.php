@@ -38,6 +38,13 @@ class DB {
 	const EXISTING_TABLES_TRANSIENT_EXPIRATION = WEEK_IN_SECONDS; // A week.
 
 	/**
+	 * Cache key prefix for exact-name lookups, so they never mix with the results of a LIKE pattern.
+	 *
+	 * @since 2.0.3
+	 */
+	private const EXACT_TABLE_CACHE_PREFIX = 'exact:';
+
+	/**
 	 * Existing tables.
 	 *
 	 * @since 1.8.7
@@ -110,7 +117,11 @@ class DB {
 	/**
 	 * Check if the database table exists and cache the result.
 	 *
+	 * Only a found table is cached: a missing one is queried again on every call, so avoid
+	 * calling this on paths that run on every request, such as front-end page loads.
+	 *
 	 * @since 1.8.7
+	 * @since 2.0.3 Finds an existing table with an exact-name lookup first.
 	 *
 	 * @param string $table_name Table name. Can have SQL wildcard.
 	 *
@@ -130,6 +141,11 @@ class DB {
 			return true;
 		}
 
+		// A table with exactly this name also matches it as a LIKE pattern, so this changes the cost, not the answer.
+		if ( self::exact_table_exists( $table_name ) ) {
+			return true;
+		}
+
 		foreach ( self::get_existing_tables( $table_name ) as $existing_table ) {
 			if ( self::wildcard_match( $table_name, $existing_table ) ) {
 				return true;
@@ -137,6 +153,63 @@ class DB {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Whether a table with exactly this name exists, cached like the LIKE lookups.
+	 *
+	 * `SHOW TABLES LIKE` compares the pattern against every table in the schema, so it slows down
+	 * with each table, up to minutes on large multisite networks. An equality match on
+	 * `information_schema.TABLES` is an index lookup. A miss returns false, so the caller still runs the LIKE lookup and a `_` in the
+	 * name keeps its wildcard meaning.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param string $table_name Table name.
+	 *
+	 * @return bool
+	 */
+	private static function exact_table_exists( string $table_name ): bool {
+
+		global $wpdb;
+
+		if ( strpos( $table_name, '%' ) !== false ) {
+			return false;
+		}
+
+		// A filtered result keeps precedence, and the LIKE lookup is where it is applied.
+		/** This filter is documented in wpforms/src/Helpers/DB.php. */
+		if ( (array) apply_filters( 'wpforms_helpers_db_pre_get_existing_tables', [], $table_name ) ) {
+			return false;
+		}
+
+		// A cached LIKE result that already contains this exact name answers the question.
+		if ( in_array( $table_name, self::get_existing_tables_cache( $table_name ), true ) ) {
+			return true;
+		}
+
+		$cache_key = self::EXACT_TABLE_CACHE_PREFIX . $table_name;
+
+		if ( self::get_existing_tables_cache( $cache_key ) ) {
+			return true;
+		}
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$found = (string) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s LIMIT 1',
+				$table_name
+			)
+		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		if ( $found === '' ) {
+			return false;
+		}
+
+		self::set_existing_tables_cache( [ $found ], $cache_key );
+
+		return true;
 	}
 
 	/**

@@ -143,18 +143,6 @@ class Summaries extends BaseSummaries {
 	}
 
 	/**
-	 * Get form entries.
-	 *
-	 * @since 1.8.8
-	 *
-	 * @return array
-	 */
-	protected function get_entries(): array {
-
-		return ( new EntriesCount() )->get_form_trends();
-	}
-
-	/**
 	 * Register entries count schedule.
 	 *
 	 * @since 1.8.8

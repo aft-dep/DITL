@@ -2,6 +2,8 @@
 
 namespace WPForms\Forms;
 
+use WPForms\Migrations\Tasks\AntiSpamUpgradeTask;
+
 /**
  * Class Anti-Spam v3.
  *
@@ -10,6 +12,13 @@ namespace WPForms\Forms;
  * @since 1.9.0
  */
 class AntiSpam {
+
+	/**
+	 * Settings keys holding the legacy anti-spam protection.
+	 *
+	 * @since 2.0.3
+	 */
+	public const LEGACY_KEYS = [ 'honeypot', 'antispam' ];
 
 	/**
 	 * Field ID to insert the honeypot field before.
@@ -59,6 +68,9 @@ class AntiSpam {
 		add_filter( 'wpforms_templates_class_base_template_modify_data', [ $this, 'update_template_form_data' ] );
 		add_filter( 'wpforms_templates_class_base_template_replace_modify_data', [ $this, 'update_template_form_data' ] );
 		add_filter( 'wpforms_form_handler_convert_form_data', [ $this, 'update_template_form_data' ] );
+
+		// Save hooks.
+		add_filter( 'wpforms_save_form_args', [ $this, 'retire_legacy_settings' ], 10, 2 );
 	}
 
 	/**
@@ -289,22 +301,31 @@ class AntiSpam {
 	 */
 	private function is_honeypot_enabled( array $form_data ): bool {
 
-		static $is_enabled;
+		// Several forms can render in one request, each with its own setting, so the result is kept per form.
+		static $is_enabled = [];
 
-		if ( isset( $is_enabled ) ) {
-			return $is_enabled;
+		$form_id = (int) ( $form_data['id'] ?? 0 );
+
+		if ( $form_id && isset( $is_enabled[ $form_id ] ) ) {
+			return $is_enabled[ $form_id ];
 		}
 
 		/**
 		 * Filters whether the modern Anti-Spam is enabled.
 		 *
 		 * @since 1.9.0
+		 * @since 2.0.3 Added the `$form_data` parameter.
 		 *
-		 * @param bool $is_enabled True if the modern Anti-Spam is enabled, false otherwise.
+		 * @param bool  $is_enabled True if the modern Anti-Spam is enabled, false otherwise.
+		 * @param array $form_data  Form data.
 		 */
-		$is_enabled = (bool) apply_filters( 'wpforms_forms_anti_spam_v3_is_honeypot_enabled', ! empty( $form_data['settings']['antispam_v3'] ) );
+		$enabled = (bool) apply_filters( 'wpforms_forms_anti_spam_v3_is_honeypot_enabled', ! empty( $form_data['settings']['antispam_v3'] ), $form_data );
 
-		return $is_enabled;
+		if ( $form_id ) {
+			$is_enabled[ $form_id ] = $enabled;
+		}
+
+		return $enabled;
 	}
 
 	/**
@@ -381,5 +402,133 @@ class AntiSpam {
 		];
 
 		return $form_data;
+	}
+
+	/**
+	 * Keep the legacy anti-spam settings present, and off whenever modern protection is on.
+	 *
+	 * The keys are switched off, not dropped: the builder renders a legacy toggle for
+	 * every key that is present, and that toggle is what keeps the setting reachable.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param array|mixed $form      Post data about to be saved.
+	 * @param array       $form_data Form data.
+	 *
+	 * @return array
+	 */
+	public function retire_legacy_settings( $form, array $form_data ): array {
+
+		$form   = (array) $form;
+		$stored = $this->get_stored_settings( (int) ( $form['ID'] ?? 0 ) );
+
+		// The builder keeps the two exclusive, so a legacy '1' posted alongside
+		// modern protection is stale and modern wins.
+		$is_modern  = ! empty( $form_data['settings']['antispam_v3'] );
+		$is_changed = false;
+
+		foreach ( self::LEGACY_KEYS as $key ) {
+			// The toggle is a bare checkbox, so an unchecked one posts nothing and the
+			// key would be dropped, taking the control away with it.
+			if ( ! isset( $stored[ $key ] ) || ( ! $is_modern && isset( $form_data['settings'][ $key ] ) ) ) {
+				continue;
+			}
+
+			$form_data['settings'][ $key ] = '0';
+			$is_changed                    = true;
+		}
+
+		if ( self::has_legacy_protection( [ 'settings' => $stored ] ) && ! self::has_legacy_protection( $form_data ) ) {
+			AntiSpamUpgradeTask::release_skipped( (int) ( $form['ID'] ?? 0 ) );
+		}
+
+		if ( ! $is_changed ) {
+			return $form;
+		}
+
+		$form['post_content'] = wpforms_encode( $form_data );
+
+		return $form;
+	}
+
+	/**
+	 * Get the settings of the form as it is stored, before the save in progress.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param int $form_id Form ID.
+	 *
+	 * @return array
+	 */
+	private function get_stored_settings( int $form_id ): array {
+
+		if ( ! $form_id ) {
+			return [];
+		}
+
+		// json_decode() rather than wpforms_decode(): only stored flags are read here,
+		// and that one's wp_unslash() would run over every value to reach them.
+		$stored = (array) json_decode( (string) get_post_field( 'post_content', $form_id ), true );
+
+		return (array) ( $stored['settings'] ?? [] );
+	}
+
+	/**
+	 * Determine whether a form is protected by legacy anti-spam.
+	 *
+	 * Both legacy checks require the exact string '1' at runtime, in
+	 * Honeypot::render() and Token::validate(), so any other stored value is
+	 * inert and must not count as active protection.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param array $form_data Form data.
+	 *
+	 * @return bool
+	 */
+	public static function has_legacy_protection( array $form_data ): bool {
+
+		$settings = $form_data['settings'] ?? [];
+
+		foreach ( self::LEGACY_KEYS as $key ) {
+			if ( ( $settings[ $key ] ?? '' ) === '1' ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Determine whether a form may be auto-upgraded to modern anti-spam.
+	 *
+	 * Evaluated per form while the background task runs, not when the migration
+	 * is dispatched: migrations run inside plugins_loaded, before a theme's
+	 * functions.php exists, so a filter added there would never be seen.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param int   $form_id   Form ID.
+	 * @param array $form_data Form data.
+	 *
+	 * @return bool
+	 */
+	public static function is_auto_upgrade_allowed( int $form_id, array $form_data ): bool {
+
+		/**
+		 * Filters whether a form may be auto-upgraded to modern anti-spam protection.
+		 *
+		 * @since 2.0.3
+		 *
+		 * @param bool  $allowed   Whether the upgrade is allowed. Default true.
+		 * @param int   $form_id   Form ID.
+		 * @param array $form_data Form data.
+		 */
+		return (bool) apply_filters(
+			'wpforms_forms_anti_spam_is_auto_upgrade_allowed',
+			true,
+			$form_id,
+			$form_data
+		);
 	}
 }

@@ -76,11 +76,11 @@ class Columns extends ColumnsBase {
 			'shortcode' => [
 				'label' => esc_html__( 'Shortcode', 'wpforms-lite' ),
 			],
-			'created'   => [
-				'label' => esc_html__( 'Date', 'wpforms-lite' ),
-			],
 			'entries'   => [
 				'label' => esc_html__( 'Entries', 'wpforms-lite' ),
+			],
+			'created'   => [
+				'label' => esc_html__( 'Date', 'wpforms-lite' ),
 			],
 		];
 
@@ -130,9 +130,10 @@ class Columns extends ColumnsBase {
 		$user_meta_legacy_columns_hidden = is_array( $user_meta_legacy_columns_hidden ) ? $user_meta_legacy_columns_hidden : [];
 		$user_meta_columns_is_empty      = empty( $user_meta_columns );
 
-		// Make the ID column hidden by default for users who have no saved selection yet.
+		// Keep the overview focused on entries, analytics, date and locations by hiding the
+		// ID, Tags and Author columns for users who have no saved selection yet.
 		if ( $user_meta_columns_is_empty ) {
-			$user_meta_legacy_columns_hidden[] = 'id';
+			$user_meta_legacy_columns_hidden = array_merge( $user_meta_legacy_columns_hidden, [ 'id', 'tags', 'author' ] );
 		}
 
 		// The Shortcode column is also default-hidden when Form Analytics is active so

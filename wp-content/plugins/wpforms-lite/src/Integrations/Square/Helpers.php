@@ -451,14 +451,19 @@ class Helpers {
 	 * Return a formatted amount required by Square API.
 	 *
 	 * @since 1.9.5
+	 * @since 2.0.3 Added the `$currency` parameter.
 	 *
-	 * @param string $amount Price amount.
+	 * @param string $amount   Price amount.
+	 * @param string $currency Currency the amount is formatted in. Defaults to the current currency.
 	 *
-	 * @return float|int
+	 * @return int Amount in the minor units of the current currency.
 	 */
-	public static function format_amount( string $amount ) {
+	public static function format_amount( string $amount, string $currency = '' ): int {
 
-		return wpforms_sanitize_amount( $amount ) * wpforms_get_currency_multiplier();
+		// Rounding after the multiplier both drops the fraction of a minor unit left by an amount
+		// pinned to a currency with more decimals than the current one, which Square rejects, and
+		// absorbs the float noise of the multiplication itself (19.99 * 100 is 1998.9999…).
+		return (int) round( (float) wpforms_sanitize_amount( $amount, $currency ) * wpforms_get_currency_multiplier() );
 	}
 
 	/**

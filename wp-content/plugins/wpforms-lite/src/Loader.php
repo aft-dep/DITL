@@ -79,6 +79,23 @@ class Loader {
 			'name' => 'Emails\Summaries',
 		];
 
+		// Weekly summary metrics; the Lite or Pro implementation is resolved here.
+		$this->classes[] = [
+			'name' => 'Emails\Summaries\Data',
+			'id'   => 'emails_summaries_data',
+			'hook' => false,
+		];
+
+		$this->classes[] = [
+			'name' => 'Emails\Summaries\Milestones',
+			'id'   => 'emails_summaries_milestones',
+		];
+
+		$this->classes[] = [
+			'name' => 'Emails\Summaries\Tracking',
+			'id'   => 'emails_summaries_tracking',
+		];
+
 		$this->classes[] = [
 			'name' => 'Helpers\Plugin',
 			'id'   => 'plugin',
@@ -223,6 +240,9 @@ class Loader {
 			[
 				'name' => 'Admin\Notice',
 				'id'   => 'notice',
+			],
+			[
+				'name' => 'Admin\AntiSpamUpgrade',
 			],
 			[
 				'name' => 'Admin\Settings\Captcha\ConfigurationError',
@@ -948,6 +968,16 @@ class Loader {
 				'id'   => 'tasks_meta',
 				'hook' => false,
 				'run'  => false,
+			],
+			// Armed here rather than by UpgradeBase::run_async() so the admin
+			// notice can re-run it after the migration is already recorded, and
+			// so the action callback is registered on WP-Cron requests too.
+			// init() returns immediately while the status option is unset.
+			[
+				'name'     => 'Migrations\Tasks\AntiSpamUpgradeTask',
+				'id'       => 'antispam_upgrade_task',
+				'hook'     => 'init',
+				'priority' => PHP_INT_MAX,
 			]
 		);
 	}

@@ -184,7 +184,7 @@ class Chat {
 			'dom-purify',
 			WPFORMS_PLUGIN_URL . 'assets/lib/purify.min.js',
 			[],
-			'3.4.13',
+			'3.4.15',
 			false
 		);
 

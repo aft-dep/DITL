@@ -133,7 +133,7 @@ class PLL_Translated_Post extends PLL_Translated_Object implements PLL_Translata
 	 * @return void
 	 */
 	public function delete_translation( $id ) {
-		$id = $this->sanitize_int_id( $id );
+		$id = pll_sanitize_id( $id );
 
 		if ( empty( $id ) ) {
 			return;
@@ -251,7 +251,7 @@ class PLL_Translated_Post extends PLL_Translated_Object implements PLL_Translata
 	 * @phpstan-param non-empty-string $context
 	 */
 	public function current_user_can_read( $id, $context = 'view' ) {
-		$id = $this->sanitize_int_id( $id );
+		$id = pll_sanitize_id( $id );
 
 		if ( empty( $id ) ) {
 			return false;
@@ -508,7 +508,7 @@ class PLL_Translated_Post extends PLL_Translated_Object implements PLL_Translata
 	 *     Optional. An array of elements that make up a post to insert.
 	 *     @See wp_insert_post() for accepted arguments.
 	 *
-	 *     @type string[] $translations The translation group to assign to the post with language slug as keys and post ID as values.
+	 *     @type int[] $translations The translation group to assign to the post with language slug as keys and post ID as values.
 	 * }
 	 * @param PLL_Language $language The post language object.
 	 * @return int|WP_Error The post ID on success. The value `WP_Error` on failure.
@@ -539,7 +539,7 @@ class PLL_Translated_Post extends PLL_Translated_Object implements PLL_Translata
 	 *     @See wp_insert_post() for accepted arguments.
 	 *
 	 *     @type PLL_Language|string $lang         The post language object or slug.
-	 *     @type string[]            $translations The translation group to assign to the post with language slug as keys and post ID as values.
+	 *     @type int[]               $translations The translation group to assign to the post with language slug as keys and post ID as values.
 	 * }
 	 * @return int|WP_Error The post ID on success. The value `WP_Error` on failure.
 	 */

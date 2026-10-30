@@ -3,6 +3,12 @@
  * Display Email settings heading.
  *
  * @since 1.8.5
+ *
+ * @var array $args {
+ *     Template arguments.
+ *
+ *     @type string $smtp_notice Pre-rendered SMTP education notice HTML, empty when admin education is disabled.
+ * }
  */
 
 defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
@@ -18,6 +24,6 @@ defined( 'ABSPATH' ) || exit; // Exit if accessed directly.
 <?php
 
 // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-echo wpforms()->obj( 'education_smtp_notice' )->get_template();
+echo $args['smtp_notice'] ?? '';
 
 /* Omit closing PHP tag at the end of PHP files to avoid "headers already sent" issues. */

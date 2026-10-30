@@ -113,7 +113,7 @@ class Field extends \WPForms_Field {
 			$properties['inputs']['primary']['class'][] = 'wpforms-payment-user-input';
 
 			if ( ! empty( $field['min_price'] ) ) {
-				$properties['inputs']['primary']['data']['rule-required-minimum-price'] = wpforms_sanitize_amount( $field['min_price'] );
+				$properties['inputs']['primary']['data']['rule-required-minimum-price'] = wpforms_sanitize_form_amount( $field['min_price'], $form_data );
 			}
 		}
 
@@ -137,7 +137,7 @@ class Field extends \WPForms_Field {
 
 		// Price.
 		if ( ! empty( $field['price'] ) ) {
-			$field_value = wpforms_sanitize_amount( $field['price'] );
+			$field_value = wpforms_sanitize_form_amount( $field['price'], $form_data );
 		} elseif ( $required && $field_format === self::FORMAT_SINGLE ) {
 			$field_value = wpforms_format_amount( 0 );
 		} else {
@@ -301,7 +301,7 @@ class Field extends \WPForms_Field {
 	 */
 	private function price_option( $field ) {
 
-		$price   = ! empty( $field['price'] ) ? wpforms_format_amount( wpforms_sanitize_amount( $field['price'] ) ) : '';
+		$price   = ! empty( $field['price'] ) ? wpforms_format_amount( $this->sanitize_form_amount( $field['price'] ) ) : '';
 		$tooltip = esc_html__( 'Enter the price of the item, without a currency symbol.', 'wpforms-lite' );
 
 		$output = $this->field_element(
@@ -401,7 +401,7 @@ class Field extends \WPForms_Field {
 			$min_price = wpforms_format_amount( self::MIN_PRICE_DEFAULT );
 		} elseif ( isset( $field['min_price'] ) ) {
 			// Use saved minimum price if it exists.
-			$min_price = wpforms_format_amount( wpforms_sanitize_amount( $field['min_price'] ) );
+			$min_price = wpforms_format_amount( $this->sanitize_form_amount( $field['min_price'] ) );
 		} else {
 			// Use 0 as a fallback for old forms.
 			$min_price = 0;
@@ -472,11 +472,11 @@ class Field extends \WPForms_Field {
 	 */
 	public function field_preview( $field ) {
 
-		$price        = ! empty( $field['price'] ) ? wpforms_format_amount( wpforms_sanitize_amount( $field['price'] ), true ) : wpforms_format_amount( 0, true );
-		$min_price    = ! empty( $field['min_price'] ) ? wpforms_format_amount( wpforms_sanitize_amount( $field['min_price'] ), true ) : wpforms_format_amount( self::MIN_PRICE_DEFAULT, true );
+		$price        = ! empty( $field['price'] ) ? wpforms_format_amount( $this->sanitize_form_amount( $field['price'] ), true ) : wpforms_format_amount( 0, true );
+		$min_price    = ! empty( $field['min_price'] ) ? wpforms_format_amount( $this->sanitize_form_amount( $field['min_price'] ), true ) : wpforms_format_amount( self::MIN_PRICE_DEFAULT, true );
 		$placeholder  = ! empty( $field['placeholder'] ) ? $field['placeholder'] : wpforms_format_amount( 0 );
 		$format       = ! empty( $field['format'] ) ? $field['format'] : self::FORMAT_SINGLE;
-		$value        = ! empty( $field['price'] ) ? wpforms_format_amount( wpforms_sanitize_amount( $field['price'] ) ) : '';
+		$value        = ! empty( $field['price'] ) ? wpforms_format_amount( $this->sanitize_form_amount( $field['price'] ) ) : '';
 		$is_single    = $this->is_single_item( $field );
 		$single_label = str_replace( '{price}', '<span class="price">' . esc_html( $price ) . '</span>', wp_kses( $this->get_single_item_price_label( $field ), wpforms_builder_preview_get_allowed_tags() ) );
 
@@ -535,7 +535,7 @@ class Field extends \WPForms_Field {
 
 		$this->field_preview_option( 'description', $field );
 
-		$hidden = ! isset( $field['min_price'] ) || empty( (float) wpforms_sanitize_amount( $field['min_price'] ) ) ? 'wpforms-hidden' : '';
+		$hidden = ! isset( $field['min_price'] ) || empty( (float) $this->sanitize_form_amount( $field['min_price'] ) ) ? 'wpforms-hidden' : '';
 
 		echo '<div class="item-min-price ' . esc_attr( $hidden ) . '">';
 		printf(
@@ -583,8 +583,8 @@ class Field extends \WPForms_Field {
 			case self::FORMAT_SINGLE:
 			case self::FORMAT_HIDDEN:
 				if ( $field_format === self::FORMAT_SINGLE ) {
-					$price       = ! empty( $field['price'] ) ? $field['price'] : 0;
-					$field_label = str_replace( '{price}', '<span class="wpforms-price">' . esc_html( wpforms_format_amount( wpforms_sanitize_amount( $price ), true ) ) . '</span>', $this->get_single_item_price_label( $field ) );
+					$price       = ! empty( $field['price'] ) ? $field['price'] : '0';
+					$field_label = str_replace( '{price}', '<span class="wpforms-price">' . esc_html( wpforms_format_amount( wpforms_sanitize_form_amount( $price, $form_data ), true ) ) . '</span>', $this->get_single_item_price_label( $field ) );
 
 					echo '<div class="wpforms-single-item-price-content">';
 					echo '<div class="wpforms-single-item-price ' . wpforms_sanitize_classes( $primary['class'], true ) . '">';
@@ -664,10 +664,13 @@ class Field extends \WPForms_Field {
 			! $this->is_user_defined( $form_data['fields'][ $field_id ] )
 		) {
 
-			$price  = wpforms_sanitize_amount( $form_data['fields'][ $field_id ]['price'] );
+			$price  = wpforms_sanitize_form_amount( $form_data['fields'][ $field_id ]['price'], $form_data );
 			$submit = wpforms_sanitize_amount( $field_submit );
 
-			if ( $price !== $submit ) {
+			// The price is parsed with the form currency and the submission with the current one, so
+			// their decimal padding can differ ("1000" under JPY, "1000.00" under USD). Both are compared
+			// as the current currency displays them, which is also the amount the customer saw and sent.
+			if ( wpforms_format_amount( $price ) !== wpforms_format_amount( $submit ) ) {
 				wpforms()->obj( 'process' )->errors[ $form_data['id'] ][ $field_id ] = esc_html__( 'Amount mismatch', 'wpforms-lite' );
 			}
 		}
@@ -688,7 +691,7 @@ class Field extends \WPForms_Field {
 				return;
 			}
 
-			$min_price = wpforms_sanitize_amount( $form_data['fields'][ $field_id ]['min_price'] );
+			$min_price = wpforms_sanitize_form_amount( $form_data['fields'][ $field_id ]['min_price'], $form_data );
 
 			if ( $submit < $min_price ) {
 				wpforms()->obj( 'process' )->errors[ $form_data['id'] ][ $field_id ] = esc_html__( 'Amount can\'t be less than the required minimum.' , 'wpforms-lite' );
@@ -714,7 +717,7 @@ class Field extends \WPForms_Field {
 		if ( $this->is_user_defined( $field ) || wpforms_is_ajax( 'wpforms_get_entry_preview' ) ) {
 			$amount = wpforms_sanitize_amount( $field_submit );
 		} else {
-			$amount = wpforms_sanitize_amount( $field['price'] );
+			$amount = wpforms_sanitize_form_amount( $field['price'], $form_data );
 		}
 
 		$field_data = [
@@ -744,13 +747,13 @@ class Field extends \WPForms_Field {
 	 */
 	public function field_minimum_price_description( $field, $form_data ) {
 
-		if ( ! $this->is_user_defined( $field ) || ! isset( $field['min_price'] ) || empty( (float) wpforms_sanitize_amount( $field['min_price'] ) ) ) {
+		if ( ! $this->is_user_defined( $field ) || ! isset( $field['min_price'] ) || empty( (float) wpforms_sanitize_form_amount( $field['min_price'], $form_data ) ) ) {
 			return;
 		}
 
 		$description = sprintf( /* translators: %1$s - Minimum Price value. */
 			__( 'Minimum Price: %1$s', 'wpforms-lite' ),
-			wpforms_format_amount( wpforms_sanitize_amount( $field['min_price'] ), true )
+			wpforms_format_amount( wpforms_sanitize_form_amount( $field['min_price'], $form_data ), true )
 		);
 
 		printf(
@@ -843,6 +846,6 @@ class Field extends \WPForms_Field {
 	 */
 	private function is_min_price_passed( $field ) {
 
-		return isset( $field['min_price'] ) && (float) wpforms_sanitize_amount( $field['min_price'] ) >= (float) self::MIN_PRICE_DEFAULT;
+		return isset( $field['min_price'] ) && (float) $this->sanitize_form_amount( $field['min_price'] ) >= (float) self::MIN_PRICE_DEFAULT;
 	}
 }

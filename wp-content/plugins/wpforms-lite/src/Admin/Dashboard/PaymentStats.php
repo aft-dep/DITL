@@ -118,6 +118,57 @@ class PaymentStats {
 	}
 
 	/**
+	 * Parse a count tile into an integer.
+	 *
+	 * The count clauses in `StatsAggregator` wrap `COUNT(*)` in MySQL's two-argument `FORMAT()`,
+	 * which groups thousands with a comma whatever the site locale is, so it has to come back off.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param int|string $tile Raw count tile value.
+	 *
+	 * @return int
+	 */
+	public static function parse_tile_count( $tile ): int {
+
+		return (int) str_replace( ',', '', (string) $tile );
+	}
+
+	/**
+	 * Split an amount tile into its amount and row-count parts.
+	 *
+	 * The live aggregator concatenates has-count tiles into one `AMOUNT (COUNT)` string, while the
+	 * empty state and the Pro rollup use an `[ 'amount' => …, 'count' => … ]` array.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param int|string|array $tile Raw tile value.
+	 *
+	 * @return array Keys `amount` (string, `'0'` when empty) and `count` (int, null when not reported).
+	 */
+	public static function parse_amount_tile( $tile ): array {
+
+		if ( is_array( $tile ) ) {
+			return [
+				'amount' => (string) ( $tile['amount'] ?? '0' ),
+				'count'  => isset( $tile['count'] ) ? (int) $tile['count'] : null,
+			];
+		}
+
+		if ( preg_match( '/^(.*?)\s*\((\d+)\)$/', (string) $tile, $matches ) ) {
+			return [
+				'amount' => $matches[1],
+				'count'  => (int) $matches[2],
+			];
+		}
+
+		return [
+			'amount' => (string) $tile === '' ? '0' : (string) $tile,
+			'count'  => null,
+		];
+	}
+
+	/**
 	 * Get the live payment tiles for a range, keyed by cached `payments.tiles` key.
 	 *
 	 * @since 2.0.2

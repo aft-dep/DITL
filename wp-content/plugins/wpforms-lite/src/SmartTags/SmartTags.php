@@ -606,10 +606,11 @@ class SmartTags {
 	 * Get the contexts whose smart tag values are printed as markup.
 	 *
 	 * @since 2.0.2.1
+	 * @since 2.0.3.1 Made public, so a smart tag can escape its value for these contexts.
 	 *
 	 * @return string[]
 	 */
-	private function get_markup_contexts(): array {
+	public function get_markup_contexts(): array {
 
 		if ( $this->markup_contexts !== null ) {
 			return $this->markup_contexts;

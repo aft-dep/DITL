@@ -73,8 +73,6 @@ const languagesList = jQuery('.post_lang_choice');
 
 // Dialog box for alerting the user about a risky changing.
 const initializeConfirmationModal = () => {
-  // We can't use underscore or lodash in this common code because it depends of the context classic or block editor.
-  // Classic editor underscore is loaded, Block editor lodash is loaded.
   const {
     __
   } = wp.i18n;
@@ -87,13 +85,10 @@ const initializeConfirmationModal = () => {
 
   // Put it after languages list dropdown.
   // PHPCS ignore dialogContainer is a new safe HTML code generated above.
-  languagesList.after(dialogContainer); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.after
-
+  languagesList.after(dialogContainer);
   const dialogResult = new Promise((confirm, cancel) => {
     const confirmDialog = what => {
-      // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
       switch (what) {
-        // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
         case 'yes':
           // Confirm the new language.
           languagesList.data('old-value', languagesList.children(':selected').first().val());
@@ -105,8 +100,8 @@ const initializeConfirmationModal = () => {
           cancel('Cancel');
           break;
       }
-      dialogContainer.dialog('close'); // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
-    }; // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
+      dialogContainer.dialog('close');
+    };
 
     // Initialize dialog box in the case a language is selected but not added in the list.
     const dialogOptions = {
@@ -180,7 +175,7 @@ function initMetaboxAutoComplete() {
       select: function (event, ui) {
         jQuery('#htr_lang_' + tr_lang).val(ui.item.id);
         // ui.item.link is built and come from server side and is well escaped when necessary
-        td.html(ui.item.link); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.html
+        td.html(ui.item.link);
       }
     });
 
@@ -189,7 +184,7 @@ function initMetaboxAutoComplete() {
       if (!jQuery(this).val()) {
         jQuery('#htr_lang_' + tr_lang).val(0);
         // Value is retrieved from HTML already generated server side
-        td.html(td.siblings('.hidden').children().clone()); // phpcs:ignore WordPressVIPMinimum.JS.HTMLExecutingFunctions.html
+        td.html(td.siblings('.hidden').children().clone());
       }
     });
   });
@@ -355,7 +350,6 @@ jQuery(function ($) {
     }
     dialogResult.then(() => {
       let data = {
-        // phpcs:ignore PEAR.Functions.FunctionCallSignature.Indent
         action: 'post_lang_choice',
         lang: selectedOption.value,
         post_type: $('#post_type').val(),
@@ -387,9 +381,9 @@ jQuery(function ($) {
       // Notice that window.location changing triggers automatically page reloading.
       if (-1 != location.search.indexOf('new_lang')) {
         // use regexp non capturing group to replace new_lang parameter no matter where it is and capture other parameters which can be behind it
-        window.location.search = window.location.search.replace(/(?:new_lang=[^&]*)(&)?(.*)/, 'new_lang=' + lang + '$1$2'); // phpcs:ignore WordPressVIPMinimum.JS.Window.location, WordPressVIPMinimum.JS.Window.VarAssignment
+        window.location.search = window.location.search.replace(/(?:new_lang=[^&]*)(&)?(.*)/, 'new_lang=' + lang + '$1$2');
       } else {
-        window.location.search = window.location.search + (-1 != window.location.search.indexOf('?') ? '&' : '?') + 'new_lang=' + lang; // phpcs:ignore WordPressVIPMinimum.JS.Window.location, WordPressVIPMinimum.JS.Window.VarAssignment
+        window.location.search = window.location.search + (-1 != window.location.search.indexOf('?') ? '&' : '?') + 'new_lang=' + lang;
       }
     }
     ;

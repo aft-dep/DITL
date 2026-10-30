@@ -58,6 +58,12 @@ class Choices extends Base {
 			);
 		}
 
+		if ( ! wpforms_current_user_can( 'edit_forms' ) ) {
+			wp_send_json_error(
+				[ 'error' => esc_html__( 'Sorry, you are not allowed to edit forms.', 'wpforms-lite' ) ]
+			);
+		}
+
 		$prompt = $this->get_post_data( 'prompt' );
 
 		if ( $this->is_empty_prompt( $prompt ) ) {

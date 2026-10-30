@@ -286,6 +286,7 @@ class Revisions {
 			'active_class'        => $this->revision ? '' : ' active',
 			'current_version_url' => $this->get_url(),
 			'author_id'           => $this->form->post_author,
+			'author_name'         => $this->get_author_name( (int) $this->form->post_author ),
 			'revisions'           => [],
 			'show_avatars'        => get_option( 'show_avatars' ),
 		];
@@ -312,7 +313,8 @@ class Revisions {
 		$current_revision = array_shift( $revisions );
 
 		// Display the author of current version instead of a form author.
-		$args['author_id'] = $current_revision->post_author;
+		$args['author_id']   = $current_revision->post_author;
+		$args['author_name'] = $this->get_author_name( (int) $current_revision->post_author );
 
 		// Single read of the form-level map of AI-tagged revision IDs → source keys —
 		// written by `wpforms_ai_revision_tracking_finalize()` after each AI-driven save.
@@ -324,8 +326,9 @@ class Revisions {
 		}
 
 		$ai_labels = [
-			'smart_edit' => esc_html__( 'Auto-saved before Smart Edit', 'wpforms-lite' ),
-			'choices'    => esc_html__( 'Auto-saved before AI Choices', 'wpforms-lite' ),
+			'smart_edit'       => esc_html__( 'Auto-saved before Smart Edit', 'wpforms-lite' ),
+			'choices'          => esc_html__( 'Auto-saved before AI Choices', 'wpforms-lite' ),
+			'antispam_upgrade' => esc_html__( 'Auto-saved before anti-spam upgrade', 'wpforms-lite' ),
 		];
 
 		foreach ( $revisions as $revision ) {
@@ -350,6 +353,7 @@ class Revisions {
 					]
 				),
 				'author_id'    => $revision->post_author,
+				'author_name'  => $this->get_author_name( (int) $revision->post_author ),
 				'time_diff'    => $time_diff,
 				'date_time'    => $date_time,
 				'ai_label'     => $ai_labels[ $revision_source ] ?? '',
@@ -357,6 +361,30 @@ class Revisions {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Get the name to credit a revision to.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param int $author_id Revision author ID.
+	 *
+	 * @return string
+	 */
+	private function get_author_name( int $author_id ): string {
+
+		// A revision written by a background task carries no author: under Action
+		// Scheduler the acting user is 0, which is how the anti-spam upgrade and
+		// any other automated form write land here.
+		if ( ! $author_id ) {
+			return __( 'WPForms update', 'wpforms-lite' );
+		}
+
+		$display_name = get_the_author_meta( 'display_name', $author_id );
+
+		// A deleted user leaves a real ID behind with no name to resolve.
+		return $display_name !== '' ? $display_name : __( 'Unknown user', 'wpforms-lite' );
 	}
 
 	/**

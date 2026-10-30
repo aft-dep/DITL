@@ -131,7 +131,7 @@ class Field extends WPForms_Field {
 				],
 				'class'      => [ 'wpforms-payment-price' ],
 				'data'       => [
-					'amount' => wpforms_format_amount( wpforms_sanitize_amount( $choice['value'] ?? '' ) ),
+					'amount' => wpforms_format_amount( wpforms_sanitize_form_amount( $choice['value'] ?? '', $form_data ) ),
 				],
 				'id'         => "wpforms-{$form_id}-field_{$field_id}_{$key}",
 				'icon'       => $choice['icon'] ?? '',
@@ -201,29 +201,15 @@ class Field extends WPForms_Field {
 			return $properties;
 		}
 
-		// The form submits only the sum, so shortcut for Dynamic.
-		if ( ! is_numeric( $raw_value ) ) {
-			return parent::get_field_populated_single_property_value( $raw_value, $input, $properties, $field );
-		}
+		$label = $this->get_payment_choice_label_by_amount( $raw_value, $field['choices'] );
 
-		$get_value = wpforms_format_amount( wpforms_sanitize_amount( $raw_value ) );
-
-		foreach ( $field['choices'] as $choice ) {
-			if (
-				isset( $choice['label'], $choice['value'] ) &&
-				wpforms_format_amount( wpforms_sanitize_amount( $choice['value'] ) ) === $get_value
-			) {
-				$trans_value = $choice['label'];
-				// Stop iterating over choices.
-				break;
-			}
-		}
-
-		if ( empty( $trans_value ) ) {
+		// A number matching no amount must not fall back to a label, or it preselects a wrong-price choice.
+		if ( $label === null && is_numeric( $raw_value ) ) {
 			return $properties;
 		}
 
-		return parent::get_field_populated_single_property_value( $trans_value, $input, $properties, $field );
+		// A value that is not a number is the Dynamic Choices label shortcut.
+		return parent::get_field_populated_single_property_value( $label ?? $raw_value, $input, $properties, $field );
 	}
 
 	/**
@@ -463,6 +449,7 @@ class Field extends WPForms_Field {
 	 * Validate field on submitting the form.
 	 *
 	 * @since 1.8.2
+	 * @since 2.0.3 Non-string values are rejected as an invalid payment option.
 	 *
 	 * @param int   $field_id     Field ID.
 	 * @param mixed $field_submit Submitted field value (raw data).
@@ -478,9 +465,8 @@ class Field extends WPForms_Field {
 
 		// Validate that the option selected is real.
 		if (
-			is_string( $field_submit ) &&
-			! empty( $field_submit )
-			&& empty( $form_data['fields'][ $field_id ]['choices'][ $field_submit ] )
+			! is_string( $field_submit ) ||
+			( ! empty( $field_submit ) && empty( $form_data['fields'][ $field_id ]['choices'][ $field_submit ] ) )
 		) {
 			wpforms()->obj( 'process' )->errors[ $form_data['id'] ][ $field_id ] =
 				esc_html__( 'Invalid payment option.', 'wpforms-lite' );
@@ -491,12 +477,18 @@ class Field extends WPForms_Field {
 	 * Format and sanitize field.
 	 *
 	 * @since 1.8.2
+	 * @since 2.0.3 Non-string values are normalized to an empty string.
 	 *
-	 * @param int    $field_id     Field ID.
-	 * @param string $field_submit Submitted form data.
-	 * @param array  $form_data    Form data and settings.
+	 * @param int   $field_id     Field ID.
+	 * @param mixed $field_submit Submitted form data.
+	 * @param array $form_data    Form data and settings.
 	 */
 	public function format( $field_id, $field_submit, $form_data ) {
+
+		// A choice key is always a string; anything else cannot address a choice.
+		if ( ! is_string( $field_submit ) ) {
+			$field_submit = '';
+		}
 
 		$field        = $form_data['fields'][ $field_id ];
 		$name         = sanitize_text_field( $field['label'] );
@@ -507,7 +499,7 @@ class Field extends WPForms_Field {
 
 		if ( ! empty( $field_submit ) && ! empty( $field['choices'][ $field_submit ] ) ) {
 
-			$amount = wpforms_sanitize_amount( $field['choices'][ $field_submit ]['value'] ?? '' );
+			$amount = wpforms_sanitize_form_amount( $field['choices'][ $field_submit ]['value'] ?? '', $form_data );
 			$value  = wpforms_format_amount( $amount, true );
 
 			if ( ! empty( $field['choices'][ $field_submit ]['label'] ) ) {

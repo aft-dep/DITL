@@ -1313,7 +1313,7 @@ class Process extends Base {
 				'name'        => wp_html_excerpt( $name . ': ' . $choice_name, 124, '...' ), // Limit to 127 characters.
 				'quantity'    => $quantity,
 				'unit_amount' => [
-					'value'         => Helpers::format_amount_for_api_call( wpforms_sanitize_amount( $field['choices'][ $choice ]['value'] ) ),
+					'value'         => Helpers::format_amount_for_api_call( wpforms_sanitize_form_amount( $field['choices'][ $choice ]['value'], $this->form_data ) ),
 					'currency_code' => $this->currency,
 				],
 			];

@@ -219,27 +219,27 @@ class Enqueues {
 			],
 			'samplePrompts' => [
 				[
-					'icon'  => 'wpforms-ai-chat-flag',
-					'title' => esc_html__( 'american public holidays with dates in brackets', 'wpforms-lite' ),
+					'icon'  => 'fa-solid fa-flag-usa',
+					'title' => esc_html__( 'American public holidays with dates in brackets', 'wpforms-lite' ),
 				],
 				[
-					'icon'  => 'wpforms-ai-chat-clover',
-					'title' => esc_html__( 'provinces of canada ordered by population', 'wpforms-lite' ),
+					'icon'  => 'fa-brands fa-canadian-maple-leaf',
+					'title' => esc_html__( 'Provinces of Canada ordered by population', 'wpforms-lite' ),
 				],
 				[
-					'icon'  => 'wpforms-ai-chat-thumbs-up',
-					'title' => esc_html__( 'top 5 social networks in europe', 'wpforms-lite' ),
+					'icon'  => 'fa-solid fa-thumbs-up',
+					'title' => esc_html__( 'Top 5 social networks in Europe', 'wpforms-lite' ),
 				],
 				[
-					'icon'  => 'wpforms-ai-chat-globe',
-					'title' => esc_html__( 'top 10 most spoken languages in the world', 'wpforms-lite' ),
+					'icon'  => 'fa-solid fa-earth-americas',
+					'title' => esc_html__( 'Top 10 most spoken languages in the world', 'wpforms-lite' ),
 				],
 				[
-					'icon'  => 'wpforms-ai-chat-palm',
-					'title' => esc_html__( 'top 20 most popular tropical travel destinations', 'wpforms-lite' ),
+					'icon'  => 'fa-solid fa-umbrella-beach',
+					'title' => esc_html__( 'Top 20 most popular tropical travel destinations', 'wpforms-lite' ),
 				],
 				[
-					'icon'  => 'wpforms-ai-chat-shop',
+					'icon'  => 'fa-solid fa-store',
 					'title' => esc_html__( '30 household item categories for a marketplace', 'wpforms-lite' ),
 				],
 			],

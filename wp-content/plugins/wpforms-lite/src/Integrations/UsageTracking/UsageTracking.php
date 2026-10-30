@@ -8,6 +8,7 @@ use WPForms\Integrations\AI\Helpers as AIHelpers;
 use WPForms\Integrations\IntegrationInterface;
 use WPForms\Integrations\LiteConnect\Integration;
 use WPForms\Lite\Reports\EntriesWindow;
+use WPForms\Migrations\Tasks\AntiSpamUpgradeTask;
 use WPForms\SetupChecklist\Checklist;
 use WPForms\SetupChecklist\CompletionDetector;
 use WPForms\SetupChecklist\Config;
@@ -215,6 +216,7 @@ class UsageTracking implements IntegrationInterface {
 			'wpforms_form_fields_count'      => $form_fields_count,
 			'wpforms_form_templates_total'   => $form_templates_total,
 			'wpforms_form_antispam_stat'     => $this->get_form_antispam_stat( $forms ),
+			'wpforms_antispam_upgrade'       => AntiSpamUpgradeTask::get_stats(),
 			'wpforms_qr_code_stat'           => $this->get_qr_code_stat( $forms ),
 			'wpforms_challenge_stats'        => get_option( 'wpforms_challenge', [] ),
 			'wpforms_lite_installed_date'    => $this->get_installed( $activated_dates, 'lite' ),
@@ -239,6 +241,7 @@ class UsageTracking implements IntegrationInterface {
 			'wpforms_disabled_entries_count' => count( $this->get_forms_with_disabled_entries( $forms ) ),
 			'wpforms_addons_dates'           => $this->get_addons_dates_data(),
 			'wpforms_adoption_tooltips'      => $this->get_adoption_tooltips_data(),
+			'wpforms_email_summaries'        => $this->get_email_summaries_data(),
 			'wpforms_setup_checklist'        => $this->get_setup_checklist_data(),
 		];
 
@@ -1289,6 +1292,7 @@ class UsageTracking implements IntegrationInterface {
 	private function get_form_antispam_stat( array $forms ): array { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
 
 		$stat = [
+			'honeypot'           => 0,
 			'antispam'           => 0,
 			'antispam_v3'        => 0,
 			'akismet'            => 0,
@@ -1301,6 +1305,11 @@ class UsageTracking implements IntegrationInterface {
 
 		foreach ( $forms as $form ) {
 			$settings = $form->post_content['settings'] ?? [];
+
+			// Counted ahead of the gate below: a honeypot-only form carries neither
+			// `antispam` nor `antispam_v3`, so the gate drops it and the legacy
+			// honeypot cohort stays invisible in telemetry.
+			$stat['honeypot'] += ! empty( $settings['honeypot'] ) ? 1 : 0;
 
 			// Skip forms with disabled anti-spam settings.
 			if ( empty( $settings['antispam'] ) && empty( $settings['antispam_v3'] ) ) {
@@ -1443,6 +1452,25 @@ class UsageTracking implements IntegrationInterface {
 		 * @param array $addons_dates Addons dates data.
 		 */
 		return (array) apply_filters( 'wpforms_integrations_usage_tracking_usage_tracking_get_addons_dates', [] );
+	}
+
+	/**
+	 * Get weekly summary email block counters.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @return array
+	 */
+	private function get_email_summaries_data(): array {
+
+		/**
+		 * Filter weekly summary email block counters for usage tracking.
+		 *
+		 * @since 2.0.3
+		 *
+		 * @param array $events Per-block event counters.
+		 */
+		return (array) apply_filters( 'wpforms_integrations_usage_tracking_usage_tracking_get_email_summaries_data', [] );
 	}
 
 	/**

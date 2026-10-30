@@ -578,7 +578,7 @@ class WPForms_Form_Handler {
 		// Typically, it happens if the form was created with a form template and a user was not redirected to a form editing screen afterward.
 		// This is only possible if a user has 'wpforms_create_forms' and no 'wpforms_edit_own_forms' capability.
 		if ( is_array( $args_form_data ) ) {
-			$args['post_content'] = wpforms_encode( array_replace_recursive( $form_content, $args_form_data ) );
+			$args['post_content'] = wpforms_encode( $this->set_form_currency( array_replace_recursive( $form_content, $args_form_data ), false ) );
 		}
 
 		// Merge args and create the form.
@@ -752,6 +752,8 @@ class WPForms_Form_Handler {
 
 		unset( $notification );
 
+		$data = $this->set_form_currency( $data, ( $args['context'] ?? '' ) === 'save_form', (int) $form_id );
+
 		/**
 		 * Allow changing post data before saving.
 		 *
@@ -845,6 +847,65 @@ class WPForms_Form_Handler {
 		}
 
 		return $notifications;
+	}
+
+	/**
+	 * Record the currency the form's payment amounts are saved in.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param array $data       Form data.
+	 * @param bool  $is_builder Whether the amounts were just re-emitted by the Form Builder.
+	 * @param int   $form_id    ID of the form being updated, 0 for a new form.
+	 *
+	 * @return array
+	 */
+	private function set_form_currency( array $data, bool $is_builder, int $form_id = 0 ): array {
+
+		if ( ! wpforms_has_payment( 'form', $data ) ) {
+			if ( $is_builder ) {
+				unset( $data['settings']['form_currency'] );
+			}
+
+			return $data;
+		}
+
+		// The Form Builder renders every stored amount in the current currency, so it saves them in it.
+		if ( $is_builder ) {
+			$data['settings']['form_currency'] = wpforms_get_currency();
+
+			return $data;
+		}
+
+		if ( ! empty( $data['settings']['form_currency'] ) ) {
+			return $data;
+		}
+
+		// Any other save writes the stored amounts back as they are, so they keep the currency they are read with.
+		$stored = $form_id ? $this->get(
+			$form_id,
+			[
+				'content_only' => true,
+				'cap'          => false,
+			]
+		) : [];
+		$stored = is_array( $stored ) ? $stored : [];
+
+		if ( ! empty( $stored['settings']['form_currency'] ) ) {
+			$data['settings']['form_currency'] = $stored['settings']['form_currency'];
+
+			return $data;
+		}
+
+		// A form saved before the currency was recorded stays without it, so it is still read with the legacy currency.
+		if ( wpforms_has_payment( 'form', $stored ) ) {
+			return $data;
+		}
+
+		// The payment fields are new to the form, so their amounts are in the current currency.
+		$data['settings']['form_currency'] = wpforms_get_currency();
+
+		return $data;
 	}
 
 	/**
@@ -1203,7 +1264,7 @@ class WPForms_Form_Handler {
 			$field_id     = $set_field_id > $max_field_id ? $set_field_id : $max_field_id + 1;
 		} elseif ( ! empty( $form['field_id'] ) ) {
 			$field_id = absint( $form['field_id'] );
-			$field_id = $max_field_id > $field_id ? $max_field_id + 1 : $field_id;
+			$field_id = $max_field_id >= $field_id ? $max_field_id + 1 : $field_id;
 		}
 
 		$form['field_id'] = $field_id + 1;

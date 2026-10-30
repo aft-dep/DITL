@@ -1952,10 +1952,6 @@ class WPForms_Process {
 
 		foreach ( $notifications as $notification_id => $notification ) :
 
-			if ( empty( $notification['email'] ) ) {
-				continue;
-			}
-
 			$is_active = ! isset( $notification['enable'] ) || (int) $notification['enable'] !== 0;
 
 			/**
@@ -1977,6 +1973,13 @@ class WPForms_Process {
 			);
 
 			if ( ! $is_active ) {
+				continue;
+			}
+
+			// Checked before the process filter so its consumers never see a blank Send To.
+			if ( empty( $notification['email'] ) ) {
+				$this->log_notification_not_sent( '', $context, $notification_id, (array) $notification, $form_data );
+
 				continue;
 			}
 
@@ -2007,8 +2010,7 @@ class WPForms_Process {
 					esc_html__( 'New %s Entry', 'wpforms-lite' ),
 					$form_data['settings']['form_title']
 				);
-			$email['address']        = explode( ',', wpforms_process_smart_tags( $notification['email'], $form_data, $fields, $this->entry_id, 'notification-send-to-email' ) );
-			$email['address']        = array_filter( array_map( 'sanitize_email', $email['address'] ) );
+			$email['address']        = $this->get_notification_send_to( $notification, $form_data, $fields, $notification_id );
 			$email['sender_address'] = ! empty( $notification['sender_address'] ) ? $notification['sender_address'] : get_option( 'admin_email' );
 			$email['sender_name']    = ! empty( $notification['sender_name'] ) ? $notification['sender_name'] : get_bloginfo( 'name' );
 			$email['replyto']        = ! empty( $notification['replyto'] ) ? $notification['replyto'] : false;
@@ -2016,18 +2018,7 @@ class WPForms_Process {
 			$email['template']       = ! empty( $notification['template'] ) ? $notification['template'] : '';
 
 			if ( $is_carboncopy_enabled && ! empty( $notification['carboncopy'] ) ) {
-				$email['carboncopy'] = explode(
-					',',
-					wpforms_process_smart_tags(
-						$notification['carboncopy'],
-						$form_data,
-						$fields,
-						$this->entry_id,
-						'notification-carboncopy',
-						[ 'to_email' => $email['address'] ]
-					)
-				);
-				$email['carboncopy'] = array_filter( array_map( 'sanitize_email', $email['carboncopy'] ) );
+				$email['carboncopy'] = $this->get_notification_carboncopy( $notification, $form_data, $fields, $notification_id, $email['address'] );
 			}
 
 			/**
@@ -2042,6 +2033,13 @@ class WPForms_Process {
 			 * @param int    $notification_id Notification ID.
 			 */
 			$email = apply_filters( 'wpforms_entry_email_atts', $email, $fields, $entry, $form_data, $notification_id ); // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
+
+			// The resolved value is left out because the record is forced and may hold submitter input.
+			if ( empty( $email['address'] ) ) {
+				$this->log_notification_not_sent( $notification['email'], $context, $notification_id, $notification, $form_data );
+
+				continue;
+			}
 
 			// Create a new email.
 			$emails = ( new Notifications() )->init( $email['template'] );
@@ -2078,6 +2076,144 @@ class WPForms_Process {
 				$emails->send( trim( $address ), $email['subject'], $email['message'] );
 			}
 		endforeach;
+	}
+
+	/**
+	 * Get the valid Send To addresses of a notification, logging the invalid ones removed.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param array      $notification    Notification settings.
+	 * @param array      $form_data       Form data and settings.
+	 * @param array      $fields          List of fields.
+	 * @param int|string $notification_id Notification ID.
+	 *
+	 * @return array
+	 */
+	private function get_notification_send_to( array $notification, array $form_data, $fields, $notification_id ): array {
+
+		$send_to_list    = explode( ',', wpforms_process_smart_tags( $notification['email'], $form_data, $fields, $this->entry_id, 'notification-send-to-email' ) );
+		$addresses       = array_filter( array_map( 'sanitize_email', $send_to_list ) );
+		$invalid_send_to = array_filter( array_map( 'trim', array_diff_key( $send_to_list, $addresses ) ) );
+
+		// With no valid address left, the caller writes the not-sent record instead.
+		if ( $invalid_send_to && $addresses ) {
+			$this->log_notification_recipients_issue(
+				/* translators: %1$s - notification ID, %2$s - notification name. */
+				__( 'Notification #%1$s ("%2$s"): invalid Send To addresses were removed.', 'wpforms-lite' ),
+				[
+					'send_to' => $notification['email'],
+					'removed' => array_values( $invalid_send_to ),
+				],
+				$notification_id,
+				$notification,
+				$form_data
+			);
+		}
+
+		return $addresses;
+	}
+
+	/**
+	 * Get the valid CC addresses of a notification, logging the invalid ones removed.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param array      $notification    Notification settings.
+	 * @param array      $form_data       Form data and settings.
+	 * @param array      $fields          List of fields.
+	 * @param int|string $notification_id Notification ID.
+	 * @param array      $to_email        Valid Send To addresses.
+	 *
+	 * @return array
+	 */
+	private function get_notification_carboncopy( array $notification, array $form_data, $fields, $notification_id, array $to_email ): array {
+
+		$cc_list = explode(
+			',',
+			wpforms_process_smart_tags(
+				$notification['carboncopy'],
+				$form_data,
+				$fields,
+				$this->entry_id,
+				'notification-carboncopy',
+				[ 'to_email' => $to_email ]
+			)
+		);
+
+		$carboncopy = array_filter( array_map( 'sanitize_email', $cc_list ) );
+		$invalid_cc = array_filter( array_map( 'trim', array_diff_key( $cc_list, $carboncopy ) ) );
+
+		if ( $invalid_cc ) {
+			$this->log_notification_recipients_issue(
+				/* translators: %1$s - notification ID, %2$s - notification name. */
+				__( 'Notification #%1$s ("%2$s"): invalid CC addresses were removed.', 'wpforms-lite' ),
+				[
+					'carboncopy' => $notification['carboncopy'],
+					'removed'    => array_values( $invalid_cc ),
+				],
+				$notification_id,
+				$notification,
+				$form_data
+			);
+		}
+
+		return $carboncopy;
+	}
+
+	/**
+	 * Log a notification not sent for having no valid recipient address.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param string     $send_to         Configured Send To value.
+	 * @param string     $context         In which context this email is sent.
+	 * @param int|string $notification_id Notification ID.
+	 * @param array      $notification    Notification settings.
+	 * @param array      $form_data       Form data and settings.
+	 */
+	private function log_notification_not_sent( $send_to, $context, $notification_id, array $notification, array $form_data ): void {
+
+		$this->log_notification_recipients_issue(
+			/* translators: %1$s - notification ID, %2$s - notification name. */
+			__( 'Notification #%1$s ("%2$s") was not sent: no valid recipient address.', 'wpforms-lite' ),
+			[
+				'send_to' => $send_to,
+				'context' => $context,
+			],
+			$notification_id,
+			$notification,
+			$form_data,
+			true
+		);
+	}
+
+	/**
+	 * Log a notification recipients issue.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param string     $title           Title format string with notification ID and name placeholders.
+	 * @param array      $details         Log record details.
+	 * @param int|string $notification_id Notification ID.
+	 * @param array      $notification    Notification settings.
+	 * @param array      $form_data       Form data and settings.
+	 * @param bool       $force           Whether to write the record even when logging is disabled.
+	 */
+	private function log_notification_recipients_issue( string $title, array $details, $notification_id, array $notification, array $form_data, bool $force = false ): void {
+
+		$notification_name = ! empty( $notification['notification_name'] ) ? $notification['notification_name'] : __( 'Default Notification', 'wpforms-lite' );
+
+		wpforms_log(
+			sprintf( $title, $notification_id, $notification_name ),
+			$details,
+			[
+				'type'    => [ 'entry', 'error' ],
+				'parent'  => $this->entry_id,
+				'form_id' => $form_data['id'] ?? 0,
+				'force'   => $force,
+			]
+		);
 	}
 
 	/**

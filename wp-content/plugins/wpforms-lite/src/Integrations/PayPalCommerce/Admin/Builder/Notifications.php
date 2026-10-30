@@ -57,7 +57,7 @@ class Notifications {
 			'notifications',
 			PayPalCommerce::SLUG,
 			$settings->form_data,
-			esc_html__( 'Enable for PayPalCommerce completed payments', 'wpforms-lite' ),
+			esc_html__( 'Enable for PayPal Commerce completed payments', 'wpforms-lite' ),
 			$this->get_notification_settings_data( $settings->form_data, $id )
 		);
 	}

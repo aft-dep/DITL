@@ -345,7 +345,8 @@ class Forms {
 				[
 					'icon'   => 'wpforms-ai-chat-sample-quiz-capitals',
 					'title'  => esc_html__( 'How well do you know world capitals?', 'wpforms-lite' ),
-					'prompt' => esc_html__( 'Create a graded quiz on the topic of "How well do you know world capitals?" with 10 questions and 3 answers each. Randomize the choices. Collect the user\'s name and email address. Create 4 outcomes set to Graded Quiz type with appropriate text for each grade and utilize the available smart tags. The graded outcomes should be if Quiz Grade is A, if Quiz Grade is B, if Quiz Grade is C, if Quiz Grade is D, and if Quiz Grade is F.', 'wpforms-lite' ),
+					/* translators: Keep the grade letters A, B, C, D, and F untranslated; they match the Quiz addon default grading scale. */
+					'prompt' => esc_html__( 'Create a graded quiz on the topic of "How well do you know world capitals?" with 10 questions and 3 answers each. Randomize the choices. Collect the user\'s name and email address. Create 5 outcomes set to Graded Quiz type with appropriate text for each grade and utilize the available smart tags. The graded outcomes should be if Quiz Grade is A, if Quiz Grade is B, if Quiz Grade is C, if Quiz Grade is D, and if Quiz Grade is F.', 'wpforms-lite' ),
 				],
 				[
 					'icon'   => 'wpforms-ai-chat-sample-quiz-learn',

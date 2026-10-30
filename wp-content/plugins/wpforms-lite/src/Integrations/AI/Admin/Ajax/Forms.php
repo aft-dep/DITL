@@ -361,7 +361,11 @@ class Forms extends Base {
 		$form_data['fields']   = $this->prepare_fields_data( $form_data );
 		$form_data['settings'] = $this->prepare_form_settings( $form_data );
 		$form_data             = $this->randomize_graded_quiz_choices( $form_data );
-		$form_data['field_id'] = count( $form_data['fields'] ) + 1;
+
+		// A follow-up prompt that removes a field leaves a gap in the IDs, so the field
+		// count can be lower than the highest ID already in use.
+		$field_keys            = array_map( 'absint', array_keys( $form_data['fields'] ) );
+		$form_data['field_id'] = $field_keys ? max( $field_keys ) + 1 : 1;
 
 		$meta               = [];
 		$meta['template']   = 'generate';

@@ -16,6 +16,13 @@ class InfoBlocks {
 	const SOURCE_URL = 'https://wpformsapi.com/feeds/v1/email-summaries/%s';
 
 	/**
+	 * Option holding the ids of the blocks already sent.
+	 *
+	 * @since 2.0.3
+	 */
+	const SENT_OPTION = 'wpforms_email_summaries_info_blocks_sent';
+
+	/**
 	 * Get info blocks info from the cache file or remote.
 	 *
 	 * @since 1.6.4
@@ -184,7 +191,7 @@ class InfoBlocks {
 			return $block;
 		}
 
-		$blocks_sent = get_option( 'wpforms_email_summaries_info_blocks_sent' );
+		$blocks_sent = get_option( self::SENT_OPTION );
 
 		if ( empty( $blocks_sent ) || ! \is_array( $blocks_sent ) ) {
 			$block = $this->get_first_with_id( $data );
@@ -196,6 +203,22 @@ class InfoBlocks {
 		}
 
 		return $block;
+	}
+
+	/**
+	 * A random block for the license, skipping the given ids. Empty when that leaves nothing.
+	 *
+	 * @since 2.0.3
+	 *
+	 * @param int[] $exclude_ids Block ids shown recently.
+	 *
+	 * @return array
+	 */
+	public function get_random( array $exclude_ids ): array {
+
+		$eligible = array_diff_key( $this->get_by_license(), array_flip( array_map( 'absint', $exclude_ids ) ) );
+
+		return $eligible ? $eligible[ array_rand( $eligible ) ] : [];
 	}
 
 	/**
@@ -213,11 +236,10 @@ class InfoBlocks {
 			return;
 		}
 
-		$option_name = 'wpforms_email_summaries_info_blocks_sent';
-		$blocks      = get_option( $option_name );
+		$blocks = get_option( self::SENT_OPTION );
 
 		if ( empty( $blocks ) || ! is_array( $blocks ) ) {
-			update_option( $option_name, [ $block_id ] );
+			update_option( self::SENT_OPTION, [ $block_id ] );
 
 			return;
 		}
@@ -228,7 +250,7 @@ class InfoBlocks {
 
 		$blocks[] = $block_id;
 
-		update_option( $option_name, $blocks );
+		update_option( self::SENT_OPTION, $blocks );
 	}
 
 	/**

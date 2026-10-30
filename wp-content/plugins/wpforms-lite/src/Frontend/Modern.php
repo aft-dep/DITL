@@ -266,10 +266,9 @@ class Modern extends Classic {
 		$properties['description']['id'] = $desc_id;
 
 		// Add attributes to error message.
-		$properties['error']['attr']['role']       = 'alert';
-		$properties['error']['attr']['aria-label'] = esc_html__( 'Error message', 'wpforms-lite' );
-		$properties['error']['attr']['id']         = $properties['error']['attr']['for'] . '-error';
-		$properties['error']['attr']['for']        = '';
+		$properties['error']['attr']['role'] = 'alert';
+		$properties['error']['attr']['id']   = $properties['error']['attr']['for'] . '-error';
+		$properties['error']['attr']['for']  = '';
 
 		foreach ( $properties['inputs'] as $input => $input_data ) {
 
@@ -314,7 +313,6 @@ class Modern extends Classic {
 
 		$strings['isModernMarkupEnabled']  = wpforms_get_render_engine() === 'modern';
 		$strings['formErrorMessagePrefix'] = esc_html__( 'Form error message', 'wpforms-lite' );
-		$strings['errorMessagePrefix']     = esc_html__( 'Error message', 'wpforms-lite' );
 		$strings['submitBtnDisabled']      = esc_html__( 'Submit button is disabled during form submission.', 'wpforms-lite' );
 
 		return $strings;

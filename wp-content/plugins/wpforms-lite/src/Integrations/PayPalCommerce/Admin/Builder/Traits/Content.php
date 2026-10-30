@@ -686,7 +686,7 @@ trait Content {
 				data-slug="' . esc_attr( $addon['slug'] ) . '"
 				data-url="' . esc_url( $addon['url'] ) . '"
 				data-nonce="' . esc_attr( wp_create_nonce( 'wpforms-admin' ) ) . '"
-				data-name="' . esc_attr__( 'PayPalCommerce Pro', 'wpforms-lite' ) . '"
+				data-name="' . esc_attr__( 'PayPal Commerce Pro', 'wpforms-lite' ) . '"
 			>' . esc_html( $label ) . '</a>';
 	}
 

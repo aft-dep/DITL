@@ -473,7 +473,15 @@ class Email {
 	 */
 	private function get_heading_content() {
 
-		return wpforms_render( 'admin/settings/email-heading' );
+		// Unregistered when the `wpforms_admin_education` kill switch is off.
+		$smtp_notice = wpforms()->obj( 'education_smtp_notice' );
+
+		return wpforms_render(
+			'admin/settings/email-heading',
+			[
+				'smtp_notice' => $smtp_notice ? $smtp_notice->get_template() : '',
+			]
+		);
 	}
 
 	/**

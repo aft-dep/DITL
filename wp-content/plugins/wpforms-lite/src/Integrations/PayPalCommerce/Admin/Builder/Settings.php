@@ -266,7 +266,7 @@ class Settings {
 		if ( $addon['plugin_allow'] && $addon['action'] === 'install' ) {
 			return [
 				'action'  => 'install',
-				'message' => esc_html__( 'The PayPalCommerce Pro addon is required to enable conditional logic for payments. Would you like to install and activate it?', 'wpforms-lite' ),
+				'message' => esc_html__( 'The PayPal Commerce Pro addon is required to enable conditional logic for payments. Would you like to install and activate it?', 'wpforms-lite' ),
 				'url'     => $addon['url'],
 				'nonce'   => wp_create_nonce( 'wpforms-admin' ),
 				'license' => 'pro',
@@ -276,7 +276,7 @@ class Settings {
 		if ( $addon['plugin_allow'] && $addon['action'] === 'activate' ) {
 			return [
 				'action'  => 'activate',
-				'message' => esc_html__( 'The PayPalCommerce Pro addon is required to enable conditional logic for payments. Would you like to activate it?', 'wpforms-lite' ),
+				'message' => esc_html__( 'The PayPal Commerce Pro addon is required to enable conditional logic for payments. Would you like to activate it?', 'wpforms-lite' ),
 				'path'    => $addon['path'],
 				'nonce'   => wp_create_nonce( 'wpforms-admin' ),
 			];

@@ -82,6 +82,8 @@ class PLL_Language_Factory {
 			'term_group' => $terms['language']->term_group,
 			'term_props' => array(),
 			'is_default' => $this->options['default_lang'] === $terms['language']->slug,
+			'flag_code'  => '',
+			'locale'     => '',
 		);
 
 		foreach ( $terms as $term ) {
@@ -183,6 +185,30 @@ class PLL_Language_Factory {
 			unset( $data['fallbacks'] );
 		}
 
+		$data['admin_flag'] = array();
+
+		if ( ! empty( $data['flag'] ) ) {
+			$data['admin_flag']['aria-hidden'] = str_replace( '<img', '<img aria-hidden="true" tabindex="-1"', $data['flag'] );
+			$data['admin_flag']['']            = str_replace(
+				'<img',
+				sprintf(
+					'<img lang="%1$s" dir="%2$s"',
+					esc_attr( $data['w3c'] ),
+					$data['is_rtl'] ? 'rtl' : 'ltr'
+				),
+				$data['flag']
+			);
+		} else {
+			$data['admin_flag']['aria-hidden'] = sprintf( '<abbr aria-hidden="true" tabindex="-1">%s</abbr>', esc_html( strtoupper( $data['slug'] ) ) );
+			$data['admin_flag']['']            = sprintf(
+				'<abbr title="%1$s" lang="%2$s" dir="%3$s">%4$s</abbr>',
+				esc_attr( $data['name'] ),
+				esc_attr( $data['w3c'] ),
+				$data['is_rtl'] ? 'rtl' : 'ltr',
+				esc_html( strtoupper( $data['slug'] ) )
+			);
+		}
+
 		/**
 		 * @var LanguageData
 		 */
@@ -211,7 +237,7 @@ class PLL_Language_Factory {
 	 * Creates flag_url and flag language properties. Also takes care of custom flag.
 	 *
 	 * @since 1.2
-	 * @since 3.4 Moved from `PLL_Language`to `PLL_Language_Factory` and renamed
+	 * @since 3.4 Moved from `PLL_Language` to `PLL_Language_Factory` and renamed
 	 *            in favor of `get_flag()` (formerly `set_flag()`).
 	 *
 	 * @param string $flag_code Flag code.
@@ -281,17 +307,6 @@ class PLL_Language_Factory {
 			unset( $flags['custom_flag'] );
 		}
 
-		/**
-		 * Filters the flag title attribute.
-		 * Defaults to the language name.
-		 *
-		 * @since 0.7
-		 *
-		 * @param string $title  The flag title attribute.
-		 * @param string $slug   The language code.
-		 * @param string $locale The language locale.
-		 */
-		$title  = apply_filters( 'pll_flag_title', $name, $slug, $locale );
 		$return = array();
 
 		/**
@@ -323,7 +338,7 @@ class PLL_Language_Factory {
 			 */
 			$return[ $key ] = apply_filters(
 				'pll_get_flag',
-				PLL_Language::get_flag_html( $flag, $title, $name ),
+				PLL_Language::get_flag_html( $flag, $name ),
 				$slug
 			);
 		}

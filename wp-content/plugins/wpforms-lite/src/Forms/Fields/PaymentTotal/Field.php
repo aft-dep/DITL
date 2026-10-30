@@ -685,7 +685,7 @@ class Field extends WPForms_Field {
 
 		foreach ( $field['choices'] as $key => $choice ) {
 
-			$choice_amount = ! empty( $choice['value'] ) ? wpforms_sanitize_amount( $choice['value'] ) * $quantity : 0;
+			$choice_amount = ! empty( $choice['value'] ) ? $this->sanitize_form_amount( $choice['value'] ) * $quantity : 0;
 			$is_default    = ! empty( $choice['default'] ) || ( isset( $default_choice_key ) && (int) $key === $default_choice_key );
 			/* translators: %s - item number. */
 			$choice_label = ! empty( $choice['label'] ) ? $choice['label'] : sprintf( esc_html__( 'Item %s', 'wpforms-lite' ), $key );
@@ -872,7 +872,7 @@ class Field extends WPForms_Field {
 			return 0;
 		}
 
-		return wpforms_sanitize_amount( $field['price'] ) * $quantity;
+		return $this->sanitize_form_amount( $field['price'] ) * $quantity;
 	}
 
 	/**

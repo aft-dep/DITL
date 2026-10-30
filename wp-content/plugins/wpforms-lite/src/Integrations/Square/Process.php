@@ -801,7 +801,7 @@ class Process {
 				'name'           => $item['name'],
 				'quantity'       => $item['quantity'],
 				'variation_name' => empty( $choice['label'] ) ? sprintf( /* translators: %d - Choice ID. */ esc_html__( 'Choice %d', 'wpforms-lite' ), absint( $value ) ) : $choice['label'],
-				'amount'         => Helpers::format_amount( $choice['value'] ),
+				'amount'         => Helpers::format_amount( (string) $choice['value'], wpforms_get_form_currency( $this->form_data ) ),
 			];
 		}
 

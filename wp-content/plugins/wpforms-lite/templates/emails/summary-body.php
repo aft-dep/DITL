@@ -5,26 +5,118 @@
  * This template can be overridden by copying it to yourtheme/wpforms/emails/summary-body.php.
  *
  * @since 1.5.4
- * @since 1.8.8 Added `$overview`, `$has_trends`, `$notification_block`, and `$icons` parameters.
+ * @since 1.8.8 Added `$notification_block` and `$icons` parameters.
+ * @since 2.0.3 Rebuilt around `$tiles`, `$forms`, `$columns`, `$blocks` and `$cta`.
  *
- * @var array $overview           Form entries overview data.
- * @var array $entries            Form entries data to loop through.
- * @var bool  $has_trends         Whether trends data is available.
- * @var array $notification_block Notification block shown before the Info block.
- * @var array $info_block         Info block shown at the end of the email.
- * @var array $reengagement_alert Re-engagement alert block (Pro-only) shown inside the summary content.
- * @var array $icons              Icons used for the design purposes.
+ * @var array  $tiles              Rows of stat tiles: each tile has `label`, `value`, `delta` (int|null), `note`.
+ * @var array  $forms              Per-form rows: `title`, `edit_url`, `entries`, `trends`, `views`, `conversion`, `payments`.
+ * @var array  $columns            Optional table columns to show: `payments`, `conversion` => bool; `locked` => bool
+ *                                  when a lapsed license locks the conversion values.
+ * @var array  $blocks             Resolved slot blocks: `top` (one), `middle` (one), `bottom` (list); each `id`, `args`.
+ * @var array  $cta                Primary call to action: `text`, `url`.
+ * @var array  $notification_block Notification block shown before the promos.
+ * @var array  $entries            Deprecated. `$forms` in the pre-2.0.3 shape, kept for overridden templates.
+ * @var bool   $has_trends         Deprecated. Whether any `$entries` row has trends, kept for overridden templates.
+ * @var array  $icons              Icons used for the design purposes.
  */
-
-use WPForms\Integrations\LiteConnect\LiteConnect;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$utm_medium = 'Weekly Summary Email';
+// License notice sits above the white card; dropoff stays inside, between intro and tiles.
+$top_block     = $blocks['top'] ?? [];
+$intro_blocks  = [ 'baseline_recap', 'headline', 'milestone' ];
+$intro         = in_array( $top_block['id'] ?? '', $intro_blocks, true ) ? $top_block['args'] : [];
+$is_above      = ( $top_block['id'] ?? '' ) === 'license_notice';
+$is_dropoff    = ( $top_block['id'] ?? '' ) === 'activity_dropoff';
+$is_baseline   = ! $is_above && ( ! $intro || ( $top_block['id'] ?? '' ) === 'baseline_recap' || $is_dropoff );
+$eyebrow       = $is_baseline ? __( 'Here’s the Rundown', 'wpforms-lite' ) : __( 'Your Week with WPForms', 'wpforms-lite' );
+$default_title = $is_dropoff
+	? __( 'Your Weekly Forms Recap is Here', 'wpforms-lite' )
+	: __( 'Your Weekly Recap is Here', 'wpforms-lite' );
+$align         = is_rtl() ? 'right' : 'left';
+$title_tags    = [
+	'strong' => [],
+	'br'     => [],
+];
+$promo_badges  = [
+	'tip'                => [ __( 'Tip', 'wpforms-lite' ), 'orange' ],
+	'spotlight'          => [ __( 'New', 'wpforms-lite' ), 'blue' ],
+	'get_more_responses' => [ __( 'Tip', 'wpforms-lite' ), 'orange' ],
+];
 
+/**
+ * Render a top or middle slot block as a callout, with the badge, tone and layout its id calls for.
+ *
+ * The license notice is red once the license is gone, orange while it is only expiring.
+ *
+ * @since 2.0.3
+ *
+ * @param array $slot_block Slot block: `id`, `args`, optional `variant`.
+ */
+$render_callout = static function ( array $slot_block ) {
+
+	// Badge, tone, compact row, and whether the badge sits above the title rather than beside it.
+	$styles = [
+		'license_notice'     => [ __( 'Important', 'wpforms-lite' ), 'orange', false, false ],
+		'activity_dropoff'   => [ __( 'Attention', 'wpforms-lite' ), 'yellow', false, true ],
+		'payments_education' => [ '', 'orange', true, false ],
+		'lite_connect'       => [ '', 'orange', false, false ],
+	];
+
+	list( $badge, $tone, $compact, $badge_above ) = $styles[ $slot_block['id'] ] ?? [ '', 'blue', false, false ];
+
+	if ( $slot_block['id'] === 'license_notice' && in_array( $slot_block['variant'] ?? '', [ 'expired', 'disabled', 'invalid' ], true ) ) {
+		$tone = 'red';
+	}
+
+	echo wpforms_render( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		'emails/partials/summary-callout',
+		[
+			'block'       => $slot_block['args'],
+			'badge'       => $badge,
+			'tone'        => $tone,
+			'compact'     => $compact,
+			'badge_above' => $badge_above,
+		],
+		true
+	);
+};
+
+/**
+ * Format a week-over-week change: arrow icon plus the absolute percentage.
+ *
+ * @since 2.0.3
+ *
+ * @param int   $delta Signed percentage change.
+ * @param array $icons Icon URLs keyed by direction.
+ */
+$render_trend = static function ( int $delta, array $icons ) {
+
+	$direction = $delta < 0 ? 'downward' : 'upward';
+
+	printf(
+		'<span class="summary-trend-value trend-%1$s" dir="ltr"><img src="%2$s" width="8" height="10" alt="%3$s" /> %4$s%%</span>',
+		esc_attr( $direction ),
+		esc_url( $icons[ $direction ] ),
+		esc_attr( $delta < 0 ? '↓' : '↑' ),
+		esc_html( number_format_i18n( abs( $delta ) ) )
+	);
+};
 ?>
+
+<?php if ( $is_above ) : ?>
+	<table class="summary-above" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+		<tr>
+			<td align="center" valign="top">
+				<div class="summary-above-inner summary-slot summary-slot-top">
+					<?php $render_callout( $top_block ); ?>
+				</div>
+			</td>
+		</tr>
+	</table>
+<?php endif; ?>
 
 <table class="summary-container" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
 	<tbody>
@@ -36,223 +128,149 @@ $utm_medium = 'Weekly Summary Email';
 							<td><!-- Deliberately empty to support consistent sizing and layout across multiple email clients. --></td>
 							<td class="summary-content-inner" align="center" valign="top" width="600">
 								<div class="summary-header" width="100%">
-									<h2>
-										<?php esc_html_e( 'Your Weekly WPForms Summary', 'wpforms-lite' ); ?>
-									</h2>
-									<p>
-										<?php echo wp_kses_post( __( 'Here’s how your forms performed this past week.<br>Below is a breakdown of submissions by form.', 'wpforms-lite' ) ); ?>
-									</p>
-								</div>
-								<div class="email-summaries-overview-wrapper" width="100%">
-									<?php if ( isset( $overview['total'] ) ) : ?>
-										<table class="email-summaries-overview" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" bgcolor="#f8f8f8">
-											<tbody>
-											<tr>
-												<td class="overview-icon" valign="top">
-													<img src="<?php echo esc_url( $icons['overview'] ); ?>" width="52" height="52" alt="<?php esc_attr_e( 'Overview', 'wpforms-lite' ); ?>" />
-												</td>
-												<td class="overview-stats" valign="top">
-													<h5>
-														<?php
-														printf(
-														/* translators: %1$d - number of entries. */
-															esc_html__( '%1$d Total', 'wpforms-lite' ),
-															absint( $overview['total'] )
-														);
-														?>
-													</h5>
-													<p>
-														<?php echo wp_kses( _n( 'Entry This Week', 'Entries This Week', absint( $overview['total'] ), 'wpforms-lite' ), [] ); ?>
-													</p>
-												</td>
-												<?php if ( isset( $overview['trends'] ) ) : ?>
-													<td class="summary-trend">
-														<table class="trend-<?php echo esc_attr( (int) $overview['trends'] < 0 ? 'downward' : 'upward' ); ?>" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
-															<tr valign="middle">
-																<td valign="middle">
-																	<img src="<?php echo esc_url( $icons[ (int) $overview['trends'] < 0 ? 'downward' : 'upward' ] ); ?>" width="14" height="18" alt="<?php echo esc_attr( (int) $overview['trends'] < 0 ? 'downward' : 'upward' ); ?>" />
-																</td>
-																<td dir="ltr" valign="middle">
-																	<?php echo esc_html( $overview['trends'] ); ?>
-																</td>
-															</tr>
-														</table>
-													</td>
-												<?php endif; ?>
-											</tr>
-											</tbody>
-										</table>
+									<p class="summary-eyebrow<?php echo $is_baseline ? ' summary-eyebrow-accent' : ''; ?>"><?php echo esc_html( $eyebrow ); ?></p>
+									<h2><?php echo wp_kses( $intro['title'] ?? $default_title, $title_tags ); ?></h2>
+									<?php if ( ! empty( $intro['content'] ) ) : ?>
+										<p><?php echo wp_kses_post( $intro['content'] ); ?></p>
 									<?php endif; ?>
 								</div>
+
+								<?php if ( $top_block && ! $intro && ! $is_above ) : ?>
+									<div class="summary-slot summary-slot-top">
+										<?php $render_callout( $top_block ); ?>
+									</div>
+								<?php endif; ?>
+
+								<div class="summary-tiles-wrapper" width="100%">
+									<?php foreach ( $tiles as $tile_row ) : ?>
+										<?php // One table per row, or rows of two and three tiles would share columns. ?>
+										<table class="summary-tiles<?php echo in_array( true, array_column( $tile_row, 'amount' ), true ) ? ' summary-tiles-amount' : ''; ?>" border="0" cellpadding="0" cellspacing="10" width="100%" role="presentation">
+											<tr>
+												<?php foreach ( $tile_row as $tile ) : ?>
+													<td class="summary-tile-card" align="center" valign="middle" width="<?php echo esc_attr( (string) floor( 100 / count( $tile_row ) ) ); ?>%">
+														<p class="summary-tile-label"><?php echo esc_html( $tile['label'] ); ?></p>
+														<p class="summary-tile-value<?php echo empty( $tile['amount'] ) ? '' : ' summary-tile-value-amount'; ?>"><?php echo esc_html( $tile['value'] ); ?></p>
+														<?php if ( ! empty( $tile['delta'] ) ) : ?>
+															<p class="summary-tile-delta"><?php $render_trend( (int) $tile['delta'], $icons ); ?></p>
+														<?php elseif ( ! empty( $tile['note'] ) ) : ?>
+															<p class="summary-tile-note"><?php echo esc_html( $tile['note'] ); ?></p>
+														<?php endif; ?>
+													</td>
+												<?php endforeach; ?>
+											</tr>
+										</table>
+									<?php endforeach; ?>
+								</div>
+
+								<?php if ( ! empty( $blocks['middle'] ) ) : ?>
+									<div class="summary-slot summary-slot-middle">
+										<?php $render_callout( $blocks['middle'] ); ?>
+									</div>
+								<?php endif; ?>
+
 								<div class="email-summaries-wrapper" width="100%">
-									<table class="email-summaries" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+									<?php // A phone stacks the form name over the values, which share the row in two or three equal columns. ?>
+									<table class="email-summaries<?php echo empty( $columns['payments'] ) ? '' : ' email-summaries-has-payments'; ?><?php echo empty( $columns['payments'] ) && empty( $columns['conversion'] ) ? ' email-summaries-two-values' : ''; ?>" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
 										<thead>
 										<tr>
-											<th align="<?php echo is_rtl() ? 'right' : 'left'; ?>" valign="top"><?php esc_html_e( 'Form', 'wpforms-lite' ); ?></th>
-											<th class="entries-column" align="<?php echo is_rtl() ? 'right' : 'left'; ?>" valign="top" colspan="2"><?php esc_html_e( 'Entries', 'wpforms-lite' ); ?></th>
+											<th class="summary-col-form" align="<?php echo esc_attr( $align ); ?>" valign="top"><?php esc_html_e( 'Form', 'wpforms-lite' ); ?></th>
+											<th class="summary-col-entries" align="<?php echo esc_attr( $align ); ?>" valign="top" colspan="2"><?php esc_html_e( 'Entries', 'wpforms-lite' ); ?></th>
+											<?php if ( ! empty( $columns['payments'] ) ) : ?>
+												<th class="summary-col-payments" align="center" valign="top"><?php esc_html_e( 'Payments', 'wpforms-lite' ); ?></th>
+											<?php endif; ?>
+											<th class="summary-col-views" align="center" valign="top"><?php esc_html_e( 'Views', 'wpforms-lite' ); ?></th>
+											<?php if ( ! empty( $columns['conversion'] ) ) : ?>
+												<th class="summary-col-conversion" align="center" valign="top"><?php esc_html_e( 'Conversion', 'wpforms-lite' ); ?></th>
+											<?php endif; ?>
 										</tr>
 										</thead>
 										<tbody>
-										<?php foreach ( $entries as $row ) : ?>
-											<tr id="form-<?php echo esc_attr( $row['form_id'] ); ?>">
-												<td class="form-name" valign="middle"><?php echo isset( $row['title'] ) ? esc_html( $row['title'] ) : ''; ?></td>
-												<td class="entry-count" align="center" valign="middle">
+										<?php foreach ( $forms as $row ) : ?>
+											<tr>
+												<td class="form-name" valign="middle">
 													<?php if ( empty( $row['edit_url'] ) ) : ?>
-														<span>
-																<?php echo isset( $row['count'] ) ? absint( $row['count'] ) : ''; ?>
-															</span>
+														<?php echo esc_html( $row['title'] ); ?>
 													<?php else : ?>
-														<a href="<?php echo esc_url( $row['edit_url'] ); ?>">
-															<?php echo isset( $row['count'] ) ? absint( $row['count'] ) : ''; ?>
-														</a>
+														<a href="<?php echo esc_url( $row['edit_url'] ); ?>"><?php echo esc_html( $row['title'] ); ?></a>
 													<?php endif; ?>
 												</td>
-												<?php if ( $has_trends ) : ?>
-													<td class="summary-trend" align="center" valign="middle">
-														<?php if ( isset( $row['trends'] ) ) : ?>
-															<table class="trend-<?php echo esc_attr( (int) $row['trends'] < 0 ? 'downward' : 'upward' ); ?>" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
-																<tr valign="middle">
-																	<td valign="middle">
-																		<img src="<?php echo esc_url( $icons[ (int) $row['trends'] < 0 ? 'downward' : 'upward' ] ); ?>" width="10" height="13" alt="<?php echo esc_attr( (int) $row['trends'] < 0 ? 'downward' : 'upward' ); ?>" />
-																	</td>
-																	<td dir="ltr" valign="middle">
-																		<?php echo esc_html( $row['trends'] ); ?>
-																	</td>
-																</tr>
-															</table>
-														<?php else : ?>
-															&mdash;
-														<?php endif; ?>
-													</td>
+												<td class="entry-count summary-col-entries" align="<?php echo esc_attr( $align ); ?>" valign="middle"><?php echo esc_html( number_format_i18n( (int) $row['entries'] ) ); ?></td>
+												<td class="summary-trend" align="<?php echo esc_attr( $align ); ?>" valign="middle">
+													<?php if ( ! empty( $row['trends'] ) ) : ?>
+														<?php $render_trend( (int) $row['trends'], $icons ); ?>
+													<?php else : ?>
+														&mdash;
+													<?php endif; ?>
+												</td>
+												<?php if ( ! empty( $columns['payments'] ) ) : ?>
+													<td class="entry-count summary-col-payments" align="center" valign="middle"><?php echo esc_html( number_format_i18n( (int) $row['payments'] ) ); ?></td>
+												<?php endif; ?>
+												<td class="entry-count summary-col-views" align="center" valign="middle"><?php echo esc_html( number_format_i18n( (int) $row['views'] ) ); ?></td>
+												<?php if ( ! empty( $columns['conversion'] ) ) : ?>
+													<?php if ( empty( $columns['locked'] ) ) : ?>
+														<td class="entry-count summary-col-conversion" align="center" valign="middle"><?php echo esc_html( number_format_i18n( (float) $row['conversion'], 1 ) ); ?>%</td>
+													<?php else : ?>
+														<?php // A lapsed license keeps the column but locks the value until renewal. ?>
+														<td class="entry-count summary-col-conversion summary-conversion-locked" align="center" valign="middle"><img src="<?php echo esc_url( $icons['locked'] ); ?>" width="87" height="28" alt="<?php esc_attr_e( 'Locked', 'wpforms-lite' ); ?>" /></td>
+													<?php endif; ?>
 												<?php endif; ?>
 											</tr>
 										<?php endforeach; ?>
-
-										<?php if ( empty( $entries ) ) : ?>
+										<?php if ( empty( $forms ) ) : ?>
 											<tr>
-												<td colspan="3">
-													<?php esc_html_e( 'It appears you do not have any form entries yet.', 'wpforms-lite' ); ?>
-												</td>
+												<?php // Form, the two Entries cells and Views, plus whichever optional columns show. ?>
+												<td class="form-name" colspan="<?php echo esc_attr( (string) ( 4 + (int) ! empty( $columns['payments'] ) + (int) ! empty( $columns['conversion'] ) ) ); ?>"><?php esc_html_e( 'It appears you do not have any form entries yet.', 'wpforms-lite' ); ?></td>
 											</tr>
 										<?php endif; ?>
 										</tbody>
 									</table>
 								</div>
-								<?php if ( ! wpforms()->is_pro() ) : ?>
-									<div class="summary-lite-upgrade-wrapper">
-										<table class="summary-lite-upgrade" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
-											<tbody>
-												<tr>
-													<td class="summary-lite-upgrade-card">
-														<table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
-															<tbody>
-																<?php if ( LiteConnect::is_enabled() ) : ?>
-																	<tr>
-																		<td align="center" valign="top" style="padding: 25px 30px 0 30px;">
-																			<h4>
-																				<?php esc_html_e( 'Your entries are being backed up, but only for one year.', 'wpforms-lite' ); ?>
-																			</h4>
-																			<p>
-																				<?php esc_html_e( 'Lite Connect is saving your entries securely in the cloud. Upgrade to Pro to keep them permanently and manage all your entries right inside WordPress.', 'wpforms-lite' ); ?>
-																			</p>
-																		</td>
-																	</tr>
-																	<tr>
-																		<td align="center" valign="middle" style="padding: 16px 30px 30px 30px;">
-																			<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: separate; margin: 0 auto;">
-																				<tr>
-																					<td class="button button-blue" align="center" border="1" valign="middle" style="background:#056aab; border:1px solid #056aab;">
-																						<a href="<?php echo esc_url( wpforms_utm_link( 'https://wpforms.com/pricing-lite/', $utm_medium, 'Upgrade - With LC' ) ); ?>" class="button-link" rel="noopener noreferrer" target="_blank" bgcolor="#056aab">
-																							<?php esc_html_e( 'Upgrade to Pro', 'wpforms-lite' ); ?>
-																						</a>
-																					</td>
-																				</tr>
-																			</table>
-																		</td>
-																	</tr>
-																<?php else : ?>
-																	<tr>
-																		<td align="center" valign="top" style="padding: 25px 30px 0 30px;">
-																			<h4>
-																				<?php esc_html_e( 'Your entries are not being backed up.', 'wpforms-lite' ); ?>
-																			</h4>
-																			<p>
-																				<?php
-																				printf(
-																					wp_kses(
-																						/* translators: %1$s - WPForms.com Pricing page URL. */
-																						__( 'Enable Lite Connect today to start storing entries. When you’re ready to manage your entries inside WordPress, just <a href="%1$s" target="_blank" rel="noopener noreferrer">Upgrade to Pro</a> and we’ll import them in seconds!', 'wpforms-lite' ),
-																						[
-																							'a' => [
-																								'href'   => [],
-																								'rel'    => [],
-																								'target' => [],
-																							],
-																						]
-																					),
-																					esc_url( wpforms_utm_link( 'https://wpforms.com/pricing-lite/', $utm_medium, 'Upgrade - Without LC' ) )
-																				);
-																				?>
-																			</p>
-																		</td>
-																	</tr>
-																	<tr>
-																		<td align="center" valign="middle" style="padding: 16px 30px 30px 30px;">
-																			<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse: separate; margin: 0 auto;">
-																				<tr>
-																					<td class="button button-blue" align="center" border="1" valign="middle" style="background:#056aab; border:1px solid #056aab;">
-																						<a href="<?php echo esc_url( wpforms_utm_link( 'https://wpforms.com/docs/how-to-use-lite-connect-for-wpforms/', $utm_medium, 'Documentation#backup-with-lite-connect' ) ); ?>" class="button-link" rel="noopener noreferrer" target="_blank" bgcolor="#056aab">
-																							<?php esc_html_e( 'Enable Lite Connect', 'wpforms-lite' ); ?>
-																						</a>
-																					</td>
-																				</tr>
-																			</table>
-																		</td>
-																	</tr>
-																<?php endif; ?>
-															</tbody>
-														</table>
-													</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
-								<?php endif; ?>
-								<?php if ( ! empty( $reengagement_alert ) ) : ?>
-									<div class="summary-reengagement-wrapper">
-										<table class="summary-reengagement" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
-											<tbody>
-												<tr>
-													<td class="summary-reengagement-card">
-														<table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
-															<tbody>
-																<tr>
-																	<td align="center" valign="top" style="padding: 25px 30px 0 30px;">
-																		<h4><?php echo esc_html( $reengagement_alert['title'] ); ?></h4>
-																		<p><?php echo wp_kses( $reengagement_alert['content'], [ 'a' => [ 'href' => [] ] ] ); ?></p>
-																	</td>
-																</tr>
-																<tr>
-																	<td align="center" valign="middle" style="padding: 16px 30px 30px 30px;">
-																		<?php
-																		echo wpforms_render( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-																			'emails/partials/summary-cta-button',
-																			[
-																				'cta_url'  => $reengagement_alert['button_url'],
-																				'cta_text' => $reengagement_alert['button_text'],
-																			],
-																			true
-																		);
-																		?>
-																	</td>
-																</tr>
-															</tbody>
-														</table>
-													</td>
-												</tr>
-											</tbody>
-										</table>
-									</div>
+
+								<div class="summary-cta" align="center">
+									<table class="button-wrapper" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin: 0 auto;">
+										<tr>
+											<td class="button button-dark" align="center" valign="middle">
+												<a href="<?php echo esc_url( $cta['url'] ); ?>" class="button-link" rel="noopener noreferrer" target="_blank"><?php echo esc_html( $cta['text'] ); ?> <?php echo is_rtl() ? '&larr;' : '&rarr;'; ?></a>
+											</td>
+										</tr>
+									</table>
+								</div>
+
+								<?php if ( ! empty( $blocks['bottom'] ) ) : ?>
+									<table class="summary-promos" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+										<tr>
+											<?php $promo_count = count( $blocks['bottom'] ); ?>
+											<?php foreach ( array_values( $blocks['bottom'] ) as $promo_index => $promo ) : ?>
+												<?php
+												list( $promo_badge, $promo_tone ) = $promo_badges[ $promo['id'] ] ?? [ __( 'Tip', 'wpforms-lite' ), 'orange' ];
+
+												// Outlook on Windows ignores :first-child/:last-child, so the gutter is inlined per position.
+												if ( $promo_count === 1 ) {
+													$promo_padding = 'padding: 0;';
+												} elseif ( $promo_index === 0 ) {
+													$promo_padding = 'padding: 0 12px 0 0;';
+												} elseif ( $promo_index === $promo_count - 1 ) {
+													$promo_padding = 'padding: 0 0 0 12px;';
+												} else {
+													$promo_padding = 'padding: 0 12px;';
+												}
+												?>
+												<td class="summary-promo-cell" valign="top" width="<?php echo esc_attr( (string) floor( 100 / $promo_count ) ); ?>%" style="<?php echo esc_attr( $promo_padding ); ?>">
+													<?php
+													echo wpforms_render( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+														'emails/partials/summary-promo',
+														[
+															'badge' => $promo_badge,
+															'tone'  => $promo_tone,
+															'block' => $promo['args'],
+														],
+														true
+													);
+													?>
+												</td>
+											<?php endforeach; ?>
+										</tr>
+									</table>
 								<?php endif; ?>
 							</td>
 							<td><!-- Deliberately empty to support consistent sizing and layout across multiple email clients. --></td>
@@ -264,7 +282,7 @@ $utm_medium = 'Weekly Summary Email';
 		<?php if ( ! empty( $notification_block ) ) : ?>
 			<tr class="summary-notice" align="center">
 				<td class="summary-notification-block" bgcolor="#edf3f7">
-					<table class="summary-notification-table summary-notification-table" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+					<table class="summary-notification-table" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
 						<tbody>
 						<?php if ( ! empty( $icons['notification_block'] ) ) : ?>
 							<tr>
@@ -273,36 +291,27 @@ $utm_medium = 'Weekly Summary Email';
 								</td>
 							</tr>
 						<?php endif; ?>
-						<?php if ( ! empty( $notification_block['title'] ) || ! empty( $notification_block['content'] ) ) : ?>
-							<tr>
-								<td class="summary-notice-content" align="center" valign="middle">
-									<?php if ( ! empty( $notification_block['title'] ) ) : ?>
-										<h4><?php echo esc_html( $notification_block['title'] ); ?></h4>
-									<?php endif; ?>
-									<?php if ( ! empty( $notification_block['content'] ) ) : ?>
-										<p><?php echo wp_kses_post( $notification_block['content'] ); ?></p>
-									<?php endif; ?>
-								</td>
-							</tr>
-						<?php endif; ?>
-
-						<?php if ( ! empty( $notification_block['btns'] ) ) : ?>
+						<tr>
+							<td class="summary-notice-content" align="center" valign="middle">
+								<?php if ( ! empty( $notification_block['title'] ) ) : ?>
+									<h4><?php echo esc_html( $notification_block['title'] ); ?></h4>
+								<?php endif; ?>
+								<?php if ( ! empty( $notification_block['content'] ) ) : ?>
+									<p><?php echo wp_kses_post( $notification_block['content'] ); ?></p>
+								<?php endif; ?>
+							</td>
+						</tr>
+						<?php if ( ! empty( $notification_block['btns']['main']['url'] ) && ! empty( $notification_block['btns']['main']['text'] ) ) : ?>
 							<tr>
 								<td class="button-container" align="center" valign="middle">
 									<table class="button-wrapper" cellspacing="24">
 										<tr>
-											<?php if ( ! empty( $notification_block['btns']['main']['url'] ) && ! empty( $notification_block['btns']['main']['text'] ) ) : ?>
-												<td class="button button-blue" align="center" border="1" valign="middle">
-													<a href="<?php echo esc_url( $notification_block['btns']['main']['url'] ); ?>" class="button-link" rel="noopener noreferrer" target="_blank" bgcolor="#036aab">
-														<?php echo esc_html( $notification_block['btns']['main']['text'] ); ?>
-													</a>
-												</td>
-											<?php endif; ?>
+											<td class="button button-blue" align="center" valign="middle">
+												<a href="<?php echo esc_url( $notification_block['btns']['main']['url'] ); ?>" class="button-link" rel="noopener noreferrer" target="_blank"><?php echo esc_html( $notification_block['btns']['main']['text'] ); ?></a>
+											</td>
 											<?php if ( ! empty( $notification_block['btns']['alt']['url'] ) && ! empty( $notification_block['btns']['alt']['text'] ) ) : ?>
-												<td class="button button-blue-outline" align="center" border="1" valign="middle">
-													<a href="<?php echo esc_url( $notification_block['btns']['alt']['url'] ); ?>" class="button-link" rel="noopener noreferrer" target="_blank" bgcolor="#edf3f7">
-														<?php echo esc_html( $notification_block['btns']['alt']['text'] ); ?>
-													</a>
+												<td class="button button-blue-outline" align="center" valign="middle">
+													<a href="<?php echo esc_url( $notification_block['btns']['alt']['url'] ); ?>" class="button-link" rel="noopener noreferrer" target="_blank"><?php echo esc_html( $notification_block['btns']['alt']['text'] ); ?></a>
 												</td>
 											<?php endif; ?>
 										</tr>
@@ -310,54 +319,6 @@ $utm_medium = 'Weekly Summary Email';
 								</td>
 							</tr>
 						<?php endif; ?>
-						</tbody>
-					</table>
-				</td>
-			</tr>
-		<?php endif; ?>
-		<?php if ( ! empty( $info_block ) ) : ?>
-			<?php if ( ! empty( $notification_block ) ) : ?>
-				<tr><td class="summary-notice-divider" height="1">&nbsp;</td></tr>
-			<?php endif; ?>
-			<tr class="summary-notice" align="center">
-				<td class="summary-info-block" bgcolor="#f7f0ed">
-					<table class="summary-info-table summary-notice-table" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
-						<tbody>
-							<?php if ( ! empty( $icons['info_block'] ) ) : ?>
-								<tr>
-									<td class="summary-notice-icon" align="center" valign="middle">
-										<img src="<?php echo esc_url( $icons['info_block'] ); ?>" width="52" height="52" alt="<?php esc_attr_e( 'Info', 'wpforms-lite' ); ?>" />
-									</td>
-								</tr>
-							<?php endif; ?>
-							<?php if ( ! empty( $info_block['title'] ) || ! empty( $info_block['content'] ) ) : ?>
-								<tr>
-									<td class="summary-notice-content" align="center" valign="middle">
-										<?php if ( ! empty( $info_block['title'] ) ) : ?>
-											<h4><?php echo esc_html( $info_block['title'] ); ?></h4>
-										<?php endif; ?>
-										<?php if ( ! empty( $info_block['content'] ) ) : ?>
-											<p><?php echo wp_kses_post( $info_block['content'] ); ?></p>
-										<?php endif; ?>
-									</td>
-								</tr>
-							<?php endif; ?>
-
-							<?php if ( ! empty( $info_block['url'] ) && ! empty( $info_block['button'] ) ) : ?>
-								<tr>
-									<td class="button-container" align="center" valign="middle">
-										<table class="button-wrapper" cellspacing="24">
-											<tr>
-												<td class="button button-orange" align="center" border="1" valign="middle">
-													<a href="<?php echo esc_url( $info_block['url'] ); ?>" class="button-link" rel="noopener noreferrer" target="_blank" bgcolor="#e27730">
-														<?php echo esc_html( $info_block['button'] ); ?>
-													</a>
-												</td>
-											</tr>
-										</table>
-									</td>
-								</tr>
-							<?php endif; ?>
 						</tbody>
 					</table>
 				</td>

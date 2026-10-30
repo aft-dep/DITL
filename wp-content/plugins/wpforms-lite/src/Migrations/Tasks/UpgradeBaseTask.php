@@ -18,7 +18,7 @@ abstract class UpgradeBaseTask extends Task {
 	 *
 	 * @since 1.9.5
 	 */
-	private const START = 'start';
+	protected const START = 'start';
 
 	/**
 	 * In progress status.
@@ -93,7 +93,7 @@ abstract class UpgradeBaseTask extends Task {
 	 *
 	 * @return void
 	 */
-	private function update_status( string $status ): void {
+	protected function update_status( string $status ): void {
 
 		update_option( $this->status_option, $status );
 	}

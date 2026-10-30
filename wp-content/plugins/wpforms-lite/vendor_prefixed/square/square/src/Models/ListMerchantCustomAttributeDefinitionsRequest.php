@@ -130,7 +130,7 @@ class ListMerchantCustomAttributeDefinitionsRequest implements \JsonSerializable
      *
      * @return array|stdClass
      */
-    #[\ReturnTypeWillChange]
+    #[\ReturnTypeWillChange] // @phan-suppress-current-line PhanUndeclaredClassAttribute for (php < 8.1)
     public function jsonSerialize(bool $asArrayWhenEmpty = \false)
     {
         $json = [];

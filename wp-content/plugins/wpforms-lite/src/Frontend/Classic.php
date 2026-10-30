@@ -290,7 +290,7 @@ class Classic {
 		$form_id = isset( $form_data['id'] ) ? $form_data['id'] : 0;
 
 		printf(
-			'<div class="%s" id="wpforms-confirmation-%d">%s</div>',
+			'<div class="%s" id="wpforms-confirmation-%d" tabindex="-1">%s</div>',
 			wpforms_sanitize_classes( $class ),
 			absint( $form_id ),
 			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

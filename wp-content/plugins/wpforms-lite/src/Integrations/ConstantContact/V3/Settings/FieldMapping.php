@@ -101,15 +101,13 @@ class FieldMapping {
 	 */
 	private function get_field_value( string $field_id ): string {
 
-		$field_parts = explode( '.', $field_id );
-		$field_id    = $field_parts[0];
-		$field_key   = $field_parts[1] ?? 'value';
-
-		if ( $field_key === 'full' ) {
-			$field_key = 'value';
+		if ( wpforms_is_empty_string( $field_id ) ) {
+			return '';
 		}
 
-		return $this->fields[ $field_id ][ $field_key ] ?? '';
+		$field = wpforms_parse_field_id( $field_id );
+
+		return $this->fields[ $field['id'] ][ $field['key'] ] ?? '';
 	}
 
 	/**
@@ -210,13 +208,22 @@ class FieldMapping {
 	 */
 	public function get_street_address(): array {
 
-		$field_id = $this->get_field_meta_id( 'address' );
+		$field     = wpforms_parse_field_id( $this->get_field_meta_id( 'address' ) );
+		$field_key = $field['key'];
 
-		if ( empty( $field_id ) || empty( $this->fields[ $field_id ] ) ) {
+		if ( empty( $field['id'] ) || empty( $this->fields[ $field['id'] ] ) ) {
 			return [];
 		}
 
-		$address_fields = $this->build_address_fields( $this->fields[ $field_id ] );
+		$address = $this->fields[ $field['id'] ];
+
+		// A mapped subfield fills only its own component of the structured address.
+		if ( $field_key !== 'value' && isset( $address[ $field_key ] ) ) {
+			$key     = $field_key === 'address2' ? 'address1' : $field_key;
+			$address = [ $key => $address[ $field_key ] ];
+		}
+
+		$address_fields = $this->build_address_fields( $address );
 
 		return $this->is_valid_address( $address_fields ) ? $address_fields : [];
 	}
