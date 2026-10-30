@@ -450,6 +450,25 @@ function astra_get_theme_author_details() {
 }
 
 /**
+ * Get the accessible label for a submenu toggle, naming the menu item it controls.
+ *
+ * @since 4.14.1
+ * @param string $item_title Menu item title, may contain markup.
+ * @return string Toggle label, not escaped.
+ */
+function astra_get_submenu_toggle_label( $item_title ) {
+	$item_title = trim( wp_strip_all_tags( $item_title ) );
+
+	// Never return an empty label: astra_attr() drops falsy values, so the mobile button would lose aria-label entirely.
+	if ( '' === $item_title ) {
+		return __( 'Toggle submenu', 'astra' );
+	}
+
+	/* translators: %s: Menu item title. */
+	return sprintf( __( 'Toggle %s submenu', 'astra' ), $item_title );
+}
+
+/**
  * Add dropdown icon if menu item has children.
  *
  * @since 3.3.0
@@ -461,7 +480,7 @@ function astra_get_theme_author_details() {
  * @return string The menu item.
  */
 function astra_dropdown_icon_to_menu_link( $title, $item, $args, $depth ) {
-	$role = 'application';
+	$role = 'button';
 	$icon = '';
 
 	/**
@@ -506,7 +525,16 @@ function astra_dropdown_icon_to_menu_link( $title, $item, $args, $depth ) {
 
 	if ( $load_svg_menu_icons || ( defined( 'ASTRA_EXT_VER' ) && ! Astra_Ext_Extension::is_active( 'nav-menu' ) ) ) {
 		// Assign icons to only those menu which are registered by Astra.
-		$icon = Astra_Icons::get_icons( 'arrow' );
+		$icon = wp_kses(
+			/**
+			 * Filter to modify the submenu arrow icon SVG markup.
+			 *
+			 * @param string $icon SVG icon markup.
+			 * @since 4.12.1
+			 */
+			apply_filters( 'astra_mobile_nav_submenu_items_arrow_icon', Astra_Icons::get_icons( 'arrow' ) ),
+			Astra_Icons::allowed_svg_args()
+		);
 	}
 
 	// Dropdown svg arrow for submenu for non Astra registered menu's
@@ -542,7 +570,8 @@ function astra_dropdown_icon_to_menu_link( $title, $item, $args, $depth ) {
 	// Render arrow icon for special menu appearance or on pro deactivation or nav menu extension deactivation.
 	if ( $is_special_menu || $is_nav_menu_extension_inactive || ! defined( 'ASTRA_EXT_VER' ) ) {
 		$custom_tabindex  = true === Astra_Builder_Helper::$is_header_footer_builder_active ? 'tabindex="0"' : '';
-		$astra_arrow_icon = '<span role="' . esc_attr( $role ) . '" class="dropdown-menu-toggle ast-header-navigation-arrow" ' . $custom_tabindex . ' aria-expanded="false" aria-label="' . esc_attr__( 'Menu Toggle', 'astra' ) . '" aria-haspopup="true">' . $icon . '</span>';
+		$toggle_label     = astra_get_submenu_toggle_label( isset( $item->title ) ? $item->title : '' );
+		$astra_arrow_icon = '<span role="' . esc_attr( $role ) . '" class="dropdown-menu-toggle ast-header-navigation-arrow" ' . $custom_tabindex . ' aria-expanded="false" aria-label="' . esc_attr( $toggle_label ) . '" aria-haspopup="true">' . $icon . '</span>';
 	}
 
 	foreach ( $item->classes as $value ) {
@@ -1485,6 +1514,16 @@ function astra_get_blog_posts_per_page() {
  * @since 4.6.0
  */
 function astra_remote_docs_data() {
+	/**
+	 * Filter to disable docs loading.
+	 *
+	 * @param bool $disable_docs True to disable, false to enable.
+	 * @since 4.12.2
+	 */
+	if ( apply_filters( 'astra_disable_docs', true ) ) {
+		return false;
+	}
+
 	$astra_docs_instance = astra_docs_loader_instance( ASTRA_WEBSITE_BASE_URL . '/wp-json/powerful-docs/v1/get-docs', 'astra-docs' );
 	return json_decode( $astra_docs_instance->get_remote_data() );
 }

@@ -1252,8 +1252,8 @@ function astra_theme_background_updater_4_9_0() {
 function astra_theme_background_updater_4_10_0() {
 	// Retrieve the installed time and optin status of BSF Analytics and update it as per product specific key.
 	$analytics_options = array(
-		'bsf_analytics_installed_time' => 'astra_analytics_installed_time',
-		'bsf_analytics_optin'          => 'astra_analytics_optin',
+		'bsf_analytics_installed_time' => 'astra_usage_installed_time',
+		'bsf_analytics_optin'          => 'astra_usage_optin',
 	);
 
 	foreach ( $analytics_options as $source => $target ) {
@@ -1302,13 +1302,50 @@ function astra_theme_background_updater_4_11_12() {
  * @return void
  */
 function astra_theme_background_updater_4_12_0() {
-	$theme_options = astra_get_options();
+	// Plain get_option, not astra_get_options — its request-static cache may hold a filtered copy that would bypass the updater filter detach.
+	$theme_options = get_option( 'astra-settings', array() );
 	// Migrate post card featured overlay color to background overlay setting which supports gradients.
 	if ( isset( $theme_options['post-card-featured-overlay'] ) ) {
 		$theme_options['post-card-background-overlay'] = array(
 			'background-type'  => 'color',
 			'background-color' => $theme_options['post-card-featured-overlay'],
 		);
+		update_option( 'astra-settings', $theme_options );
+	}
+}
+
+/**
+ * Background updater function for theme v4.12.2
+ *
+ * @since 4.12.2
+ * @return void
+ */
+function astra_theme_background_updater_4_12_2() {
+	// Retrieve the installed time and optin status of BSF Analytics and update it as per new key option.
+	$analytics_options = array(
+		'astra_analytics_installed_time' => 'astra_usage_installed_time',
+		'astra_analytics_optin'          => 'astra_usage_optin',
+	);
+
+	foreach ( $analytics_options as $source => $target ) {
+		$status = get_site_option( $source );
+		if ( ! get_site_option( $target ) && $status ) {
+			update_option( $target, $status );
+		}
+	}
+}
+
+/**
+ * Background updater function for theme v4.13.11
+ *
+ * @since 4.13.11
+ * @return void
+ */
+function astra_theme_background_updater_4_13_11() {
+	// Existing sites have been rendering excerpts without a truncation marker, so keep it that way.
+	$theme_options = get_option( 'astra-settings', array() );
+	if ( ! isset( $theme_options['blog-excerpt-marker'] ) ) {
+		$theme_options['blog-excerpt-marker'] = '';
 		update_option( 'astra-settings', $theme_options );
 	}
 }

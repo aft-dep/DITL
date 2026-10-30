@@ -268,8 +268,8 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		/**
 		 * Sanitize Integer
 		 *
-		 * @param  number $input Customizer setting input number.
-		 * @return number        Absolute number.
+		 * @param  mixed $input Customizer setting input number.
+		 * @return int          Absolute number.
 		 */
 		public static function sanitize_integer( $input ) {
 			return absint( $input );
@@ -402,16 +402,21 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 
 				$spacing['mobile'] = array_map( array( self::class, 'check_numberic_values' ), $val['mobile'] );
 
+				$allowed_units = array( '', 'px', 'em', 'rem', '%' );
+
 				if ( isset( $val['desktop-unit'] ) ) {
-					$spacing['desktop-unit'] = $val['desktop-unit'];
+					$desktop_unit            = sanitize_text_field( $val['desktop-unit'] );
+					$spacing['desktop-unit'] = in_array( $desktop_unit, $allowed_units, true ) ? $desktop_unit : 'px';
 				}
 
 				if ( isset( $val['tablet-unit'] ) ) {
-					$spacing['tablet-unit'] = $val['tablet-unit'];
+					$tablet_unit            = sanitize_text_field( $val['tablet-unit'] );
+					$spacing['tablet-unit'] = in_array( $tablet_unit, $allowed_units, true ) ? $tablet_unit : 'px';
 				}
 
 				if ( isset( $val['mobile-unit'] ) ) {
-					$spacing['mobile-unit'] = $val['mobile-unit'];
+					$mobile_unit            = sanitize_text_field( $val['mobile-unit'] );
+					$spacing['mobile-unit'] = in_array( $mobile_unit, $allowed_units, true ) ? $mobile_unit : 'px';
 				}
 
 				return $spacing;
@@ -658,6 +663,41 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		}
 
 		/**
+		 * Sanitize Header/Footer Builder HTML widget content.
+		 *
+		 * Authors holding unfiltered_html keep raw markup; everyone else loses <iframe>.
+		 *
+		 * @param  mixed $input setting input.
+		 * @return string       sanitized setting input value.
+		 * @since 4.13.11
+		 */
+		public static function sanitize_html_widget( $input ) {
+			if ( ! is_string( $input ) ) {
+				return '';
+			}
+
+			// The gate core applies to post content: unfiltered_html or kses, with no fallback.
+			if ( current_user_can( 'unfiltered_html' ) ) {
+				return $input;
+			}
+
+			return wp_kses( $input, astra_get_html_widget_allowed_tags( false, $input ) );
+		}
+
+		/**
+		 * Sanitize the post meta Divider Type.
+		 *
+		 * Value is echoed into the post meta markup, so hold it to the control's own choices.
+		 *
+		 * @param  mixed $input setting input.
+		 * @return string       a Divider Type choice, or the default separator.
+		 * @since 4.13.11
+		 */
+		public static function sanitize_meta_separator( $input ) {
+			return in_array( $input, array( '/', '-', '|', '•', 'none' ), true ) ? $input : '/';
+		}
+
+		/**
 		 * Sanitize Select choices
 		 *
 		 * @param  string $input    setting input.
@@ -749,6 +789,18 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		}
 
 		/**
+		 * Sanitize a CSS property value for safe inline style output.
+		 *
+		 * @since 4.12.5
+		 * @see astra_sanitize_css_value()
+		 * @param  string $value Raw CSS property value.
+		 * @return string        Sanitized value safe for inline CSS context.
+		 */
+		public static function sanitize_css_value( $value ) {
+			return astra_sanitize_css_value( sanitize_text_field( $value ) );
+		}
+
+		/**
 		 * Sanitize Background Obj
 		 *
 		 * @param  mixed $bg_obj setting input.
@@ -779,7 +831,10 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 
 						if ( 'background-image' === $key ) {
 							$out_bg_obj[ $key ] = esc_url_raw( $bg_obj[ $key ] );
+						} elseif ( 'overlay-gradient' === $key ) {
+							$out_bg_obj[ $key ] = self::sanitize_css_value( $bg_obj[ $key ] );
 						} else {
+							/** @psalm-suppress PossiblyUndefinedStringArrayOffset -- Key existence confirmed by isset check above. */
 							$out_bg_obj[ $key ] = esc_attr( $bg_obj[ $key ] );
 						}
 					}
@@ -895,8 +950,9 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 				foreach ( $bg as $key => $value ) {
 					if ( 'background-image' === $key ) {
 						$out_bg_obj[ $device ] [ $key ] = esc_url_raw( $value );
-					}
-					if ( 'background-media' === $key ) {
+					} elseif ( 'overlay-gradient' === $key ) {
+						$out_bg_obj[ $device ] [ $key ] = self::sanitize_css_value( $value );
+					} elseif ( 'background-media' === $key ) {
 						$out_bg_obj[ $device ] [ $key ] = floatval( $value );
 					} else {
 						$out_bg_obj[ $device ] [ $key ] = esc_attr( $value );
@@ -918,6 +974,232 @@ if ( ! class_exists( 'Astra_Customizer_Sanitizes' ) ) {
 		public static function sanitize_toggle_control( $val ) {
 			// returns true if checkbox is checked.
 			return isset( $val ) && is_bool( $val ) ? $val : '';
+		}
+
+		/**
+		 * Sanitize Font Extras composite value.
+		 *
+		 * Whitelists unit fields and sanitizes numeric values for line-height
+		 * and letter-spacing. Preserves '' (unitless ratio) as a valid unit for
+		 * line-height. Non-array input is discarded and an empty array is returned.
+		 *
+		 * @since 4.13.2
+		 * @param  mixed $input Raw value from the customizer setting.
+		 * @return array        Sanitized font-extras array.
+		 */
+		public static function sanitize_font_extras( $input ) {
+			if ( ! is_array( $input ) ) {
+				return array();
+			}
+
+			$valid_lh_units    = array( '', 'px', 'em', 'rem' );
+			$valid_ls_units    = array( 'px', 'em', 'rem' );
+			$valid_decorations = array( 'initial', 'underline', 'line-through', '' );
+			$valid_transforms  = array( 'lowercase', 'capitalize', 'uppercase', '' );
+
+			$out = array();
+
+			if ( isset( $input['line-height'] ) ) {
+				if ( '' === $input['line-height'] ) {
+					$out['line-height'] = '';
+				} else {
+					$lh                 = floatval( $input['line-height'] );
+					$out['line-height'] = is_numeric( $input['line-height'] ) && is_finite( $lh ) ? (string) $lh : '';
+				}
+			}
+			if ( isset( $input['line-height-unit'] ) ) {
+				$out['line-height-unit'] = in_array( $input['line-height-unit'], $valid_lh_units, true ) ? $input['line-height-unit'] : '';
+			}
+			if ( isset( $input['letter-spacing'] ) ) {
+				if ( '' === $input['letter-spacing'] ) {
+					$out['letter-spacing'] = '';
+				} else {
+					$ls                    = floatval( $input['letter-spacing'] );
+					$out['letter-spacing'] = is_numeric( $input['letter-spacing'] ) && is_finite( $ls ) ? (string) $ls : '';
+				}
+			}
+			if ( isset( $input['letter-spacing-unit'] ) ) {
+				$out['letter-spacing-unit'] = in_array( $input['letter-spacing-unit'], $valid_ls_units, true ) ? $input['letter-spacing-unit'] : '';
+			}
+			if ( isset( $input['text-decoration'] ) ) {
+				$out['text-decoration'] = in_array( $input['text-decoration'], $valid_decorations, true ) ? $input['text-decoration'] : 'initial';
+			}
+			if ( isset( $input['text-transform'] ) ) {
+				$out['text-transform'] = in_array( $input['text-transform'], $valid_transforms, true ) ? $input['text-transform'] : '';
+			}
+
+			return $out;
+		}
+
+		/**
+		 * Sanitize a single palette colors array.
+		 *
+		 * Caps the number of slots at the 9 theme slots plus the custom colors limit and
+		 * runs every color through the alpha color sanitizer.
+		 *
+		 * @param  mixed $palette Palette colors input.
+		 * @return array Sanitized palette colors.
+		 * @since 4.14.0
+		 */
+		private static function sanitize_palette_colors( $palette ) {
+			if ( ! is_array( $palette ) ) {
+				return array();
+			}
+
+			$max_slots = 9 + Astra_Global_Palette::get_custom_colors_limit();
+			$colors    = array();
+
+			foreach ( array_values( $palette ) as $index => $color ) {
+				if ( $index >= $max_slots ) {
+					break;
+				}
+				$colors[] = is_string( $color ) && strlen( $color ) <= 100 ? self::sanitize_palette_color( $color ) : '';
+			}
+
+			return $colors;
+		}
+
+		/**
+		 * Sanitize a single global palette color value.
+		 *
+		 * Stored palettes predate this callback, so every CSS color form must round-trip:
+		 * hex in any length, color functions in comma or space syntax, keywords, and var()
+		 * references including fallbacks.
+		 *
+		 * @since 4.14.0
+		 * @param string $color Color value to sanitize.
+		 * @return string Sanitized color, or an empty string when the value is not a safe CSS color.
+		 */
+		public static function sanitize_palette_color( $color ) {
+			$color = trim( $color );
+
+			if ( '' === $color ) {
+				return '';
+			}
+
+			if ( 0 === strpos( $color, 'var(--' ) ) {
+				// phpcs:ignore Generic.PHP.ForbiddenFunctions.FoundWithAlternative -- Safe usage: strips everything outside the var() token charset.
+				return preg_replace( '/[^A-Za-z0-9_)(#\-,.]/', '', $color );
+			}
+
+			if ( preg_match( '/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/', $color ) ) {
+				return $color;
+			}
+
+			// The character set cannot close the declaration or open another CSS context.
+			if ( preg_match( '/^(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color|color-mix)\(\s*[a-zA-Z0-9,.\s%\/\-]*\)$/i', $color ) ) {
+				return $color;
+			}
+
+			// Keywords - transparent, currentColor, named colors.
+			if ( preg_match( '/^[a-zA-Z]{1,25}$/', $color ) ) {
+				return $color;
+			}
+
+			return '';
+		}
+
+		/**
+		 * Sanitize the global color palette setting ( astra-settings[global-color-palette] ).
+		 *
+		 * @param  mixed $input Setting input.
+		 * @return array Sanitized setting value.
+		 * @since 4.14.0
+		 */
+		public static function sanitize_global_color_palette( $input ) {
+			if ( ! is_array( $input ) ) {
+				return array();
+			}
+
+			$out = array(
+				'palette' => isset( $input['palette'] ) ? self::sanitize_palette_colors( $input['palette'] ) : array(),
+			);
+
+			// Preserved as-is - used by the customizer JS to force-refresh the setting.
+			if ( isset( $input['flag'] ) ) {
+				$out['flag'] = (bool) $input['flag'];
+			}
+
+			return $out;
+		}
+
+		/**
+		 * Sanitize the color palettes setting ( astra-color-palettes ).
+		 *
+		 * @param  mixed $input Setting input.
+		 * @return array Sanitized setting value.
+		 * @since 4.14.0
+		 */
+		public static function sanitize_color_palettes( $input ) {
+			if ( ! is_array( $input ) ) {
+				return array();
+			}
+
+			$out = array();
+
+			$out['currentPalette'] = isset( $input['currentPalette'] ) && is_string( $input['currentPalette'] ) && preg_match( '/^palette_\d{1,3}\z/', $input['currentPalette'] ) ? $input['currentPalette'] : 'palette_1';
+
+			$out['palettes'] = array();
+			if ( isset( $input['palettes'] ) && is_array( $input['palettes'] ) ) {
+				foreach ( $input['palettes'] as $palette_key => $palette ) {
+					// Palette keys follow the palette_N shape; the entry cap keeps a crafted
+					// payload from persisting an oversized autoloaded option.
+					if ( ! is_string( $palette_key ) || ! preg_match( '/^palette_\d{1,3}\z/', $palette_key ) || count( $out['palettes'] ) >= 10 ) {
+						continue;
+					}
+					$out['palettes'][ $palette_key ] = self::sanitize_palette_colors( $palette );
+				}
+			}
+
+			if ( isset( $input['presetNames'] ) && is_array( $input['presetNames'] ) ) {
+				$out['presetNames'] = array();
+				foreach ( $input['presetNames'] as $palette_key => $preset_name ) {
+					if ( ! is_string( $palette_key ) || ! preg_match( '/^palette_\d{1,3}\z/', $palette_key ) || count( $out['presetNames'] ) >= 10 ) {
+						continue;
+					}
+					$out['presetNames'][ $palette_key ] = is_string( $preset_name ) ? substr( sanitize_text_field( $preset_name ), 0, 100 ) : '';
+				}
+			}
+
+			if ( isset( $input['presets'] ) && is_array( $input['presets'] ) ) {
+				$out['presets'] = array();
+				foreach ( $input['presets'] as $preset_key => $preset ) {
+					if ( count( $out['presets'] ) >= 20 ) {
+						break;
+					}
+					$out['presets'][ substr( sanitize_text_field( (string) $preset_key ), 0, 100 ) ] = self::sanitize_palette_colors( $preset );
+				}
+			}
+
+			if ( isset( $input['customColors'] ) && is_array( $input['customColors'] ) ) {
+				$out['customColors'] = array();
+				$custom_colors_limit = Astra_Global_Palette::get_custom_colors_limit();
+
+				foreach ( array_values( $input['customColors'] ) as $index => $custom_color ) {
+					if ( $index >= $custom_colors_limit ) {
+						break;
+					}
+					$custom_color_name = isset( $custom_color['name'] ) && is_string( $custom_color['name'] ) ? substr( sanitize_text_field( $custom_color['name'] ), 0, 100 ) : '';
+
+					// A name saved empty would render blank tooltips and labels - keep the slot's default name.
+					if ( '' === trim( $custom_color_name ) ) {
+						/* translators: %d: custom color number. */
+						$custom_color_name = sprintf( __( 'Custom %d', 'astra' ), $index + 1 );
+					}
+
+					$out['customColors'][] = array(
+						'name'    => $custom_color_name,
+						'retired' => ! empty( $custom_color['retired'] ),
+					);
+				}
+			}
+
+			// Preserved as-is - used by the customizer JS to force-refresh the setting.
+			if ( isset( $input['flag'] ) ) {
+				$out['flag'] = (bool) $input['flag'];
+			}
+
+			return $out;
 		}
 	}
 }

@@ -108,6 +108,14 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 		public static $customizer_footer_configs = array();
 
 		/**
+		 * Option filters detached while the customizer saves settings.
+		 *
+		 * @since 4.13.9
+		 * @var array
+		 */
+		private $detached_option_filters = array();
+
+		/**
 		 * Initiator
 		 */
 		public static function get_instance() {
@@ -157,6 +165,19 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 			 */
 			return apply_filters( 'astra_is_astra_customizer', true );
 		}
+
+		/**
+		 * Whether this request needs the Customizer configurations registered.
+		 *
+		 * Includes WP-Cron and WP-CLI, where core publishes scheduled changesets.
+		 *
+		 * @since 4.13.12
+		 * @return bool
+		 */
+		public static function is_customizer_context() {
+			return is_admin() || is_customize_preview() || wp_doing_cron() || ( defined( 'WP_CLI' ) && WP_CLI );
+		}
+
 		/**
 		 * Constructor
 		 */
@@ -165,7 +186,8 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 			add_action( 'astra_style_guide_site_icon', array( $this, 'site_icon_update' ) );
 
 			// Hooks that are necessary even if it is not Astra's customizer.
-			if ( is_admin() || is_customize_preview() ) {
+			if ( self::is_customizer_context() ) {
+				add_action( 'customize_register', array( $this, 'include_config_base' ), 1 );
 				add_action( 'customize_register', array( $this, 'include_configurations' ), 2 );
 				add_action( 'customize_register', array( $this, 'astra_pro_upgrade_configurations' ), 2 );
 			}
@@ -181,7 +203,7 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 			 */
 			add_action( 'customize_preview_init', array( $this, 'preview_init' ) );
 
-			if ( is_admin() || is_customize_preview() ) {
+			if ( self::is_customizer_context() ) {
 				add_action( 'customize_register', array( $this, 'prepare_customizer_javascript_configs' ) );
 				add_action( 'customize_register', array( $this, 'prepare_group_configs' ), 9 );
 
@@ -202,6 +224,14 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 
 			add_action( 'customize_register', array( $this, 'customize_register' ) );
 			add_action( 'customize_register', array( $this, 'customize_register_site_icon' ), 20 );
+			// WP_Customize_Setting snapshots the astra-settings root value when settings are constructed
+			// during customize_register (aggregate_multidimensional) and saves from that snapshot, so on
+			// save requests the option filters must be detached before registration — customize_save is too late.
+			if ( isset( $_POST['action'] ) && 'customize_save' === $_POST['action'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Request detection only, core verifies the nonce before saving.
+				add_action( 'customize_register', array( $this, 'detach_option_filters' ), 0 );
+			}
+			add_action( 'customize_save', array( $this, 'detach_option_filters' ), 1 );
+			add_action( 'customize_save_after', array( $this, 'restore_option_filters' ), 999 );
 			add_action( 'customize_save_after', array( $this, 'customize_save' ) );
 			add_action( 'customize_save_after', array( $this, 'delete_cached_partials' ) );
 			add_action( 'wp_head', array( $this, 'preview_styles' ) );
@@ -440,7 +470,8 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 		 * @return void
 		 */
 		public function print_footer_scripts() {
-			$output  = '<script type="text/javascript">';
+			$output = '<script type="text/javascript">';
+
 			$output .= '
 	        	wp.customize.bind(\'ready\', function() {
 	            	wp.customize.control.each(function(ctrl, i) {
@@ -709,6 +740,8 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 		 * @return array The array of logo SVG icons.
 		 */
 		public function logo_svg_icons() {
+			check_ajax_referer( 'astra_customizer_nonce', 'nonce' );
+
 			// Check if the current user has the capability to edit theme options.
 			if ( ! current_user_can( 'edit_theme_options' ) ) {
 				wp_send_json_error( __( 'You are not allowed to access this resource.', 'astra' ) );
@@ -981,6 +1014,9 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 				case 'ast-section-toggle':
 					$config ['sanitize_callback'] = array( 'Astra_Customizer_Sanitizes', 'sanitize_toggle_control' );
 					break;
+				case 'ast-font-extras':
+					$config ['sanitize_callback'] = array( 'Astra_Customizer_Sanitizes', 'sanitize_font_extras' );
+					break;
 				default:
 					break;
 			}
@@ -1180,14 +1216,21 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 						'header-builder' => astra_get_pro_url( '/pricing/', 'free-theme', 'customizer', 'header-builder' ),
 						'footer-builder' => astra_get_pro_url( '/pricing/', 'free-theme', 'customizer', 'footer-builder' ),
 						'sidebar'        => astra_get_pro_url( '/pricing/', 'free-theme', 'customizer', 'sidebar' ),
+						'menus'          => astra_get_pro_url( '/pricing/', 'free-theme', 'customizer', 'menus' ),
 						'woocommerce'    => astra_get_pro_url( '/pricing/', 'free-theme', 'customizer', 'woocommerce' ),
 						'blog-single'    => astra_get_pro_url( '/pricing/', 'free-theme', 'customizer', 'blog-single' ),
 						'blog-archive'   => astra_get_pro_url( '/pricing/', 'free-theme', 'customizer', 'blog-archive' ),
 						'hfb-pro-widget' => astra_get_pro_url( '/pricing/', 'free-theme', 'astra-header-footer', 'unlock-pro-widget' ),
+						'lifterlms'      => astra_get_pro_url( '/pricing/', 'free-theme', 'customizer', 'lifterlms' ),
 					),
 					/** @psalm-suppress RedundantCondition */
 					'is_woo_market_zip'       => ! ASTRA_THEME_ORG_VERSION,
 					'pro_active'              => defined( 'ASTRA_EXT_VER' ),
+					'pricingBar'              => ! defined( 'ASTRA_EXT_VER' ) ? array(
+						'text'       => __( "You\xe2\x80\x99re one step away \xe2\x80\x94 activate your license to access premium features.", 'astra' ),
+						'cta'        => __( 'Get your license now', 'astra' ),
+						'licenseUrl' => 'https://store.brainstormforce.com/account/?utm_source=free-theme&utm_medium=top-bar&utm_campaign=upgrade',
+					) : null,
 				/** @psalm-suppress RedundantCondition */
 				)
 			);
@@ -1297,6 +1340,16 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 		}
 
 		/**
+		 * Include the Customizer configuration base class.
+		 *
+		 * @since 4.13.12
+		 * @return void
+		 */
+		public function include_config_base() {
+			require_once ASTRA_THEME_DIR . 'inc/customizer/configurations/class-astra-customizer-config-base.php'; // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound -- Config base class every config loader extends; loaded on customize_register priority 1 so it exists before the priority 2 loaders run.
+		}
+
+		/**
 		 * Include Customizer Configuration files.
 		 *
 		 * @since 1.4.3
@@ -1304,7 +1357,7 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 		 */
 		public function include_configurations() {
 			// @codingStandardsIgnoreStart WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
-			require ASTRA_THEME_DIR . 'inc/customizer/configurations/class-astra-customizer-config-base.php';
+			$this->include_config_base();
 
 			/**
 			 * Register Sections & Panels
@@ -1519,6 +1572,19 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 			// Customizer Controls.
 			wp_enqueue_style( 'astra-customizer-controls-css', ASTRA_THEME_URI . 'assets/css/minified/customizer-controls' . $css_prefix, null, ASTRA_THEME_VERSION );
 
+			// Sync customizer accent colors with WP admin color scheme.
+			if ( apply_filters( 'astra_customizer_match_admin_color_scheme', true ) ) {
+				$admin_color_css = 'body {
+					--ast-customizer-color-1: var(--wp-admin-theme-color, #0284c7);
+					--ast-customizer-color-2: var(--wp-admin-theme-color, #0ea5e9);
+					--ast-customizer-color-3: var(--wp-admin-theme-color-darker-10, #2271b1);
+					--ast-customizer-primary-color: var(--wp-admin-theme-color, #0284c7);
+					--ast-customizer-alternate-primary-color: var(--wp-admin-theme-color, #0ea5e9);
+					--ast-customizer-active-border-color: var(--wp-admin-theme-color, #0ea5e9);
+				}';
+				wp_add_inline_style( 'astra-customizer-controls-css', $admin_color_css );
+			}
+
 			wp_enqueue_script( 'astra-customizer-style-guide-js', ASTRA_THEME_URI . 'assets/js/' . $dir . '/customizer-style-guide' . $js_prefix, array( 'jquery', 'astra-customizer-controls-toggle-js' ), ASTRA_THEME_VERSION, true );
 			wp_localize_script(
 				'astra-customizer-style-guide-js',
@@ -1636,47 +1702,64 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 		 * @since 4.8.0
 		 */
 		public function render_style_guide_markup() {
+			$style_guide_colors = array(
+				'color-0' => array(
+					'title' => __( 'Brand', 'astra' ),
+					'code'  => 'var(--ast-global-color-0)',
+				),
+				'color-1' => array(
+					'title' => __( 'Alt Brand', 'astra' ),
+					'code'  => 'var(--ast-global-color-1)',
+				),
+				'color-2' => array(
+					'title' => __( 'Heading', 'astra' ),
+					'code'  => 'var(--ast-global-color-2)',
+				),
+				'color-3' => array(
+					'title' => __( 'Text', 'astra' ),
+					'code'  => 'var(--ast-global-color-3)',
+				),
+				'color-4' => array(
+					'title' => __( 'Primary', 'astra' ),
+					'code'  => 'var(--ast-global-color-4)',
+				),
+				'color-5' => array(
+					'title' => __( 'Secondary', 'astra' ),
+					'code'  => 'var(--ast-global-color-5)',
+				),
+				'color-6' => array(
+					'title' => __( 'Border', 'astra' ),
+					'code'  => 'var(--ast-global-color-6)',
+				),
+				'color-7' => array(
+					'title' => __( 'Subtle BG', 'astra' ),
+					'code'  => 'var(--ast-global-color-7)',
+				),
+				'color-8' => array(
+					'title' => __( 'Extra', 'astra' ),
+					'code'  => 'var(--ast-global-color-8)',
+				),
+			);
+
+			// Append user defined custom global colors to the style guide swatches.
+			foreach ( Astra_Global_Palette::get_custom_colors() as $custom_index => $custom_color ) {
+				if ( ! empty( $custom_color['retired'] ) ) {
+					continue;
+				}
+
+				$slot_index = 9 + (int) $custom_index;
+
+				/* translators: %d: custom color number. */
+				$style_guide_colors[ 'color-' . $slot_index ] = array(
+					'title' => '' !== trim( (string) $custom_color['name'] ) ? $custom_color['name'] : sprintf( __( 'Custom %d', 'astra' ), (int) $custom_index + 1 ),
+					'code'  => 'var(--ast-global-color-' . $slot_index . ')',
+				);
+			}
+
 			$settings = apply_filters(
 				'astra_quick_customizer_navigation_setup',
 				array(
-					'colors' => array(
-						'color-0' => array(
-							'title' => __( 'Brand', 'astra' ),
-							'code'  => 'var(--ast-global-color-0)',
-						),
-						'color-1' => array(
-							'title' => __( 'Alt Brand', 'astra' ),
-							'code'  => 'var(--ast-global-color-1)',
-						),
-						'color-2' => array(
-							'title' => __( 'Heading', 'astra' ),
-							'code'  => 'var(--ast-global-color-2)',
-						),
-						'color-3' => array(
-							'title' => __( 'Text', 'astra' ),
-							'code'  => 'var(--ast-global-color-3)',
-						),
-						'color-4' => array(
-							'title' => __( 'Primary', 'astra' ),
-							'code'  => 'var(--ast-global-color-4)',
-						),
-						'color-5' => array(
-							'title' => __( 'Secondary', 'astra' ),
-							'code'  => 'var(--ast-global-color-5)',
-						),
-						'color-6' => array(
-							'title' => __( 'Border', 'astra' ),
-							'code'  => 'var(--ast-global-color-6)',
-						),
-						'color-7' => array(
-							'title' => __( 'Subtle BG', 'astra' ),
-							'code'  => 'var(--ast-global-color-7)',
-						),
-						'color-8' => array(
-							'title' => __( 'Extra', 'astra' ),
-							'code'  => 'var(--ast-global-color-8)',
-						),
-					),
+					'colors' => $style_guide_colors,
 				)
 			);
 
@@ -1932,6 +2015,7 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 				'has_block_editor_support'             => Astra_Dynamic_CSS::is_block_editor_support_enabled(),
 				'updated_gb_outline_button_patterns'   => astra_button_default_padding_updated(),
 				'apply_content_bg_fullwidth_layouts'   => astra_get_option( 'apply-content-background-fullwidth-layouts', true ),
+				'is_woo_active'                        => class_exists( 'WooCommerce' ),
 				'astra_woo_btn_global_compatibility'   => is_callable( 'Astra_Dynamic_CSS::astra_woo_support_global_settings' ) ? Astra_Dynamic_CSS::astra_woo_support_global_settings() : false,
 				'v4_2_2_core_form_btns_styling'        => true === Astra_Dynamic_CSS::astra_core_form_btns_styling() ? ', #comments .submit, .search .search-submit' : '',
 				'isLifterLMS'                          => class_exists( 'LifterLMS' ),
@@ -1942,6 +2026,33 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 			);
 
 			wp_localize_script( 'astra-customizer-preview-js', 'astraCustomizer', $localize_array );
+		}
+
+		/**
+		 * Detach astra-settings option filters before the customizer saves settings.
+		 *
+		 * Plugins like WPML String Translation filter `option_astra-settings` to swap admin texts
+		 * with translations. The customizer merges changed settings into the filtered array and
+		 * saves it, which would permanently store translated strings in the database.
+		 *
+		 * @return void
+		 *
+		 * @since 4.13.9
+		 */
+		public function detach_option_filters() {
+			$this->detached_option_filters = array_merge( $this->detached_option_filters, astra_detach_option_filters() );
+		}
+
+		/**
+		 * Restore the astra-settings option filters detached before the customizer save.
+		 *
+		 * @return void
+		 *
+		 * @since 4.13.9
+		 */
+		public function restore_option_filters() {
+			astra_restore_option_filters( $this->detached_option_filters );
+			$this->detached_option_filters = array();
 		}
 
 		/**
@@ -2107,9 +2218,18 @@ if ( ! class_exists( 'Astra_Customizer' ) ) {
 }
 
 /**
- *  Kicking this off by calling 'get_instance()' method
+ * Kicking this off by calling 'get_instance()' method.
+ *
+ * All hooks registered in the constructor target admin, customizer, or AJAX contexts
+ * (customize_*, wp_ajax_*, astra_style_guide_site_icon). None fire on pure frontend
+ * requests, so skip instantiation there. Static utilities on the class (e.g.
+ * generate_logo_by_width(), is_astra_customizer(), logo_image_sizes()) remain
+ * available because they don't require the instance. WP-Cron and WP-CLI are included
+ * because customize_register also fires there, when core publishes a scheduled changeset.
  */
-Astra_Customizer::get_instance();
+if ( Astra_Customizer::is_customizer_context() ) {
+	Astra_Customizer::get_instance();
+}
 
 /**
  * Customizer save configs.

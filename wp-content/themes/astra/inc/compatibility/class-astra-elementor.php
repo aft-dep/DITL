@@ -124,8 +124,8 @@ if ( ! class_exists( 'Astra_Elementor' ) ) {
 						'margin' => '0',
 					),
 					'.elementor-page .ast-menu-toggle' => array(
-						'color'      => 'unset !important',
-						'background' => 'unset !important',
+						'color'      => 'unset',
+						'background' => 'unset',
 					),
 				);
 
@@ -353,8 +353,11 @@ if ( ! class_exists( 'Astra_Elementor' ) ) {
 		 * @return bool True IF Elementor Editor is loaded, False If Elementor Editor is not loaded.
 		 */
 		private function is_elementor_editor() {
-			if ( ( isset( $_REQUEST['action'] ) && 'elementor' === $_REQUEST['action'] ) || isset( $_REQUEST['elementor-preview'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				return true;
+			// Only trust Elementor editor request parameters for authenticated users with editing capabilities.
+			if ( is_user_logged_in() && current_user_can( 'edit_posts' ) ) {
+				if ( ( isset( $_REQUEST['action'] ) && 'elementor' === $_REQUEST['action'] ) || isset( $_REQUEST['elementor-preview'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					return true;
+				}
 			}
 
 			return false;
@@ -371,6 +374,11 @@ if ( ! class_exists( 'Astra_Elementor' ) ) {
 		 */
 		public function elementor_add_theme_colors( $response, $handler, $request ) {
 
+			// Bail early if the route callback returned an error or an unexpected response type.
+			if ( is_wp_error( $response ) || ! $response instanceof \WP_REST_Response ) {
+				return $response;
+			}
+
 			$route = $request->get_route();
 
 			if ( astra_maybe_disable_global_color_in_elementor() ) {
@@ -385,16 +393,28 @@ if ( ! class_exists( 'Astra_Elementor' ) ) {
 			$data           = $response->get_data();
 			$slugs          = Astra_Global_Palette::get_palette_slugs();
 			$labels         = Astra_Global_Palette::get_palette_labels();
+			$custom_colors  = Astra_Global_Palette::get_custom_colors();
 
 			foreach ( $global_palette['palette'] as $key => $color ) {
 
-				$slug = $slugs[ $key ];
+				// Removed custom colors are dropped everywhere - Elementor widgets using
+				// them show the missing-global state until the color is added back.
+				if ( $key >= 9 && ( ! isset( $custom_colors[ $key - 9 ] ) || ! empty( $custom_colors[ $key - 9 ]['retired'] ) ) ) {
+					continue;
+				}
+
+				$slug = isset( $slugs[ $key ] ) ? $slugs[ $key ] : 'ast-global-color-' . $key;
 				// Remove hyphens from slug.
 				$no_hyphens = str_replace( '-', '', $slug );
+				$label      = isset( $labels[ $key ] ) ? $labels[ $key ] : '';
+
+				// The "Theme" prefix marks Astra-provided globals apart from Elementor's own.
+				/* translators: %s: palette color name. */
+				$title = sprintf( __( 'Theme %s', 'astra' ), $label );
 
 				$data['colors'][ $no_hyphens ] = array(
 					'id'    => esc_attr( $no_hyphens ),
-					'title' => 'Theme ' . $labels[ $key ],
+					'title' => esc_html( $title ),
 					'value' => $color,
 				);
 			}
@@ -413,6 +433,7 @@ if ( ! class_exists( 'Astra_Elementor' ) ) {
 		 * @return object
 		 */
 		public function display_global_colors_front_end( $response, $handler, $request ) {
+
 			if ( astra_maybe_disable_global_color_in_elementor() ) {
 				return $response;
 			}
@@ -438,12 +459,20 @@ if ( ! class_exists( 'Astra_Elementor' ) ) {
 				return $response;
 			}
 
+			$palette_index = $slug_map[ $rest_id ];
+			$custom_colors = Astra_Global_Palette::get_custom_colors();
+
+			// Removed custom colors resolve like unknown globals.
+			if ( $palette_index >= 9 && ( ! isset( $custom_colors[ $palette_index - 9 ] ) || ! empty( $custom_colors[ $palette_index - 9 ]['retired'] ) ) ) {
+				return $response;
+			}
+
 			$colors = astra_get_option( 'global-color-palette' );
 			return rest_ensure_response(
 				array(
 					'id'    => esc_attr( $rest_id ),
-					'title' => Astra_Global_Palette::get_css_variable_prefix() . esc_html( $slug_map[ $rest_id ] ),
-					'value' => $colors['palette'][ $slug_map[ $rest_id ] ],
+					'title' => Astra_Global_Palette::get_css_variable_prefix() . esc_html( $palette_index ),
+					'value' => isset( $colors['palette'][ $palette_index ] ) ? $colors['palette'][ $palette_index ] : '',
 				)
 			);
 		}
@@ -465,9 +494,18 @@ if ( ! class_exists( 'Astra_Elementor' ) ) {
 			$slugs          = Astra_Global_Palette::get_palette_slugs();
 			$style          = array();
 
+			$custom_colors = Astra_Global_Palette::get_custom_colors();
+
 			if ( isset( $global_palette['palette'] ) ) {
 				foreach ( $global_palette['palette'] as $color_index => $color ) {
-					$variable_key           = '--e-global-color-' . str_replace( '-', '', $slugs[ $color_index ] );
+					// Removed custom colors are not emitted - matching the theme palette.
+					if ( $color_index >= 9 && ( ! isset( $custom_colors[ $color_index - 9 ] ) || ! empty( $custom_colors[ $color_index - 9 ]['retired'] ) ) ) {
+						continue;
+					}
+
+					// The slugs list is derived from a separate option - fall back for out-of-sync palettes.
+					$slug                   = isset( $slugs[ $color_index ] ) ? $slugs[ $color_index ] : 'ast-global-color-' . $color_index;
+					$variable_key           = '--e-global-color-' . str_replace( '-', '', $slug );
 					$style[ $variable_key ] = $color;
 				}
 
