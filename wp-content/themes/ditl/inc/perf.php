@@ -23,12 +23,16 @@
  *   (wp-block-image, wp-block-list, wp-block-paragraph) et global-styles
  *   (marge body, text-decoration des liens) sont CONSERVEES) ;
  * - script Site Kit de suivi des formulaires WPForms sur les pages sans
- *   formulaire (aucun hook natif de Site Kit ne le permet : dequeue cible).
+ *   formulaire (aucun hook natif de Site Kit ne le permet : dequeue cible) ;
+ * - flexibility.js d'Astra (polyfill Flexbox pour Internet Explorer, sans
+ *   aucun effet dans les autres navigateurs).
  *
  * Complements de chargement :
  * - preconnect vers googletagmanager.com (seule origine tierce restante
  *   apres l'hebergement local des polices) ;
- * - preload de l'image de banniere des gabarits DiTL (image LCP).
+ * - preload de l'image de banniere des gabarits DiTL (image LCP) ;
+ * - integration en ligne des petites feuilles bloquantes du <head> par le
+ *   mecanisme natif du coeur (meme contenu, meme place dans la cascade).
  *
  * CONSERVES volontairement (decisions documentees dans le rapport du
  * chantier) : global-styles, feuilles par bloc, prefetch speculatif du
@@ -157,6 +161,171 @@ function ditl_retirer_sitekit_wpforms_sans_formulaire() {
 	wp_dequeue_script( 'googlesitekit-events-provider-wpforms' );
 }
 add_action( 'wp_enqueue_scripts', 'ditl_retirer_sitekit_wpforms_sans_formulaire', 60 );
+
+/**
+ * Retire flexibility.js, polyfill Flexbox d'Internet Explorer charge par Astra.
+ *
+ * Astra 4.12 enqueue astra-flexibility dans le <head> (script synchrone de
+ * 15,5 Ko, 4,3 Ko gzip, suivi de l'appel en ligne
+ * flexibility(document.documentElement)) sur toutes les pages et pour tous
+ * les navigateurs : la condition "IE" qui le reservait autrefois a Internet
+ * Explorer a disparu avec la fin des commentaires conditionnels
+ * (WordPress 6.9). C'etait la seule ressource bloquante de type script.
+ *
+ * Preuve de l'absence d'effet hors Internet Explorer (source
+ * assets/js/unminified/flexibility.js d'Astra) : le polyfill ne traite qu'un
+ * element dont l'attribut data-style declare display:flex ou dont
+ * currentStyle["-js-display"] vaut flex. currentStyle n'existe que dans
+ * Internet Explorer et data-style n'est pose que sur un element deja
+ * detecte : dans Chrome, Firefox, Safari et Edge, aucun element n'est
+ * detecte et rien n'est ecrit (l'appel a lieu en outre dans le <head>,
+ * avant le body). Aucun script ne declare la dependance astra-flexibility
+ * ni n'appelle flexibility (recherche dans wp-content/themes,
+ * wp-content/plugins et wp-includes, 29/10/2026). Internet Explorer n'est
+ * plus un navigateur cible (fin de support par Microsoft en 2022, par
+ * WordPress depuis la 5.8) et le site ne s'y affiche deja plus correctement
+ * (variables CSS d'Astra et du theme, inconnues d'Internet Explorer).
+ *
+ * Le dequeue retire aussi le script en ligne attache au handle.
+ */
+function ditl_retirer_flexibility_ie() {
+	wp_dequeue_script( 'astra-flexibility' );
+}
+add_action( 'wp_enqueue_scripts', 'ditl_retirer_flexibility_ie', 100 );
+
+/**
+ * Integre en ligne les petites feuilles bloquantes du <head>.
+ *
+ * Chaque feuille listee ci-dessous etait une requete bloquante de quelques
+ * Ko. Son contenu est desormais imprime dans une balise <style> A LA MEME
+ * PLACE que l'ancienne balise <link>, par le mecanisme natif du coeur qui
+ * integre deja les feuilles des blocs (wp_maybe_inline_styles, sur wp_head
+ * et wp_footer) : il suffit de declarer le chemin du fichier (donnee
+ * "path"). Le coeur lit le fichier, rend ses url() relatives a la racine
+ * du site (_wp_normalize_relative_css_links) et imprime
+ * <style id="<handle>-inline-css">, dans un budget de 40 Ko par passage
+ * (wp_head, puis wp_footer ; filtre styles_inline_size_limit, plus petites
+ * feuilles d'abord) :
+ * au-dela, la feuille reste en <link>.
+ *
+ * Rendu identique : meme contenu, meme position dans la cascade, memes
+ * fichiers de polices. Les fichiers sources restent la reference (aucune
+ * copie a maintenir, aucun outil de construction).
+ *
+ * Feuilles concernees (tailles au 29/10/2026) :
+ * - theme : style.css (1,7 Ko, toutes les pages), gabarits-communs.css
+ *   (3,2 Ko, gabarits DiTL), police-roboto.css et police-jost.css (1,5 et
+ *   1,4 Ko, gabarits Contact et Livrable) ;
+ * - Astra : menu-animation.min.css (3,5 Ko, animation "slide-up" des
+ *   sous-menus du menu principal) et astra-local-fonts.css (5,1 Ko,
+ *   @font-face d'Exo generees par Astra dans wp-content/astra-local-fonts/,
+ *   URLs absolues) ;
+ * - Complianz : cookieblocker.min.css (2,8 Ko, contenus bloques avant
+ *   consentement).
+ * Les feuilles plus lourdes (CSS principale d'Astra, feuilles des
+ * gabarits, a11y.css, recherche.css, banniere Complianz, WPForms) restent
+ * en <link> : le navigateur les garde en cache d'une page a l'autre.
+ *
+ * Gardes (robustesse aux mises a jour d'Astra et de Complianz) : handle
+ * absent ou renomme = rien ne change ; fichier deduit de l'URL enregistree
+ * (aucun chemin d'extension code en dur), situe sous wp-content, lisible,
+ * en .css et de 6 Ko au plus (une feuille devenue lourde repasse en
+ * <link>) ; media "all" seulement (la balise <style> du coeur ne porte pas
+ * d'attribut media) ; ni feuille alternative, ni conditionnelle, ni
+ * variante RTL ; front seulement, hors apercu du personnalisateur (Astra y
+ * manipule la feuille des polices).
+ *
+ * Cache de page : le CSS integre fait partie du HTML mis en cache par WP
+ * Fastest Cache, que le deploiement vide (.github/scripts/deployer.sh).
+ * Apres une mise a jour d'Astra ou de Complianz faite depuis
+ * l'administration, les pages en cache gardent l'ancien CSS integre
+ * jusqu'a la prochaine purge du cache (un <link> servait directement le
+ * nouveau fichier) : purger le cache apres une telle mise a jour.
+ */
+function ditl_integrer_petites_feuilles() {
+	if ( is_admin() || is_customize_preview() ) {
+		return;
+	}
+
+	$ditl_handles = array(
+		'ditl-style',
+		'ditl-gabarits-communs',
+		'ditl-police-roboto',
+		'ditl-police-jost',
+		'astra-menu-animation',
+		'astra-google-fonts',
+		'cmplz-general',
+	);
+
+	$ditl_styles = wp_styles();
+
+	foreach ( $ditl_handles as $ditl_handle ) {
+		$ditl_chemin = ditl_chemin_feuille_integrable( $ditl_styles, $ditl_handle );
+
+		if ( '' !== $ditl_chemin ) {
+			$ditl_styles->add_data( $ditl_handle, 'path', $ditl_chemin );
+		}
+	}
+}
+add_action( 'wp_enqueue_scripts', 'ditl_integrer_petites_feuilles', 100 );
+
+/**
+ * Chemin du fichier d'une feuille enfilee, si elle peut etre integree.
+ *
+ * @param WP_Styles $styles Registre des feuilles.
+ * @param string    $handle Handle de la feuille.
+ * @return string Chemin absolu du fichier, ou chaine vide si la feuille
+ *                doit rester en <link>.
+ */
+function ditl_chemin_feuille_integrable( $styles, $handle ) {
+	if ( ! wp_style_is( $handle, 'enqueued' ) || ! isset( $styles->registered[ $handle ] ) ) {
+		return '';
+	}
+
+	$ditl_feuille = $styles->registered[ $handle ];
+
+	if ( ! is_string( $ditl_feuille->src ) || '' === $ditl_feuille->src || $styles->get_data( $handle, 'path' ) ) {
+		return '';
+	}
+
+	$ditl_media = $ditl_feuille->args ? $ditl_feuille->args : 'all';
+
+	if ( 'all' !== $ditl_media || $styles->get_data( $handle, 'alt' ) || $styles->get_data( $handle, 'conditional' ) ) {
+		return '';
+	}
+
+	if ( is_rtl() && $styles->get_data( $handle, 'rtl' ) ) {
+		return '';
+	}
+
+	// URL de la feuille sans protocole ni parametres, comparee a celle de
+	// wp-content : seules les feuilles servies depuis wp-content sont visees.
+	$ditl_url_contenu = preg_replace( '#^https?:#i', '', trailingslashit( content_url() ) );
+	$ditl_url         = preg_replace( '#^https?:#i', '', preg_replace( '/[?#].*$/', '', $ditl_feuille->src ) );
+
+	if ( 0 !== strpos( $ditl_url, $ditl_url_contenu ) ) {
+		return '';
+	}
+
+	$ditl_racine = realpath( WP_CONTENT_DIR );
+	$ditl_chemin = realpath( WP_CONTENT_DIR . '/' . rawurldecode( substr( $ditl_url, strlen( $ditl_url_contenu ) ) ) );
+
+	if ( false === $ditl_racine || false === $ditl_chemin || 0 !== strpos( wp_normalize_path( $ditl_chemin ), trailingslashit( wp_normalize_path( $ditl_racine ) ) ) ) {
+		return '';
+	}
+
+	if ( '.css' !== strtolower( substr( $ditl_chemin, -4 ) ) || ! is_readable( $ditl_chemin ) ) {
+		return '';
+	}
+
+	$ditl_taille = filesize( $ditl_chemin );
+
+	if ( false === $ditl_taille || $ditl_taille <= 0 || $ditl_taille > 6 * KB_IN_BYTES ) {
+		return '';
+	}
+
+	return $ditl_chemin;
+}
 
 /**
  * Ajoute un preconnect vers googletagmanager.com.
