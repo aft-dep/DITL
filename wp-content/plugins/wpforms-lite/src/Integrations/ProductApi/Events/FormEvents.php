@@ -131,8 +131,9 @@ class FormEvents implements IntegrationInterface {
 		add_action( 'added_post_meta', [ $this, 'maybe_track_location' ], 10, 4 );
 		add_action( 'updated_post_meta', [ $this, 'maybe_track_location' ], 10, 4 );
 
-		// Locator skips that write when publishing changes nothing but the status, and Divi 5
-		// and Elementor never reach it at all, so a saved page is read for all three.
+		// Locator skips that write when publishing changes nothing but the status, Divi 5 never
+		// reaches it, and an Elementor location has no syntax in the content to read, so a saved
+		// page is read for all three.
 		add_action( 'save_post', [ $this, 'maybe_track_post' ], 10, 2 );
 	}
 
@@ -250,7 +251,7 @@ class FormEvents implements IntegrationInterface {
 			}
 		}
 
-		foreach ( $this->get_elementor_form_ids( $post->ID ) as $form_id ) {
+		foreach ( $locator->get_elementor_form_ids( $post->ID ) as $form_id ) {
 			// The first syntax read wins a tie; a page carrying the same form twice is a
 			// broken page either way.
 			$form_ids[ $form_id ] = $form_ids[ $form_id ] ?? self::METHOD_ELEMENTOR;
@@ -472,67 +473,6 @@ class FormEvents implements IntegrationInterface {
 
 			if ( ! empty( $block['innerBlocks'] ) && is_array( $block['innerBlocks'] ) ) {
 				$form_ids = array_merge( $form_ids, $this->find_divi_form_ids( $block['innerBlocks'] ) );
-			}
-		}
-
-		return array_filter( $form_ids );
-	}
-
-	/**
-	 * Get the form IDs embedded with the Elementor widget.
-	 *
-	 * Gated three times over, because this is the only part of the feature that reads a
-	 * meta nothing else on the request has asked for, and `_elementor_data` runs to
-	 * hundreds of kilobytes on a heavy page.
-	 *
-	 * @since 2.0.2.1
-	 *
-	 * @param int $post_id Post ID.
-	 *
-	 * @return int[]
-	 */
-	private function get_elementor_form_ids( int $post_id ): array {
-
-		if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
-			return [];
-		}
-
-		$data = get_post_meta( $post_id, '_elementor_data', true );
-
-		// A substring scan over that string is cheap; decoding it is not.
-		if ( ! is_string( $data ) || strpos( $data, '"widgetType":"wpforms"' ) === false ) {
-			return [];
-		}
-
-		$decoded = json_decode( $data, true );
-
-		return is_array( $decoded ) ? array_values( array_unique( $this->find_elementor_form_ids( $decoded ) ) ) : [];
-	}
-
-	/**
-	 * Walk the Elementor element tree for WPForms widgets.
-	 *
-	 * @since 2.0.2.1
-	 *
-	 * @param array $elements Elementor elements.
-	 *
-	 * @return int[]
-	 */
-	private function find_elementor_form_ids( array $elements ): array {
-
-		$form_ids = [];
-
-		foreach ( $elements as $element ) {
-			if ( ! is_array( $element ) ) {
-				continue;
-			}
-
-			if ( ( $element['widgetType'] ?? '' ) === 'wpforms' ) {
-				$form_ids[] = (int) ( $element['settings']['form_id'] ?? 0 );
-			}
-
-			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
-				$form_ids = array_merge( $form_ids, $this->find_elementor_form_ids( $element['elements'] ) );
 			}
 		}
 

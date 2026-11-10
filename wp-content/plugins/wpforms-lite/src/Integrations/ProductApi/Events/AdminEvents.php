@@ -740,8 +740,8 @@ class AdminEvents implements IntegrationInterface {
 	/**
 	 * How many entries the site holds.
 	 *
-	 * Usage tracking already answers this for both editions: the entries table on Pro, the
-	 * per-form counter meta on Lite, form templates excluded either way.
+	 * The larger of the usage tracking entries total and the Lite per-form counter, which Pro
+	 * leaves at its pre-upgrade value, so a Lite to Pro upgrader is not reported as having none.
 	 *
 	 * @since 2.0.2.1
 	 *
@@ -751,7 +751,11 @@ class AdminEvents implements IntegrationInterface {
 
 		$usage_tracking = wpforms()->obj( 'UsageTracking\\UsageTracking' );
 
-		return $usage_tracking instanceof UsageTracking ? $usage_tracking->get_entries_total() : 0;
+		if ( ! $usage_tracking instanceof UsageTracking ) {
+			return 0;
+		}
+
+		return max( (int) $usage_tracking->get_entries_total(), $usage_tracking->get_entries_total_lite_counter() );
 	}
 
 	/**

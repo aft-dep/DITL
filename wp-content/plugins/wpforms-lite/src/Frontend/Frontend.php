@@ -1669,7 +1669,7 @@ class Frontend {
 			'wpforms-validation',
 			WPFORMS_PLUGIN_URL . 'assets/lib/jquery.validate.min.js',
 			[ 'jquery' ],
-			'1.21.0',
+			'1.22.1',
 			$in_footer
 		);
 
@@ -1708,6 +1708,17 @@ class Frontend {
 				'1.0.0',
 				$in_footer
 			);
+
+			/** This filter is documented in src/Frontend/Frontend.php. */
+			if ( (bool) apply_filters( 'wpforms_mailcheck_enabled', true ) ) { // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
+				wp_enqueue_script(
+					'wpforms-mailcheck-tlds',
+					WPFORMS_PLUGIN_URL . "assets/js/frontend/mailcheck-tlds{$min}.js",
+					[],
+					WPFORMS_VERSION,
+					$in_footer
+				);
+			}
 		}
 
 		wp_enqueue_script(
@@ -1848,23 +1859,23 @@ class Frontend {
 
 		// Define base strings.
 		$strings = [
-			'val_required'               => wpforms_setting( 'validation-required', esc_html__( 'This field is required.', 'wpforms-lite' ) ),
-			'val_email'                  => wpforms_setting( 'validation-email', esc_html__( 'Please enter a valid email address.', 'wpforms-lite' ) ),
-			'val_email_suggestion'       => wpforms_setting(
+			'val_required'                           => wpforms_setting( 'validation-required', esc_html__( 'This field is required.', 'wpforms-lite' ) ),
+			'val_email'                              => wpforms_setting( 'validation-email', esc_html__( 'Please enter a valid email address.', 'wpforms-lite' ) ),
+			'val_email_suggestion'                   => wpforms_setting(
 				'validation-email-suggestion',
 				sprintf( /* translators: %s - suggested email address. */
 					esc_html__( 'Did you mean %s?', 'wpforms-lite' ),
 					'{suggestion}'
 				)
 			),
-			'val_email_suggestion_title' => esc_attr__( 'Click to accept this suggestion.', 'wpforms-lite' ),
-			'val_email_restricted'       => wpforms_setting( 'validation-email-restricted', esc_html__( 'This email address is not allowed.', 'wpforms-lite' ) ),
-			'val_number'                 => wpforms_setting( 'validation-number', esc_html__( 'Please enter a valid number.', 'wpforms-lite' ) ),
-			'val_number_positive'        => wpforms_setting( 'validation-number-positive', esc_html__( 'Please enter a valid positive number.', 'wpforms-lite' ) ),
-			'val_minimum_price'          => wpforms_setting( 'validation-minimum-price', esc_html__( 'Amount entered is less than the required minimum.', 'wpforms-lite' ) ),
-			'val_confirm'                => wpforms_setting( 'validation-confirm', esc_html__( 'Field values do not match.', 'wpforms-lite' ) ),
-			'val_checklimit'             => wpforms_setting( 'validation-check-limit', esc_html__( 'You have exceeded the number of allowed selections: {#}.', 'wpforms-lite' ) ),
-			'val_limit_characters'       => wpforms_setting(
+			'val_email_suggestion_title'             => esc_attr__( 'Click to accept this suggestion.', 'wpforms-lite' ),
+			'val_email_restricted'                   => wpforms_setting( 'validation-email-restricted', esc_html__( 'This email address is not allowed.', 'wpforms-lite' ) ),
+			'val_number'                             => wpforms_setting( 'validation-number', esc_html__( 'Please enter a valid number.', 'wpforms-lite' ) ),
+			'val_number_positive'                    => wpforms_setting( 'validation-number-positive', esc_html__( 'Please enter a valid positive number.', 'wpforms-lite' ) ),
+			'val_minimum_price'                      => wpforms_setting( 'validation-minimum-price', esc_html__( 'Amount entered is less than the required minimum.', 'wpforms-lite' ) ),
+			'val_confirm'                            => wpforms_setting( 'validation-confirm', esc_html__( 'Field values do not match.', 'wpforms-lite' ) ),
+			'val_checklimit'                         => wpforms_setting( 'validation-check-limit', esc_html__( 'You have exceeded the number of allowed selections: {#}.', 'wpforms-lite' ) ),
+			'val_limit_characters'                   => wpforms_setting(
 				'validation-character-limit',
 				sprintf( /* translators: %1$s - character count, %2$s - character limit. */
 					esc_html__( '%1$s of %2$s max characters.', 'wpforms-lite' ),
@@ -1872,7 +1883,7 @@ class Frontend {
 					'{limit}'
 				)
 			),
-			'val_limit_words'            => wpforms_setting(
+			'val_limit_words'                        => wpforms_setting(
 				'validation-word-limit',
 				sprintf( /* translators: %1$s - word count, %2$s - word limit. */
 					esc_html__( '%1$s of %2$s max words.', 'wpforms-lite' ),
@@ -1880,13 +1891,53 @@ class Frontend {
 					'{limit}'
 				)
 			),
-			'val_min'                    => wpforms_setting( 'validation-min', esc_html__( 'Please enter a value greater than or equal to {0}.', 'wpforms-lite' ) ),
-			'val_max'                    => wpforms_setting( 'validation-max', esc_html__( 'Please enter a value less than or equal to {0}.', 'wpforms-lite' ) ),
-			'val_recaptcha_fail_msg'     => wpforms_setting( 'recaptcha-fail-msg', esc_html__( 'Google reCAPTCHA verification failed, please try again later.', 'wpforms-lite' ) ),
-			'val_turnstile_fail_msg'     => wpforms_setting( 'turnstile-fail-msg', esc_html__( 'Cloudflare Turnstile verification failed, please try again later.', 'wpforms-lite' ) ),
-			'val_inputmask_incomplete'   => wpforms_setting( 'validation-inputmask-incomplete', esc_html__( 'Please fill out the field in required format.', 'wpforms-lite' ) ),
-			'uuid_cookie'                => false,
-			'locale'                     => wpforms_get_language_code(),
+			'val_limit_min_characters'               => wpforms_setting(
+				'validation-character-minimum',
+				sprintf( /* translators: %1$s - minimum characters count, %2$s - characters needed count. */
+					esc_html__( 'Minimum is %1$s characters. Characters needed: %2$s.', 'wpforms-lite' ),
+					'{min}',
+					'{needed}'
+				)
+			),
+			'val_limit_min_words'                    => wpforms_setting(
+				'validation-word-minimum',
+				sprintf( /* translators: %1$s - minimum words count, %2$s - words needed count. */
+					esc_html__( 'Minimum is %1$s words. Words needed: %2$s.', 'wpforms-lite' ),
+					'{min}',
+					'{needed}'
+				)
+			),
+			'val_limit_between_characters_needed'    => sprintf( /* translators: %1$s - minimum characters count, %2$s - maximum characters count, %3$s - characters needed count. */
+				esc_html__( 'Between %1$s and %2$s characters. Characters needed: %3$s', 'wpforms-lite' ),
+				'{min}',
+				'{max}',
+				'{needed}'
+			),
+			'val_limit_between_characters_remaining' => sprintf( /* translators: %1$s - minimum characters count, %2$s - maximum characters count, %3$s - characters remaining count. */
+				esc_html__( 'Between %1$s and %2$s characters. Characters remaining: %3$s', 'wpforms-lite' ),
+				'{min}',
+				'{max}',
+				'{remaining}'
+			),
+			'val_limit_between_words_needed'         => sprintf( /* translators: %1$s - minimum words count, %2$s - maximum words count, %3$s - words needed count. */
+				esc_html__( 'Between %1$s and %2$s words. Words needed: %3$s', 'wpforms-lite' ),
+				'{min}',
+				'{max}',
+				'{needed}'
+			),
+			'val_limit_between_words_remaining'      => sprintf( /* translators: %1$s - minimum words count, %2$s - maximum words count, %3$s - words remaining count. */
+				esc_html__( 'Between %1$s and %2$s words. Words remaining: %3$s', 'wpforms-lite' ),
+				'{min}',
+				'{max}',
+				'{remaining}'
+			),
+			'val_min'                                => wpforms_setting( 'validation-min', esc_html__( 'Please enter a value greater than or equal to {0}.', 'wpforms-lite' ) ),
+			'val_max'                                => wpforms_setting( 'validation-max', esc_html__( 'Please enter a value less than or equal to {0}.', 'wpforms-lite' ) ),
+			'val_recaptcha_fail_msg'                 => wpforms_setting( 'recaptcha-fail-msg', esc_html__( 'Google reCAPTCHA verification failed, please try again later.', 'wpforms-lite' ) ),
+			'val_turnstile_fail_msg'                 => wpforms_setting( 'turnstile-fail-msg', esc_html__( 'Cloudflare Turnstile verification failed, please try again later.', 'wpforms-lite' ) ),
+			'val_inputmask_incomplete'               => wpforms_setting( 'validation-inputmask-incomplete', esc_html__( 'Please fill out the field in required format.', 'wpforms-lite' ) ),
+			'uuid_cookie'                            => false,
+			'locale'                                 => wpforms_get_language_code(),
 
 			/**
 			 * Filters the user's country code.
@@ -1899,11 +1950,11 @@ class Frontend {
 			 *
 			 * @param string|false $country Country code.
 			 */
-			'country'                    => apply_filters( 'wpforms_frontend_get_user_country_code', false ),
-			'country_list_label'         => esc_html__( 'Country list', 'wpforms-lite' ),
-			'wpforms_plugin_url'         => WPFORMS_PLUGIN_URL,
-			'gdpr'                       => wpforms_setting( 'gdpr' ),
-			'ajaxurl'                    => admin_url( 'admin-ajax.php' ),
+			'country'                                => apply_filters( 'wpforms_frontend_get_user_country_code', false ),
+			'country_list_label'                     => esc_html__( 'Country list', 'wpforms-lite' ),
+			'wpforms_plugin_url'                     => WPFORMS_PLUGIN_URL,
+			'gdpr'                                   => wpforms_setting( 'gdpr' ),
+			'ajaxurl'                                => admin_url( 'admin-ajax.php' ),
 
 			/**
 			 * Filters mail check enabled flag.
@@ -1912,7 +1963,7 @@ class Frontend {
 			 *
 			 * @param bool $flag Enabled flag.
 			 */
-			'mailcheck_enabled'          => (bool) apply_filters( 'wpforms_mailcheck_enabled', true ), // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
+			'mailcheck_enabled'                      => (bool) apply_filters( 'wpforms_mailcheck_enabled', true ), // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
 
 			/**
 			 * Filters mail check domains.
@@ -1921,7 +1972,7 @@ class Frontend {
 			 *
 			 * @param array $domains Domains to check.
 			 */
-			'mailcheck_domains'          => array_map( 'sanitize_text_field', (array) apply_filters( 'wpforms_mailcheck_domains', [] ) ), // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
+			'mailcheck_domains'                      => array_map( 'sanitize_text_field', (array) apply_filters( 'wpforms_mailcheck_domains', [] ) ), // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
 
 			/**
 			 * Filters toplevel domains for mail check.
@@ -1930,9 +1981,9 @@ class Frontend {
 			 *
 			 * @param array $toplevel_domains Toplevel domains to check.
 			 */
-			'mailcheck_toplevel_domains' => array_map( 'sanitize_text_field', (array) apply_filters( 'wpforms_mailcheck_toplevel_domains', [ 'dev' ] ) ), // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
-			'is_ssl'                     => is_ssl(),
-			'nonce'                      => wp_create_nonce( 'wpforms' ),
+			'mailcheck_toplevel_domains'             => array_map( 'sanitize_text_field', (array) apply_filters( 'wpforms_mailcheck_toplevel_domains', [ 'dev' ] ) ), // phpcs:ignore WPForms.PHP.ValidateHooks.InvalidHookName
+			'is_ssl'                                 => is_ssl(),
+			'nonce'                                  => wp_create_nonce( 'wpforms' ),
 		];
 
 		// Include payment-related strings if needed.
@@ -1940,6 +1991,9 @@ class Frontend {
 
 		// Include CSS variables list.
 		$strings = $this->get_css_vars_strings( $strings );
+
+		// Include the date picker locale if needed.
+		$strings = $this->get_datepicker_strings( $strings );
 
 		/**
 		 * Filters frontend strings.
@@ -1959,6 +2013,60 @@ class Frontend {
 			$strings[ $key ] = esc_html( html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' ) );
 
 		}
+
+		return $strings;
+	}
+
+	/**
+	 * Get the date picker locale in the site's language.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array $strings Strings.
+	 *
+	 * @return array
+	 */
+	private function get_datepicker_strings( array $strings ): array {
+
+		global $wp_locale;
+
+		if ( ! is_object( $wp_locale ) ) {
+			return $strings;
+		}
+
+		// Mirrors the condition that loads Flatpickr on the frontend.
+		// The Edit Entry screen shows the picker without rendering frontend forms, so the admin always gets the locale.
+		if ( ! is_admin() && ! $this->assets_global() && ! wpforms_has_field_type( 'date-time', $this->forms, true ) ) {
+			return $strings;
+		}
+
+		// Names come from trusted WordPress translation files and pass through JSON as-is.
+		$weekdays = array_values( $wp_locale->weekday );
+		$months   = array_values( $wp_locale->month );
+
+		$strings['datepicker_locale'] = [
+			'weekdays'         => [
+				'shorthand' => array_map( [ $wp_locale, 'get_weekday_abbrev' ], $weekdays ),
+				'longhand'  => $weekdays,
+			],
+			'months'           => [
+				'shorthand' => array_map( [ $wp_locale, 'get_month_abbrev' ], $months ),
+				'longhand'  => $months,
+			],
+			'firstDayOfWeek'   => (int) get_option( 'start_of_week', 0 ),
+			'rangeSeparator'   => ' ' . _x( 'to', 'Date range separator.', 'wpforms-lite' ) . ' ',
+			'weekAbbreviation' => _x( 'Wk', 'Week number abbreviation in the date picker.', 'wpforms-lite' ),
+			'scrollTitle'      => __( 'Scroll to increment', 'wpforms-lite' ),
+			'toggleTitle'      => __( 'Click to toggle', 'wpforms-lite' ),
+			'amPM'             => [
+				$wp_locale->get_meridiem( 'AM' ),
+				$wp_locale->get_meridiem( 'PM' ),
+			],
+			'yearAriaLabel'    => __( 'Year', 'wpforms-lite' ),
+			'monthAriaLabel'   => __( 'Month', 'wpforms-lite' ),
+			'hourAriaLabel'    => __( 'Hour', 'wpforms-lite' ),
+			'minuteAriaLabel'  => __( 'Minute', 'wpforms-lite' ),
+		];
 
 		return $strings;
 	}

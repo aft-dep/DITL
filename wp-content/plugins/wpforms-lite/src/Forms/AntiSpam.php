@@ -70,7 +70,7 @@ class AntiSpam {
 		add_filter( 'wpforms_form_handler_convert_form_data', [ $this, 'update_template_form_data' ] );
 
 		// Save hooks.
-		add_filter( 'wpforms_save_form_args', [ $this, 'retire_legacy_settings' ], 10, 2 );
+		add_filter( 'wpforms_save_form_args', [ $this, 'retire_legacy_settings' ] );
 	}
 
 	/**
@@ -412,14 +412,22 @@ class AntiSpam {
 	 *
 	 * @since 2.0.3
 	 *
-	 * @param array|mixed $form      Post data about to be saved.
-	 * @param array       $form_data Form data.
+	 * @param array|mixed $form Post data about to be saved.
 	 *
 	 * @return array
 	 */
-	public function retire_legacy_settings( $form, array $form_data ): array {
+	public function retire_legacy_settings( $form ): array {
 
-		$form   = (array) $form;
+		$form = (array) $form;
+
+		// Read the filtered content, not the raw builder payload, so changes made by earlier
+		// callbacks, such as restored settings of inactive addons, survive the re-encode.
+		$form_data = json_decode( stripslashes( $form['post_content'] ?? '' ), true );
+
+		if ( ! is_array( $form_data ) ) {
+			return $form;
+		}
+
 		$stored = $this->get_stored_settings( (int) ( $form['ID'] ?? 0 ) );
 
 		// The builder keeps the two exclusive, so a legacy '1' posted alongside

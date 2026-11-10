@@ -27,6 +27,13 @@ class DB {
 	private static $tables_exist;
 
 	/**
+	 * Autoloaded option caching a missing-tables result, with the tier it was checked for and its expiry.
+	 *
+	 * @since 2.0.4
+	 */
+	private const TABLES_MISSING_OPTION = 'wpforms_analytics_tables_missing';
+
+	/**
 	 * Magic period_date value marking the lifetime sentinel row.
 	 *
 	 * Used in the analytics_forms and analytics_fields aggregate tables.
@@ -70,9 +77,10 @@ class DB {
 	 * Whether all analytics tables required by the current tier exist.
 	 *
 	 * Checks the two Lite tables unconditionally, plus the two Pro-only
-	 * tables when Pro is active. Cached per request.
+	 * tables when Pro is active. Cached per request, and a miss for an hour.
 	 *
 	 * @since 2.0.0
+	 * @since 2.0.4 Caches a missing result across requests.
 	 *
 	 * @return bool
 	 */
@@ -88,17 +96,105 @@ class DB {
 			return false;
 		}
 
+		$tier   = wpforms()->is_pro() ? 'pro' : 'lite';
+		$marker = self::get_tables_missing_marker();
+
+		// Helpers\DB never caches a missing table, and this check runs on every front-end request.
+		if ( self::is_tables_missing_cached( $marker, $tier ) ) {
+			self::$tables_exist = false;
+
+			return self::$tables_exist;
+		}
+
+		self::$tables_exist = self::query_tables_exist( $tier );
+
+		if ( ! self::$tables_exist ) {
+			update_option(
+				self::TABLES_MISSING_OPTION,
+				[
+					'tier'    => $tier,
+					'expires' => time() + HOUR_IN_SECONDS,
+				],
+				true
+			);
+		} elseif ( $marker ) {
+			// An expired or other-tier marker would otherwise stay autoloaded on every request.
+			delete_option( self::TABLES_MISSING_OPTION );
+		}
+
+		return self::$tables_exist;
+	}
+
+	/**
+	 * Drop the cached tables-exist result, so the next check queries the schema again.
+	 *
+	 * @since 2.0.4
+	 */
+	public static function flush_tables_exist_cache(): void {
+
+		self::$tables_exist = null;
+
+		delete_option( self::TABLES_MISSING_OPTION );
+	}
+
+	/**
+	 * Get the cached missing-tables marker.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @return array Marker with `tier` and `expires` keys, or an empty array when none is stored.
+	 */
+	private static function get_tables_missing_marker(): array {
+
+		// Not a transient: an expiring one is never autoloaded, and an absent option costs a query on
+		// every request. Only sites missing the tables store it, so the autoloaded copy is enough.
+		if ( ! isset( wp_load_alloptions()[ self::TABLES_MISSING_OPTION ] ) ) {
+			return [];
+		}
+
+		return (array) get_option( self::TABLES_MISSING_OPTION, [] );
+	}
+
+	/**
+	 * Whether the marker records an unexpired miss for this tier.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array  $marker Missing-tables marker.
+	 * @param string $tier   Current tier, `pro` or `lite`.
+	 *
+	 * @return bool
+	 */
+	private static function is_tables_missing_cached( array $marker, string $tier ): bool {
+
+		$cached_tier = $marker['tier'] ?? '';
+		$expires     = (int) ( $marker['expires'] ?? 0 );
+
+		return $cached_tier === $tier && $expires > time();
+	}
+
+	/**
+	 * Look up every analytics table the tier needs.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param string $tier Current tier, `pro` or `lite`.
+	 *
+	 * @return bool
+	 */
+	private static function query_tables_exist( string $tier ): bool {
+
+		global $wpdb;
+
 		$exists = HelpersDB::table_exists( self::snapshots_table() )
 			&& HelpersDB::table_exists( self::forms_table() );
 
-		if ( $exists && wpforms()->is_pro() ) {
+		if ( $exists && $tier === 'pro' ) {
 			$exists = HelpersDB::table_exists( $wpdb->prefix . 'wpforms_analytics_snapshot_fields' )
 				&& HelpersDB::table_exists( $wpdb->prefix . 'wpforms_analytics_fields' );
 		}
 
-		self::$tables_exist = $exists;
-
-		return self::$tables_exist;
+		return $exists;
 	}
 
 	/**

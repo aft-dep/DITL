@@ -154,10 +154,10 @@ class WPForms_Settings {
 			(array) get_option( LiteMigration::MIGRATED_OPTION_NAME, [] );
 
 		// Get the most recent installed version.
-		$db_latest = array_keys( $installed_versions )[ count( $installed_versions ) - 1 ];
+		$db_latest = MigrationsBase::get_max_version( $installed_versions );
 
 		// Check if downgrade happened.
-		return version_compare( $db_latest, WPFORMS_VERSION, '>' );
+		return wpforms_version_compare( $db_latest, WPFORMS_VERSION, '>' );
 	}
 
 	/**
@@ -567,6 +567,26 @@ class WPForms_Settings {
 						esc_html__( 'Limit is %1$s words. Words remaining: %2$s.', 'wpforms-lite' ),
 						'{limit}',
 						'{remaining}'
+					),
+				],
+				'validation-character-minimum'    => [
+					'id'      => 'validation-character-minimum',
+					'name'    => esc_html__( 'Character Minimum', 'wpforms-lite' ),
+					'type'    => 'text',
+					'default' => sprintf( /* translators: %1$s - minimum characters count, %2$s - characters needed count. */
+						esc_html__( 'Minimum is %1$s characters. Characters needed: %2$s.', 'wpforms-lite' ),
+						'{min}',
+						'{needed}'
+					),
+				],
+				'validation-word-minimum'         => [
+					'id'      => 'validation-word-minimum',
+					'name'    => esc_html__( 'Word Minimum', 'wpforms-lite' ),
+					'type'    => 'text',
+					'default' => sprintf( /* translators: %1$s - minimum words count, %2$s - words needed count. */
+						esc_html__( 'Minimum is %1$s words. Words needed: %2$s.', 'wpforms-lite' ),
+						'{min}',
+						'{needed}'
 					),
 				],
 				'validation-requiredpayment'      => [

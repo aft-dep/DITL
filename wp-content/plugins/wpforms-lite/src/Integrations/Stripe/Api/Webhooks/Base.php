@@ -74,7 +74,7 @@ abstract class Base {
 
 		// Determine whether a legacy API version bundled into the addon is still used.
 		// When it's dropped from the addon, this line can be safely removed.
-		$is_legacy_api = Helpers::is_pro() && absint( wpforms_setting( 'stripe-api-version' ) ) === 2;
+		$is_legacy_api = Helpers::is_legacy_api_version();
 
 		if ( $is_legacy_api && ! isset( $this->data->object->id ) ) {
 			return; // Payment id not found.
@@ -100,6 +100,20 @@ abstract class Base {
 	protected function delay() {
 
 		sleep( 5 );
+	}
+
+	/**
+	 * Get a subscription status slug as it reads in a payment log line, e.g. past_due as Past Due.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param string $status Subscription status slug.
+	 *
+	 * @return string
+	 */
+	protected function get_status_log_label( string $status ): string {
+
+		return ucwords( str_replace( '_', ' ', $status ) );
 	}
 
 	/**

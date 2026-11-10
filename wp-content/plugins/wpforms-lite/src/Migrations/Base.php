@@ -264,7 +264,7 @@ abstract class Base {
 
 		// Retrieve the last migrated versions.
 		$last_migrated         = get_option( static::MIGRATED_OPTION_NAME, [] );
-		$previous_core_version = $this->get_max_version( $last_migrated );
+		$previous_core_version = self::get_max_version( $last_migrated );
 
 		if (
 			$previous_core_version === self::INITIAL_FAKE_VERSION ||
@@ -439,7 +439,7 @@ abstract class Base {
 		$version        = $this->migrated === false ? self::INITIAL_FAKE_VERSION : (string) $this->migrated;
 		$timestamp      = $version === static::CURRENT_VERSION ? time() : 0;
 		$this->migrated = [ $version => $timestamp ];
-		$max_version    = $this->get_max_version( $this->migrated );
+		$max_version    = self::get_max_version( $this->migrated );
 
 		foreach ( $this->get_upgrade_classes() as $upgrade_class ) {
 			$upgrade_version = $this->get_upgrade_version( $upgrade_class );
@@ -463,12 +463,13 @@ abstract class Base {
 	 * Get the max version.
 	 *
 	 * @since 1.7.5
+	 * @since 2.0.4 Made public static.
 	 *
 	 * @param array $versions Versions.
 	 *
 	 * @return string
 	 */
-	private function get_max_version( array $versions ): string {
+	public static function get_max_version( array $versions ): string {
 
 		// phpcs:ignore WPForms.Formatting.EmptyLineBeforeReturn.RemoveEmptyLineBeforeReturnStatement
 		return array_reduce(

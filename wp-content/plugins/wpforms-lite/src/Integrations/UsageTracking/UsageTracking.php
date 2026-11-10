@@ -899,6 +899,24 @@ class UsageTracking implements IntegrationInterface {
 	}
 
 	/**
+	 * Total number of entries counted by the Lite per-form counter.
+	 *
+	 * Pro never increments the Lite counter, so on Pro the sum is the frozen pre-upgrade total.
+	 * Draft and trashed forms count too, the same as in the Lite lifetime total.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @return int
+	 */
+	public function get_entries_total_lite_counter(): int {
+
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (int) $wpdb->get_var( "SELECT SUM( meta_value ) FROM $wpdb->postmeta WHERE meta_key = 'wpforms_entries_count'" );
+	}
+
+	/**
 	 * Forms field occurrences.
 	 *
 	 * @since 1.7.9

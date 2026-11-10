@@ -128,6 +128,11 @@ class Connect {
 		// In case of switching accounts existing account data needs to be cleared.
 		unset( $this->accounts[ $mode ] );
 
+		// A new live connection counts as not onboarded until the account fetch below confirms it.
+		if ( $mode === 'live' ) {
+			update_option( "wpforms_stripe_{$mode}_account_details_submitted", '0' );
+		}
+
 		Helpers::set_stripe_key( $credentials['stripe_publishable_key'], 'publishable', $mode );
 		Helpers::set_stripe_key( $credentials['access_token'], 'secret', $mode );
 
@@ -347,6 +352,36 @@ class Connect {
 		}
 
 		$this->accounts[ $mode ] = $account;
+
+		// Test mode accepts test charges before onboarding is finished, so only live readiness is tracked.
+		if ( $mode !== 'live' ) {
+			return;
+		}
+
+		// Persisted so admin readiness checks can spot an abandoned onboarding without an API call.
+		update_option( "wpforms_stripe_{$mode}_account_details_submitted", ! empty( $account->details_submitted ) ? '1' : '0' );
+	}
+
+	/**
+	 * Whether the connected Stripe account finished onboarding, as of the last account fetch.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param string $mode Stripe mode (e.g. 'live' or 'test').
+	 *
+	 * @return bool
+	 */
+	public function is_onboarding_complete( string $mode = '' ): bool {
+
+		$mode = Helpers::validate_stripe_mode( $mode );
+
+		// Test mode takes test charges before onboarding is finished.
+		if ( $mode !== 'live' ) {
+			return true;
+		}
+
+		// A missing flag means the account was not fetched since this check shipped, so it is treated as ready.
+		return (bool) get_option( "wpforms_stripe_{$mode}_account_details_submitted", true );
 	}
 
 	/**
@@ -601,9 +636,22 @@ class Connect {
 		Helpers::set_stripe_key( '', 'publishable', $mode );
 		Helpers::set_stripe_key( '', 'secret', $mode );
 
+		$this->delete_connected_account( $mode );
+	}
+
+	/**
+	 * Delete the account connected in a mode, leaving the API keys in the settings alone.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param string $mode Stripe mode (e.g. 'live' or 'test').
+	 */
+	public function delete_connected_account( string $mode ): void {
+
 		// Clean user ID and other saved options.
 		delete_option( "wpforms_stripe_{$mode}_connect_user_id" );
 		delete_option( "wpforms_stripe_{$mode}_account_country" );
+		delete_option( "wpforms_stripe_{$mode}_account_details_submitted" );
 		delete_option( DomainManager::STATUS_OPTION );
 		delete_option( WebhooksHealthCheck::ENDPOINT_OPTION );
 

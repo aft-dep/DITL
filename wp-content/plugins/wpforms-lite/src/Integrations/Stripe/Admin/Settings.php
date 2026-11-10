@@ -53,6 +53,7 @@ class Settings {
 
 		add_action( 'wpforms_settings_init', [ $this, 'connection_is_missing_notice' ] );
 		add_action( 'wpforms_settings_init', [ $this, 'not_supported_currency_notice' ] );
+		add_action( 'wpforms_settings_init', [ $this, 'onboarding_incomplete_notice' ] );
 		add_action( 'wpforms_settings_enqueue', [ $this, 'enqueue_assets' ] );
 		add_filter( 'wpforms_settings_defaults', [ $this, 'register_settings_fields' ], 6 );
 	}
@@ -118,6 +119,41 @@ class Settings {
 					]
 				),
 				esc_html( wpforms_get_currency() )
+			)
+		);
+	}
+
+	/**
+	 * Live Stripe account has not finished onboarding notice.
+	 *
+	 * @since 2.0.4
+	 */
+	public function onboarding_incomplete_notice() {
+
+		// Test mode takes test charges before onboarding is finished.
+		if ( Helpers::get_stripe_mode() !== 'live' ) {
+			return;
+		}
+
+		$account = $this->connect->get_connected_account();
+
+		if ( empty( $account->id ) || ! empty( $account->details_submitted ) ) {
+			return;
+		}
+
+		Notice::warning(
+			sprintf(
+				wp_kses( /* translators: %s - Stripe dashboard URL. */
+					__( 'Your Stripe account setup isn\'t finished. Please complete it in your <a href="%s" target="_blank" rel="noopener noreferrer">Stripe dashboard</a>.', 'wpforms-lite' ),
+					[
+						'a' => [
+							'href'   => [],
+							'target' => [],
+							'rel'    => [],
+						],
+					]
+				),
+				esc_url( 'https://dashboard.stripe.com/' )
 			)
 		);
 	}

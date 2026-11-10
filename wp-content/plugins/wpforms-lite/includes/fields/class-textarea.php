@@ -4,12 +4,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use WPForms\Forms\Fields\Traits\TextLengthLimit as TextLengthLimitTrait;
+
 /**
  * Paragraph text field.
  *
  * @since 1.0.0
  */
 class WPForms_Field_Textarea extends WPForms_Field {
+
+	use TextLengthLimitTrait;
 
 	/**
 	 * Primary class constructor.
@@ -113,6 +117,9 @@ class WPForms_Field_Textarea extends WPForms_Field {
 		// Placeholder.
 		$this->field_option( 'placeholder', $field );
 
+		// Default value.
+		$this->field_option( 'default_value', $field );
+
 		// Limit length.
 		$args = [
 			'slug'    => 'limit_enabled',
@@ -131,6 +138,25 @@ class WPForms_Field_Textarea extends WPForms_Field {
 
 		$this->field_element( 'row', $field, $args );
 
+		[ $limit_min, $limit_max ] = $this->get_length_limits( $field );
+
+		$min = $this->field_element(
+			'text',
+			$field,
+			[
+				'type'  => 'number',
+				'slug'  => 'limit_min',
+				'attrs' => [
+					'min'     => 1,
+					'step'    => 1,
+					'pattern' => '[0-9]',
+				],
+				'value' => $limit_min > 0 ? $limit_min : '',
+				'after' => esc_html__( 'Min', 'wpforms-lite' ),
+			],
+			false
+		);
+
 		$count = $this->field_element(
 			'text',
 			$field,
@@ -142,7 +168,8 @@ class WPForms_Field_Textarea extends WPForms_Field {
 					'step'    => 1,
 					'pattern' => '[0-9]',
 				],
-				'value' => ! empty( $field['limit_count'] ) ? $field['limit_count'] : 1,
+				'value' => $limit_max > 0 ? $limit_max : '',
+				'after' => esc_html__( 'Max', 'wpforms-lite' ),
 			],
 			false
 		);
@@ -157,6 +184,7 @@ class WPForms_Field_Textarea extends WPForms_Field {
 					'characters' => esc_html__( 'Characters', 'wpforms-lite' ),
 					'words'      => esc_html__( 'Words', 'wpforms-lite' ),
 				],
+				'after'   => esc_html__( 'Unit', 'wpforms-lite' ),
 			],
 			false
 		);
@@ -164,13 +192,10 @@ class WPForms_Field_Textarea extends WPForms_Field {
 		$args = [
 			'slug'    => 'limit_controls',
 			'class'   => ! isset( $field['limit_enabled'] ) ? 'wpforms-hide' : '',
-			'content' => $count . $mode,
+			'content' => $min . $count . $mode,
 		];
 
 		$this->field_element( 'row', $field, $args );
-
-		// Default value.
-		$this->field_option( 'default_value', $field );
 
 		// Custom CSS classes.
 		$this->field_option( 'css', $field );
@@ -235,22 +260,7 @@ class WPForms_Field_Textarea extends WPForms_Field {
 			unset( $primary['attr']['value'] );
 		}
 
-		if ( isset( $field['limit_enabled'] ) ) {
-			$limit_count = isset( $field['limit_count'] ) ? absint( $field['limit_count'] ) : 0;
-			$limit_mode  = isset( $field['limit_mode'] ) ? sanitize_key( $field['limit_mode'] ) : 'characters';
-
-			$primary['data']['form-id']  = $form_data['id'];
-			$primary['data']['field-id'] = $field['id'];
-
-			if ( 'characters' === $limit_mode ) {
-				$primary['class'][]            = 'wpforms-limit-characters-enabled';
-				$primary['attr']['maxlength']  = $limit_count;
-				$primary['data']['text-limit'] = $limit_count;
-			} else {
-				$primary['class'][]            = 'wpforms-limit-words-enabled';
-				$primary['data']['text-limit'] = $limit_count;
-			}
-		}
+		$primary = $this->add_length_limit_attributes( $primary, $field, $form_data );
 
 		// Primary field.
 		printf(
@@ -301,7 +311,7 @@ class WPForms_Field_Textarea extends WPForms_Field {
 			wp_enqueue_script(
 				'wpforms-text-limit',
 				WPFORMS_PLUGIN_URL . "assets/js/frontend/fields/text-limit.es5{$min}.js",
-				[],
+				[ 'wpforms-validation' ],
 				WPFORMS_VERSION,
 				$this->load_script_in_footer()
 			);
@@ -358,26 +368,7 @@ class WPForms_Field_Textarea extends WPForms_Field {
 			$field_submit = implode( "\r\n", array_filter( $field_submit ) );
 		}
 
-		$field = $form_data['fields'][ $field_id ];
-		$limit = absint( $field['limit_count'] );
-		$mode  = ! empty( $field['limit_mode'] ) ? sanitize_key( $field['limit_mode'] ) : 'characters';
-		$value = wpforms_sanitize_textarea_field( $field_submit );
-
-		if ( 'characters' === $mode ) {
-			if ( mb_strlen( str_replace( "\r\n", "\n", $value ) ) > $limit ) {
-				/* translators: %s - limit characters number. */
-				wpforms()->obj( 'process' )->errors[ $form_data['id'] ][ $field_id ] = sprintf( _n( 'Text can\'t exceed %d character.', 'Text can\'t exceed %d characters.', $limit, 'wpforms-lite' ), $limit );
-
-				return;
-			}
-		} else {
-			if ( wpforms_count_words( $value ) > $limit ) {
-				/* translators: %s - limit words number. */
-				wpforms()->obj( 'process' )->errors[ $form_data['id'] ][ $field_id ] = sprintf( _n( 'Text can\'t exceed %d word.', 'Text can\'t exceed %d words.', $limit, 'wpforms-lite' ), $limit );
-
-				return;
-			}
-		}
+		$this->validate_length_limit( $field_id, wpforms_sanitize_textarea_field( $field_submit ), $form_data['fields'][ $field_id ], $form_data );
 	}
 }
 

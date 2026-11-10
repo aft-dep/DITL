@@ -265,14 +265,16 @@ class ProductEvents implements IntegrationInterface {
 	 * @param string $name       Event name, snake_case.
 	 * @param array  $properties Event properties.
 	 * @param string $context    Event context.
+	 *
+	 * @return bool Whether the row was stored. The insert fails without throwing.
 	 */
-	public function buffer( string $name, array $properties = [], string $context = self::CONTEXT_VISITOR ): void {
+	public function buffer( string $name, array $properties = [], string $context = self::CONTEXT_VISITOR ): bool {
 
 		if ( ! $this->is_enabled() ) {
-			return;
+			return false;
 		}
 
-		$this->get_buffer()->add( $name, $properties, $context );
+		return $this->get_buffer()->add( $name, $properties, $context );
 	}
 
 	/**
@@ -597,7 +599,11 @@ class ProductEvents implements IntegrationInterface {
 			// very event that reports the activation.
 			'license_key'    => static function () {
 
-				return wpforms_get_license_key();
+				$key = trim( wpforms_get_license_key() );
+
+				// The API answers a key it cannot use with a 422 instead of registering the site
+				// as unlicensed, so a stale or malformed key would keep a Lite site from sending.
+				return wpforms_is_license_valid() && preg_match( '/^[0-9a-f]{32}$/i', $key ) ? $key : '';
 			},
 			'license_valid'  => static function () {
 

@@ -58,9 +58,30 @@ class Frontend {
 		// Block editor_style is the only way to reach the iframed editor canvas.
 		add_filter( 'register_block_type_args', [ $this, 'register_block_type_args' ], 20, 2 );
 
+		// Right after the field description, which core prints at priority 5, so the note sits below it.
+		add_action( 'wpforms_display_field_after', [ $this, 'display_trial_note' ], 6, 2 );
+
 		if ( wpforms_is_divi_editor() ) {
 			add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_divi_styles' ], 12 );
 		}
+	}
+
+	/**
+	 * Print the trial note under the Stripe card field, below its description.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array $field     Field data.
+	 * @param array $form_data Form data and settings.
+	 */
+	public function display_trial_note( $field, $form_data ): void {
+
+		if ( ( $field['type'] ?? '' ) !== Helpers::get_field_slug() || wpforms_is_editor_page() ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo ( new TrialNote() )->get_html( (array) $form_data, time() );
 	}
 
 	/**

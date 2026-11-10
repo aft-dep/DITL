@@ -1168,7 +1168,13 @@ abstract class WPForms_Field {
 
 			// Select.
 			case 'select':
-				$output = $this->field_element_select( $args, $class, $id, $slug, $attrs );
+				$after = ! empty( $args['after'] ) ? '<span class="after-input sub-label">' . esc_html( $args['after'] ) . '</span>' : '';
+
+				if ( ! empty( $after ) ) {
+					$class .= ' has-after';
+				}
+
+				$output = $this->field_element_select( $args, $class, $id, $slug, $attrs ) . $after;
 				break;
 
 			case 'select-multiple':

@@ -49,11 +49,8 @@ class SettingsDetector {
 	 */
 	public function is_stripe_configured(): bool {
 
-		if ( StripeHelpers::has_stripe_keys() ) {
-			return true;
-		}
-
-		return ! empty( ( new StripeAdminConnect() )->get_connected_user_id() );
+		// The handshake saves keys even when onboarding was abandoned, so an unfinished account is not configured.
+		return StripeHelpers::has_stripe_keys() && ( new StripeAdminConnect() )->is_onboarding_complete();
 	}
 
 	/**

@@ -348,7 +348,7 @@ class SplashScreen {
 			return true;
 		}
 
-		unset( $migrations_run[ WPFORMS_VERSION ] );
+		unset( $migrations_run[ wpforms_normalize_version( WPFORMS_VERSION ) ] );
 
 		$this->is_new_install = empty( end( $migrations_run ) );
 

@@ -82,6 +82,7 @@ class Elementor implements IntegrationInterface {
 		add_action( 'elementor/preview/init', [ $this, 'init' ] );
 		add_action( 'elementor/frontend/after_enqueue_scripts', [ $this, 'preview_assets' ] );
 		add_action( 'elementor/frontend/after_enqueue_scripts', [ $this, 'frontend_assets' ] );
+		add_action( 'wp_print_footer_scripts', [ $this, 'maybe_dequeue_frontend_script' ], 9 );
 		add_action( 'elementor/editor/after_enqueue_styles', [ $this, 'editor_assets' ] );
 		add_action( 'elementor/controls/register', [ $this, 'register_controls' ] );
 
@@ -342,6 +343,21 @@ class Elementor implements IntegrationInterface {
 				'recaptcha_type'   => wpforms_setting( 'recaptcha-type', 'v2' ),
 			]
 		);
+	}
+
+	/**
+	 * Dequeue the frontend script when no form loaded the core `wpforms` script it depends on.
+	 *
+	 * Elementor enqueues the widget script even when the widget renders no form, while `wpforms`
+	 * loads only when a form renders, so WordPress would drop the script and flag the missing dependency.
+	 *
+	 * @since 2.0.4
+	 */
+	public function maybe_dequeue_frontend_script(): void {
+
+		if ( ! wp_script_is( 'wpforms', 'registered' ) ) {
+			wp_dequeue_script( 'wpforms-elementor' );
+		}
 	}
 
 	/**

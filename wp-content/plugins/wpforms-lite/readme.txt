@@ -3,7 +3,7 @@ Contributors: wpforms, smub
 Tags: contact form, contact form plugin, forms, form builder, custom form
 Requires at least: 5.5
 Tested up to: 7.1
-Stable tag: 2.0.3.1
+Stable tag: 2.0.4
 Requires PHP: 7.2
 License: GNU General Public License v2.0 or later
 
@@ -392,6 +392,30 @@ Thank you,
 Syed Balkhi
 
 == Changelog ==
+= 2.0.4 =
+- Added: Trial period option for Stripe subscriptions to delay the first payment by a set number of days.
+- Added: Typing an approval such as "yes" in the AI Form Generator chat now applies the generated form, the same as clicking the Use This Form button.
+- Added: The Locations column in the Forms list now includes pages where a form is embedded with the WPForms Elementor widget.
+- Added: The Email field no longer suggests a correction when a visitor enters an email address with a valid domain extension.
+- Added: Single Line Text and Paragraph Text fields can now require a minimum number of characters or words through the Limit Length option.
+- Added: Cloudflare Turnstile can now start the verification when a visitor first interacts with the form instead of on page load.
+- Changed: Updated DOMPurify library to 3.4.17.
+- Changed: Updated jQuery Validation library to 1.22.1.
+- Fixed: A PHP notice appeared on Elementor pages with debug mode enabled when the WPForms widget had no form to display.
+- Fixed: The Dashboard page kept showing outdated stats, such as the number of forms, for up to an hour after forms were imported from a WPForms export file.
+- Fixed: WPForms AI refused to add an Other choice to Checkboxes fields when generating or editing a form, claiming it was only supported for Multiple Choice fields.
+- Fixed: Spaces next to smart tags in Form Builder settings were saved as non-breaking spaces instead of regular spaces.
+- Fixed: A critical error occurred when the Email field received a malformed address with an overly long domain label.
+- Fixed: The Setup Checklist, Dashboard, and Payments page showed Stripe as connected for a live account whose setup on Stripe was started but not completed.
+- Fixed: Sites where Form Analytics tables had not been created or could not be created ran extra database checks on every page load, including visitors' page views.
+- Fixed: Background process failures and other repeating errors could take up to an hour to appear in WPForms Logs after logging was enabled.
+- Fixed: Feature tooltip handling in the admin area was improved for better security.
+- Fixed: WPForms abilities broke the site's MCP connection in AI clients with strict tool validation.
+- Fixed: Modern Dropdown fields on Divi pages could show every choice as plain text in some cases.
+- Fixed: AI Form Generator compatibility with Ninja Form plugin.
+- Fixed: A critical error occurred in the admin area on WordPress 6.3 and older when a background task was more than a day overdue.
+- Fixed: A Confirmation message showed the selected choices of a Checkboxes, Dropdown, Ranking or Payment Checkbox field joined together.
+
 = 2.0.3.1 =
 - Fixed: Field value smart tags could turn submitted text into HTML markup in a Confirmation message or a form or field description.
 - Fixed: Form Analytics caused JavaScript errors on pages with forms in older browsers or when its tracking script failed to load.

@@ -226,21 +226,24 @@ function wpforms_debug_data( $data, bool $do_echo = true ) {
  * Log helper.
  *
  * @since 1.0.0
+ * @since 2.0.4 Added the return value.
  *
  * @param string $title   Title of a log message.
  * @param mixed  $message Content of a log message.
  * @param array  $args    Expected keys: type, form_id, meta, parent, force.
+ *
+ * @return bool True when the record was handed to the logger for the shutdown write, false when it was dropped.
  */
-function wpforms_log( $title = '', $message = '', $args = [] ) { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
+function wpforms_log( $title = '', $message = '', $args = [] ): bool { // phpcs:ignore Generic.Metrics.CyclomaticComplexity.TooHigh
 
 	// Skip if logs disabled in Tools -> Logs.
 	if ( empty( $args['force'] ) && ! wpforms_setting( 'logs-enable' ) ) {
-		return;
+		return false;
 	}
 
 	// Require log title.
 	if ( empty( $title ) ) {
-		return;
+		return false;
 	}
 
 	/**
@@ -267,7 +270,7 @@ function wpforms_log( $title = '', $message = '', $args = [] ) { // phpcs:ignore
 	}
 
 	if ( empty( $types ) ) {
-		return;
+		return false;
 	}
 
 	/**
@@ -291,7 +294,7 @@ function wpforms_log( $title = '', $message = '', $args = [] ) { // phpcs:ignore
 	$logs_types = wpforms_setting( 'logs-types' );
 
 	if ( $logs_types && empty( array_intersect( $logs_types, $types ) ) ) {
-		return;
+		return false;
 	}
 
 	// Filter user roles from Tools -> Logs page.
@@ -301,20 +304,20 @@ function wpforms_log( $title = '', $message = '', $args = [] ) { // phpcs:ignore
 	$logs_user_roles    = wpforms_setting( 'logs-user-roles' );
 
 	if ( $logs_user_roles && empty( array_intersect( $logs_user_roles, $current_user_roles ) ) ) {
-		return;
+		return false;
 	}
 
 	// Filter logs users from Tools -> Logs page.
 	$logs_users = wpforms_setting( 'logs-users' );
 
 	if ( $logs_users && ! in_array( $current_user_id, $logs_users, true ) ) {
-		return;
+		return false;
 	}
 
 	$log = wpforms()->obj( 'log' );
 
 	if ( ! $log || ! method_exists( $log, 'add' ) ) {
-		return;
+		return false;
 	}
 
 	// Create log entry.
@@ -326,6 +329,8 @@ function wpforms_log( $title = '', $message = '', $args = [] ) { // phpcs:ignore
 		isset( $args['parent'] ) ? absint( $args['parent'] ) : 0,
 		$current_user_id
 	);
+
+	return true;
 }
 
 /**

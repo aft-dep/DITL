@@ -248,6 +248,26 @@ class Helpers {
 	}
 
 	/**
+	 * Remove the stored Stripe Connect access token for a mode.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param string $mode Stripe mode (e.g. 'live' or 'test').
+	 *
+	 * @return bool Whether a connection was stored for the mode.
+	 */
+	public static function delete_connect_token( string $mode ): bool {
+
+		if ( self::get_connect_token( $mode ) === null ) {
+			return false;
+		}
+
+		self::set_connect_token( '', $mode );
+
+		return true;
+	}
+
+	/**
 	 * Set Stripe key from the WPForms settings.
 	 *
 	 * @since 1.8.2
@@ -459,6 +479,18 @@ class Helpers {
 	public static function is_webhook_enabled() {
 
 		return wpforms_setting( 'stripe-webhooks-enabled' );
+	}
+
+	/**
+	 * Determine whether the addon's deprecated Charges API is selected.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @return bool
+	 */
+	public static function is_legacy_api_version() {
+
+		return self::is_pro() && absint( wpforms_setting( 'stripe-api-version' ) ) === 2;
 	}
 
 	/**

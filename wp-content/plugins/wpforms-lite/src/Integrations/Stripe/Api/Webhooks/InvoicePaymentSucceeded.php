@@ -2,6 +2,7 @@
 
 namespace WPForms\Integrations\Stripe\Api\Webhooks;
 
+use RuntimeException;
 use Stripe\Exception\ApiErrorException;
 use WPForms\Db\Payments\Queries;
 use WPForms\Integrations\Stripe\Helpers;
@@ -15,23 +16,82 @@ use WPForms\Vendor\Stripe\PaymentIntent;
 class InvoicePaymentSucceeded extends Base {
 
 	/**
-	 * Handle invoice.payment_succeeded webhook for subscription_cycle billing reason (payment renewal).
+	 * Handle invoice.payment_succeeded webhook.
+	 *
+	 * A subscription_cycle invoice completes the renewal it paid for. The paid $0 invoice Stripe issues when a
+	 * trial subscription is created completes the trial signup row, which no charge.succeeded ever reaches.
 	 *
 	 * @since 1.8.4
+	 * @since 2.0.4 Completes a trial signup row from its paid $0 signup invoice.
 	 *
 	 * @return bool
 	 */
 	public function handle() {
 
-		if ( ! isset( $this->data->object->billing_reason ) || $this->data->object->billing_reason !== 'subscription_cycle' ) {
-			return false; // Webhook handler for Invoice.PaymentSucceeded with reason subscription_cycle not implemented yet.
-		}
-
-		if ( $this->data->object->paid !== true ) {
+		if ( ! isset( $this->data->object->billing_reason ) || $this->data->object->paid !== true ) {
 			return false; // Subscription not paid, so we are not going to proceed with update.
 		}
 
-		return $this->complete_renewal( $this->data->object );
+		if ( $this->data->object->billing_reason === 'subscription_cycle' ) {
+			return $this->complete_renewal( $this->data->object );
+		}
+
+		return $this->complete_trial_signup( $this->data->object );
+	}
+
+	/**
+	 * Mark the trial signup that belongs to the given paid $0 invoice as completed.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param object $invoice Stripe invoice object from the event payload.
+	 *
+	 * @throws RuntimeException When the payment row could not be updated.
+	 *
+	 * @return bool
+	 */
+	private function complete_trial_signup( object $invoice ): bool {
+
+		if ( empty( $invoice->subscription ) || (int) $invoice->amount_due !== 0 || (int) $invoice->amount_paid !== 0 ) {
+			return false; // Something was charged: not the signup of a trial.
+		}
+
+		// The event fires while the submission is still saving its row.
+		$this->delay();
+
+		$db_payment = wpforms()->obj( 'payment' )->get_by( 'subscription_id', $invoice->subscription );
+
+		if ( ! $db_payment || strpos( (string) $db_payment->transaction_id, 'seti_' ) !== 0 ) {
+			return false; // A charged subscription is completed by charge.succeeded instead.
+		}
+
+		// Already completed: stay idempotent for duplicate webhooks.
+		if ( $db_payment->status === 'completed' ) {
+			return true;
+		}
+
+		if ( $db_payment->status !== 'processed' ) {
+			return false;
+		}
+
+		$updated = wpforms()->obj( 'payment' )->update(
+			$db_payment->id,
+			[
+				'status'           => 'completed',
+				'date_updated_gmt' => gmdate( 'Y-m-d H:i:s' ),
+			]
+		);
+
+		if ( ! $updated ) {
+			throw new RuntimeException( 'Payment not updated' );
+		}
+
+		wpforms()->obj( 'payment_meta' )->add_log(
+			$db_payment->id,
+			sprintf( 'Stripe trial signup was completed. (Invoice ID: %1$s)', $invoice->id )
+		);
+
+		return true;
 	}
 
 	/**

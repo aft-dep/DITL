@@ -5,6 +5,7 @@ namespace WPForms\Integrations\Stripe\Admin\Builder\Traits;
 use WPForms\Integrations\Stripe\Admin\Connect;
 use WPForms\Integrations\Stripe\Admin\Notices;
 use WPForms\Integrations\Stripe\Helpers;
+use WPForms\Integrations\Stripe\TrialPeriod;
 
 /**
  * Payment builder settings content trait.
@@ -490,6 +491,8 @@ trait ContentTrait {
 			false
 		);
 
+		$content .= $this->get_trial_period_panel_fields( (string) $plan_id );
+
 		$is_empty_email = isset( $this->form_data['payments'][ $this->slug ]['recurring'][ $plan_id ]['email'] ) && empty( $this->form_data['payments'][ $this->slug ]['recurring'][ $plan_id ]['email'] );
 
 		$content .= wpforms_panel_field(
@@ -517,6 +520,63 @@ trait ContentTrait {
 		$content .= $this->recurring_payments_conditional_logic_section( $plan_id );
 
 		return $content;
+	}
+
+	/**
+	 * Get the trial period controls of a recurring plan: a bounded number and a unit selector.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param string $plan_id Plan id.
+	 *
+	 * @return string
+	 */
+	private function get_trial_period_panel_fields( string $plan_id ): string {
+
+		if ( wpforms_is_empty_string( $plan_id ) || Helpers::is_legacy_api_version() ) {
+			return '';
+		}
+
+		$unit = $this->form_data['payments'][ $this->slug ]['recurring'][ $plan_id ]['trial_period_unit'] ?? TrialPeriod::DEFAULT_UNIT;
+
+		$content = wpforms_panel_field(
+			'number',
+			$this->slug,
+			'trial_period',
+			$this->form_data,
+			esc_html__( 'Trial Period', 'wpforms-lite' ),
+			[
+				'parent'     => 'payments',
+				'subsection' => 'recurring',
+				'index'      => $plan_id,
+				'min'        => 0,
+				'max'        => TrialPeriod::get_max( $unit ),
+				'step'       => 1,
+				'default'    => '0',
+				'tooltip'    => esc_html__( 'How long the customer uses the subscription before the first charge. Leave empty or 0 to charge immediately. Stripe allows a trial of up to 730 days.', 'wpforms-lite' ),
+				'class'      => 'wpforms-panel-content-section-payment-plan-trial-period',
+			],
+			false
+		);
+
+		$content .= wpforms_panel_field(
+			'select',
+			$this->slug,
+			'trial_period_unit',
+			$this->form_data,
+			'',
+			[
+				'parent'     => 'payments',
+				'subsection' => 'recurring',
+				'index'      => $plan_id,
+				'default'    => TrialPeriod::DEFAULT_UNIT,
+				'options'    => wp_list_pluck( TrialPeriod::get_units(), 'label' ),
+				'class'      => 'wpforms-panel-content-section-payment-plan-trial-period-unit',
+			],
+			false
+		);
+
+		return sprintf( '<div class="wpforms-panel-content-section-payment-plan-trial">%s</div>', $content );
 	}
 
 	/**

@@ -81,11 +81,13 @@ class Cache {
 		add_action( 'wpforms_form_handler_duplicate_form', [ $this, 'invalidate_all' ] );
 		add_action( 'wpforms_form_handler_update_status', [ $this, 'invalidate_all' ] );
 		add_action( 'wpforms_delete_form', [ $this, 'invalidate_all' ] );
+		add_action( 'wpforms_admin_tools_import_views_forms_page_import_forms', [ $this, 'invalidate_all' ] );
 
 		add_action( 'wpforms_create_form', [ StatCards::class, 'clear_configured_cache' ] );
 		add_action( 'wpforms_save_form', [ StatCards::class, 'clear_configured_cache' ] );
 		add_action( 'wpforms_form_handler_update_status', [ StatCards::class, 'clear_configured_cache' ] );
 		add_action( 'wpforms_delete_form', [ StatCards::class, 'clear_configured_cache' ] );
+		add_action( 'wpforms_admin_tools_import_views_forms_page_import_forms', [ StatCards::class, 'clear_configured_cache' ] );
 	}
 
 	/**

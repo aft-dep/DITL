@@ -54,6 +54,9 @@ class Forms extends API {
 		// Add a Page break field support.
 		$args['pagebreak'] = true;
 
+		// Add the Checkboxes "Other" choice support.
+		$args['supports_checkbox_other'] = wpforms_field_supports_other_choice( [ 'type' => 'checkbox' ] );
+
 		// Add prompt debug info support.
 		$args['debug'] = defined( 'WPFORMS_AI_DEBUG' ) && WPFORMS_AI_DEBUG;
 

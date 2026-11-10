@@ -294,9 +294,10 @@ class Buffer {
 		}
 
 		// A payment row is one payment, nothing later stands in for it, so the trim leaves
-		// those to be delivered whatever their age. An entry row past the fifth is a `null`
-		// number the next entry repeats. Payments are few, so this bounds them by delivery
-		// rather than by the cap, and only an API unreachable for months would let them grow.
+		// those to be delivered whatever their age. An entry row past the fifth carries a
+		// running total the form's next daily row supersedes. Payments are few, so this
+		// bounds them by delivery rather than by the cap, and only an API unreachable for
+		// months would let them grow.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$dropped = (int) $this->queue->query( $wpdb->prepare( "DELETE FROM $table WHERE id <= %d AND event_name <> %s", $oldest_kept, self::TRIM_EXEMPT_EVENT ) );
 
@@ -331,12 +332,15 @@ class Buffer {
 			return;
 		}
 
-		set_transient( self::UNTRIMMABLE_LOG_TRANSIENT, 1, HOUR_IN_SECONDS );
-
-		wpforms_log(
+		// A dropped record must not start the throttle, or the next hour would go unlogged too.
+		if ( ! wpforms_log(
 			'Product events buffer over the cap with only payment rows left to trim',
 			[ 'rows' => $this->count() ],
 			[ 'type' => [ 'error' ] ]
-		);
+		) ) {
+			return;
+		}
+
+		set_transient( self::UNTRIMMABLE_LOG_TRANSIENT, 1, HOUR_IN_SECONDS );
 	}
 }

@@ -105,6 +105,11 @@ class Tasks {
 
 		add_action( 'action_scheduler_begin_execute', [ $this, 'start_executing' ], 1 );
 		add_action( 'action_scheduler_after_execute', [ $this, 'stop_executing' ], 1, 2 );
+
+		// Action Scheduler 4.1.0 prints its past-due notice with wp_admin_notice(), added in WordPress 6.4.
+		if ( ! function_exists( 'wp_admin_notice' ) ) {
+			add_filter( 'action_scheduler_check_pastdue_actions', '__return_false' );
+		}
 	}
 
 	/**

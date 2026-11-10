@@ -88,6 +88,24 @@ class Process {
 	private $surge_detector;
 
 	/**
+	 * Per-IP limit on completed trial signups, which verify a card without charging it.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @var RateLimit
+	 */
+	private $trial_rate_limit;
+
+	/**
+	 * Whether the submission is the confirmation pass after a browser-side authentication.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @var bool
+	 */
+	private $is_confirmation_submission = false;
+
+	/**
 	 * Api interface.
 	 *
 	 * @since 1.8.2
@@ -150,6 +168,36 @@ class Process {
 		add_filter( 'wpforms_forms_submission_prepare_payment_data', [ $this, 'prepare_payment_data' ] );
 		add_filter( 'wpforms_forms_submission_prepare_payment_meta', [ $this, 'prepare_payment_meta' ], 10, 3 );
 		add_action( 'wpforms_process_entry_saved', [ $this, 'process_entry_data' ], 10, 4 );
+		add_filter( 'wpforms_smart_tags_smart_tag_trial_smart_tag_get_trial', [ $this, 'get_trial_for_smart_tags' ], 10, 2 );
+	}
+
+	/**
+	 * Supply the trial of the current signup to the trial smart tags when no saved entry describes it.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array $trial     Trial data.
+	 * @param array $form_data Form data.
+	 *
+	 * @return array
+	 */
+	public function get_trial_for_smart_tags( $trial, $form_data ): array {
+
+		$subscription = $this->api ? $this->api->get_subscription() : null;
+
+		if (
+			(int) ( $form_data['id'] ?? 0 ) !== (int) $this->form_id ||
+			! $this->is_trial_signup( $this->api->get_payment(), $subscription ) ||
+			empty( $subscription->trial_end )
+		) {
+			return (array) $trial;
+		}
+
+		return [
+			'end'      => (int) $subscription->trial_end,
+			'amount'   => (string) $this->amount,
+			'currency' => wpforms_get_currency(),
+		];
 	}
 
 	/**
@@ -175,10 +223,14 @@ class Process {
 		$this->amount            = wpforms_get_total_payment( $this->fields );
 		$this->rate_limit        = new RateLimit( 'ip' );
 		$this->global_rate_limit = new RateLimit( 'global' );
+		$this->trial_rate_limit  = new RateLimit( 'trial' );
 		$this->surge_detector    = ( new LowAmountSurgeDetector() )->init();
+
+		$this->is_confirmation_submission = $this->is_confirmation_submission( $entry );
 
 		$this->rate_limit->init();
 		$this->global_rate_limit->init();
+		$this->trial_rate_limit->init();
 
 		if ( $this->is_process_entry_error( $entry ) ) {
 			return;
@@ -201,7 +253,7 @@ class Process {
 		}
 
 		// Track this low-amount attempt before charging Stripe. Skip the confirmation re-submission.
-		if ( empty( $entry['payment_intent_id'] ) ) {
+		if ( ! $this->is_confirmation_submission ) {
 			$this->surge_detector->track_attempt(
 				(float) $this->amount,
 				$this->form_id,
@@ -250,7 +302,7 @@ class Process {
 		}
 
 		// Check low-amount surge block. Skip it for a confirmation re-submission.
-		if ( empty( $entry['payment_intent_id'] ) && $this->surge_detector->is_blocked( (float) $this->amount ) ) {
+		if ( ! $this->is_confirmation_submission( $entry ) && $this->surge_detector->is_blocked( (float) $this->amount ) ) {
 			wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = esc_html__( 'Payment processing is temporarily unavailable. Please try again later or contact the site owner.', 'wpforms-lite' );
 
 			return true;
@@ -264,6 +316,36 @@ class Process {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Whether the submission is the confirmation pass that follows a browser-side authentication.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array $entry Copy of original $_POST.
+	 *
+	 * @return bool
+	 */
+	private function is_confirmation_submission( array $entry ): bool {
+
+		return ! empty( $entry['payment_intent_id'] ) || ! empty( $entry['setup_intent_id'] );
+	}
+
+	/**
+	 * Whether the processed payment is a trial signup: a SetupIntent that saved the card for a
+	 * trialing subscription, with nothing charged.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param mixed $payment      Stripe payment object.
+	 * @param mixed $subscription Stripe subscription object.
+	 *
+	 * @return bool
+	 */
+	private function is_trial_signup( $payment, $subscription ): bool {
+
+		return isset( $payment->object ) && $payment->object === 'setup_intent' && ! empty( $subscription->id );
 	}
 
 	/**
@@ -298,6 +380,12 @@ class Process {
 			$payment_meta['subscription_period'] = sanitize_text_field( $this->subscription_settings['period'] );
 		}
 
+		// The trial signup row collects nothing, so the admin screens read the plan price and the trial end from meta.
+		if ( $this->is_trial_signup( $payment, $subscription ) && ! empty( $subscription->trial_end ) ) {
+			$payment_meta['subscription_trial_end']   = (int) $subscription->trial_end;
+			$payment_meta['subscription_plan_amount'] = $this->amount;
+		}
+
 		if ( ! empty( $charge_details['brand'] ) ) {
 			$payment_meta['credit_card_method'] = $charge_details['brand'];
 		}
@@ -315,13 +403,35 @@ class Process {
 		}
 
 		$log = [
-			'value' => $payment->object === 'payment_intent' ? sprintf( 'Stripe payment intent created. (Payment Intent ID: %s)', $payment->id ) : 'Stripe payment was created.',
+			'value' => $this->get_payment_created_log( $payment ),
 			'date'  => gmdate( 'Y-m-d H:i:s' ),
 		];
 
 		$payment_meta['log'] = wp_json_encode( $log );
 
 		return $payment_meta;
+	}
+
+	/**
+	 * Get the log line describing what Stripe created for the payment.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param object $payment Stripe payment object.
+	 *
+	 * @return string
+	 */
+	private function get_payment_created_log( $payment ): string {
+
+		if ( $payment->object === 'payment_intent' ) {
+			return sprintf( 'Stripe payment intent created. (Payment Intent ID: %s)', $payment->id );
+		}
+
+		if ( $payment->object === 'setup_intent' ) {
+			return sprintf( 'Stripe setup intent created for a trial signup. (Setup Intent ID: %s)', $payment->id );
+		}
+
+		return 'Stripe payment was created.';
 	}
 
 	/**
@@ -424,13 +534,13 @@ class Process {
 			$subscription->update( $subscription->id, $subscription->serializeParameters(), Helpers::get_auth_opts() );
 		}
 
-		wpforms()->obj( 'payment_meta' )->add_log(
-			$payment_id,
-			sprintf(
-				'Stripe charge processed. (Charge ID: %1$s)',
-				isset( $payment->latest_charge ) ? $payment->latest_charge : $payment->id
-			)
-		);
+		if ( $this->is_trial_signup( $payment, $subscription ) ) {
+			$log = sprintf( 'Stripe subscription trial started. (Subscription ID: %1$s)', $subscription->id );
+		} else {
+			$log = sprintf( 'Stripe charge processed. (Charge ID: %1$s)', $payment->latest_charge ?? $payment->id );
+		}
+
+		wpforms()->obj( 'payment_meta' )->add_log( $payment_id, $log );
 
 		/**
 		 * Fire when processing is complete.
@@ -536,6 +646,13 @@ class Process {
 		if ( ! empty( $subscription->id ) ) {
 			$payment_data['subscription_id']     = sanitize_text_field( $subscription->id );
 			$payment_data['subscription_status'] = 'not-synced';
+		}
+
+		// A trial signup collected nothing, so the row records a zero amount. Like every Stripe payment it stays
+		// processed until a webhook confirms it: the paid $0 signup invoice here, since no charge ever happens.
+		if ( $this->is_trial_signup( $payment, $subscription ) ) {
+			$payment_data['total_amount']    = 0;
+			$payment_data['subtotal_amount'] = 0;
 		}
 
 		return $payment_data;
@@ -927,6 +1044,16 @@ class Process {
 				$args['cycles'] = sanitize_text_field( $recurring['cycles'] );
 			}
 
+			$trial_args = $this->get_trial_args( $recurring );
+
+			if ( $trial_args ) {
+				$args['trial'] = $trial_args;
+
+				// Stripe keeps the visitor's IP and user agent as the evidence of accepting an off-session card, which
+				// the GDPR settings may forbid collecting, exactly as for the entry details.
+				$args['collect_user_details'] = wpforms_is_collecting_ip_allowed( $this->form_data );
+			}
+
 			$this->process_subscription( $args );
 
 			return;
@@ -943,6 +1070,22 @@ class Process {
 			$this->fields,
 			'conditional_logic'
 		);
+	}
+
+	/**
+	 * Get the Stripe trial arguments of a recurring plan, or an empty array when it has no trial.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array $plan Recurring plan settings.
+	 *
+	 * @return array
+	 */
+	private function get_trial_args( array $plan ): array {
+
+		$trial = Helpers::is_legacy_api_version() ? null : TrialPeriod::from_plan( $plan );
+
+		return $trial ? $trial->get_subscription_args( time() ) : [];
 	}
 
 	/**
@@ -1248,6 +1391,21 @@ class Process {
 
 		$this->subscription_settings = $args['settings'];
 
+		// A trial signup verifies a card for free, so signups are capped per IP. Each first pass counts
+		// before Stripe is asked, since a 3DS first pass ends the request with the authentication prompt;
+		// the confirmation pass of a signup was already counted and admitted on its first pass.
+		if ( ! empty( $args['trial'] ) && ! $this->is_confirmation_submission ) {
+			if ( ! $this->trial_rate_limit->is_ok() ) {
+				$this->log_error( esc_html__( 'Stripe security event: a trial signup was refused by the trial signups rate limit.', 'wpforms-lite' ) );
+
+				wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = esc_html__( 'Unable to process payment, please try again later.', 'wpforms-lite' );
+
+				return;
+			}
+
+			$this->trial_rate_limit->increment_attempts();
+		}
+
 		if ( ! Helpers::is_license_ok() && Helpers::is_application_fee_supported() ) {
 			$args['application_fee_percent'] = 3;
 		}
@@ -1330,6 +1488,18 @@ class Process {
 	 */
 	private function is_submitted_payment_data_corrupted( array $entry ): bool {
 
+		// A trial signup confirms a SetupIntent, which has no amount to compare. It never comes with a
+		// PaymentIntent: a SetupIntent of this form must not vouch for a PaymentIntent nothing checks.
+		if ( ! empty( $entry['setup_intent_id'] ) ) {
+			if ( ! empty( $entry['payment_intent_id'] ) || ! is_string( $entry['setup_intent_id'] ) || strpos( $entry['setup_intent_id'], 'seti_' ) !== 0 ) {
+				$this->decline_secondary_submission();
+
+				return true;
+			}
+
+			return $this->is_submitted_setup_intent_corrupted( $entry['setup_intent_id'] );
+		}
+
 		// Bail early if there are no payment intents.
 		if ( empty( $entry['payment_intent_id'] ) ) {
 			return false;
@@ -1341,7 +1511,7 @@ class Process {
 		// We must prevent a processing if payment intent was identified as corrupted.
 		// Also if the transaction ID exists in DB (transaction ID is unique value).
 		if ( in_array( $entry['payment_intent_id'], $corrupted_intents, true ) || wpforms()->obj( 'payment' )->get_by( 'transaction_id', $entry['payment_intent_id'] ) ) {
-			wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = esc_html__( 'Secondary form submission was declined.', 'wpforms-lite' );
+			$this->decline_secondary_submission();
 
 			return true;
 		}
@@ -1359,7 +1529,7 @@ class Process {
 
 		// The identifier arrives with the submission, so it can name any object on the connected Stripe account.
 		if ( ! $this->is_own_payment_intent( $intent ) ) {
-			wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = esc_html__( 'Secondary form submission was declined.', 'wpforms-lite' );
+			$this->decline_secondary_submission();
 
 			return true;
 		}
@@ -1400,6 +1570,63 @@ class Process {
 	}
 
 	/**
+	 * Check the SetupIntent a trial confirmation pass named: it must be new to this site and created by this form.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param string $setup_intent_id Submitted SetupIntent id.
+	 *
+	 * @return bool
+	 */
+	private function is_submitted_setup_intent_corrupted( string $setup_intent_id ): bool {
+
+		$corrupted_intents = (array) Transient::get( 'corrupted-stripe-intents' );
+
+		// The SetupIntent id is the trial row's transaction id, so a recorded one is a replay.
+		if ( in_array( $setup_intent_id, $corrupted_intents, true ) || wpforms()->obj( 'payment' )->get_by( 'transaction_id', $setup_intent_id ) ) {
+			$this->decline_secondary_submission();
+
+			return true;
+		}
+
+		// The legacy Charges API never issues a SetupIntent and cannot verify one. A posted id is declined rather than
+		// let through unverified, where it would also pass as a confirmation pass and skip the surge detector.
+		if ( ! method_exists( $this->api, 'retrieve_setup_intent' ) ) {
+			$this->decline_secondary_submission();
+
+			return true;
+		}
+
+		$intent = $this->api->retrieve_setup_intent( $setup_intent_id );
+
+		// A SetupIntent Stripe cannot return cannot be verified either, so it is declined like a foreign one.
+		if ( empty( $intent ) ) {
+			$this->decline_secondary_submission();
+
+			return true;
+		}
+
+		// Metadata values come back from Stripe as strings, so the cast is load-bearing.
+		if ( (int) ( $intent->metadata['form_id'] ?? 0 ) !== (int) $this->form_id ) {
+			$this->decline_secondary_submission();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Stop the submission that reused or misattributed an intent.
+	 *
+	 * @since 2.0.4
+	 */
+	private function decline_secondary_submission(): void {
+
+		wpforms()->obj( 'process' )->errors[ $this->form_id ]['footer'] = esc_html__( 'Secondary form submission was declined.', 'wpforms-lite' );
+	}
+
+	/**
 	 * Determine whether the PaymentIntent was created by this form.
 	 *
 	 * @since 2.0.2
@@ -1413,6 +1640,49 @@ class Process {
 		$form_id = $intent->metadata['form_id'] ?? $intent->invoice->subscription->metadata['form_id'] ?? 0;
 
 		return (int) $form_id === (int) $this->form_id;
+	}
+
+	/**
+	 * Get the schedule phases of a limited-cycles subscription.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param object $subscription Stripe subscription object.
+	 * @param mixed  $cycles       Number of paid cycles.
+	 *
+	 * @return array
+	 */
+	private function get_schedule_phases( object $subscription, $cycles ): array {
+
+		$subscription_item = $subscription->items->data[0];
+		$items             = [
+			[
+				'plan' => $subscription_item->plan->id,
+			],
+		];
+
+		if ( empty( $subscription->trial_end ) ) {
+			return [
+				[
+					'start_date' => $subscription_item->current_period_start,
+					'items'      => $items,
+					'iterations' => $cycles,
+				],
+			];
+		}
+
+		return [
+			[
+				'start_date' => $subscription->current_period_start,
+				'end_date'   => $subscription->trial_end,
+				'trial'      => true,
+				'items'      => $items,
+			],
+			[
+				'items'      => $items,
+				'iterations' => $cycles,
+			],
+		];
 	}
 
 	/**
@@ -1436,23 +1706,11 @@ class Process {
 				Helpers::get_auth_opts()
 			);
 
-			$subscription_item = $subscription->items->data[0];
-
 			$schedule::update(
 				$schedule->id,
 				[
 					'end_behavior' => 'cancel',
-					'phases'       => [
-						[
-							'start_date' => $subscription_item->current_period_start,
-							'items'      => [
-								[
-									'plan' => $subscription_item->plan->id,
-								],
-							],
-							'iterations' => $subscription->metadata['cycles'],
-						],
-					],
+					'phases'       => $this->get_schedule_phases( $subscription, $subscription->metadata['cycles'] ),
 				],
 				Helpers::get_auth_opts()
 			);

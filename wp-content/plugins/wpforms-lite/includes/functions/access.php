@@ -185,6 +185,7 @@ function wpforms_get_upgraded_timestamp( $version ) {
 
 	$option_name = wpforms()->is_pro() ? 'wpforms_versions' : 'wpforms_versions_lite';
 	$upgrades    = (array) get_option( $option_name, [] );
+	$version     = wpforms_normalize_version( (string) $version );
 
 	if ( ! isset( $upgrades[ $version ] ) ) {
 		return false;

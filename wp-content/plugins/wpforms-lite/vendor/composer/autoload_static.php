@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9cdfc57d819eb6e1a062968df8386cef
+class ComposerStaticInitWPForms
 {
     public static $files = array (
         'def43f6c87e4f8dfd0c9e1b1bab14fe8' => __DIR__ . '/..' . '/symfony/polyfill-iconv/bootstrap.php',
@@ -3009,9 +3009,9 @@ class ComposerStaticInit9cdfc57d819eb6e1a062968df8386cef
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9cdfc57d819eb6e1a062968df8386cef::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9cdfc57d819eb6e1a062968df8386cef::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit9cdfc57d819eb6e1a062968df8386cef::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitWPForms::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitWPForms::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitWPForms::$classMap;
 
         }, null, ClassLoader::class);
     }

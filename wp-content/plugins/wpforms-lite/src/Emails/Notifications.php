@@ -1081,7 +1081,8 @@ class Notifications extends Mailer {
 		}
 
 		// Otherwise, return an empty string if the value is not an email.
-		return wpforms_is_email( $value ) ? $value : '';
+		// The value was submitted with the form, so a smart tag in it is text the visitor typed.
+		return wpforms_is_email( $value, false ) ? $value : '';
 	}
 
 	/**

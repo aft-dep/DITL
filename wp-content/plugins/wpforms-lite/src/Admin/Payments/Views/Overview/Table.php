@@ -950,14 +950,14 @@ class Table extends \WP_List_Table {
 			return Helpers::get_placeholder_na_text();
 		}
 
-		$amount      = $this->get_formatted_amount_from_item( $item );
+		$amount      = $this->get_formatted_amount_from_item( Helpers::get_subscription_billed_item( $item ) );
 		$description = Helpers::get_subscription_description( $item['id'], $amount );
 		$status      = $this->get_subscription_status( $item );
 
 		return sprintf(
 			'<span class="wpforms-subscription-status status-%1$s" title="%2$s">%3$s</span>',
 			sanitize_html_class( $status ),
-			$status ? ValueValidator::get_allowed_subscription_statuses()[ $status ] : '',
+			esc_attr( $status ? ValueValidator::get_allowed_subscription_statuses()[ $status ] ?? $status : '' ),
 			$description
 		);
 	}

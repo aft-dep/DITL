@@ -115,6 +115,7 @@ class ValueValidator {
 	 * Get allowed subscription statuses.
 	 *
 	 * @since 1.8.2
+	 * @since 2.0.4 Added the `trialing` and `past_due` statuses.
 	 *
 	 * @return array
 	 */
@@ -122,6 +123,8 @@ class ValueValidator {
 
 		return [
 			'active'     => __( 'Active', 'wpforms-lite' ),
+			'trialing'   => __( 'Trialing', 'wpforms-lite' ),
+			'past_due'   => __( 'Past Due', 'wpforms-lite' ),
 			'cancelled'  => __( 'Cancelled', 'wpforms-lite' ),
 			'not-synced' => __( 'Not Synced', 'wpforms-lite' ),
 			'failed'     => __( 'Failed', 'wpforms-lite' ),

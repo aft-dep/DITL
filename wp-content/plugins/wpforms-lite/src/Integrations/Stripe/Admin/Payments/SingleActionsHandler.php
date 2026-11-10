@@ -192,7 +192,7 @@ class SingleActionsHandler {
 	 */
 	private function check_payment_collection_type() {
 
-		if ( ! Helpers::is_pro() || absint( wpforms_setting( 'stripe-api-version' ) ) !== 2 ) {
+		if ( ! Helpers::is_legacy_api_version() ) {
 			return;
 		}
 

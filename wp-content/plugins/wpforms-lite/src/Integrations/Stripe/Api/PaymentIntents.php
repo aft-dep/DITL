@@ -24,6 +24,8 @@ use WPForms\Vendor\Stripe\CountrySpec;
  */
 class PaymentIntents extends Common implements ApiInterface {
 
+	use Traits\TrialSubscription;
+
 	/**
 	 * Stripe PaymentMethod id received from Elements.
 	 *
@@ -43,11 +45,21 @@ class PaymentIntents extends Common implements ApiInterface {
 	protected $payment_intent_id;
 
 	/**
-	 * Stripe PaymentIntent object.
+	 * Stripe SetupIntent id received from Elements on the confirmation pass of a trial signup.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @var string
+	 */
+	protected $setup_intent_id;
+
+	/**
+	 * Stripe PaymentIntent object, or the SetupIntent of a trial signup, which charges nothing.
 	 *
 	 * @since 1.8.2
+	 * @since 2.0.4 May hold a SetupIntent.
 	 *
-	 * @var PaymentIntent
+	 * @var PaymentIntent|SetupIntent
 	 */
 	protected $intent;
 
@@ -247,7 +259,11 @@ class PaymentIntents extends Common implements ApiInterface {
 	 */
 	public function set_payment_tokens( $entry ) {
 
-		if ( ! empty( $entry['payment_method_id'] ) && empty( $entry['payment_intent_id'] ) ) {
+		if ( ! empty( $entry['setup_intent_id'] ) && is_string( $entry['setup_intent_id'] ) ) {
+			$this->setup_intent_id = $entry['setup_intent_id'];
+		}
+
+		if ( ! empty( $entry['payment_method_id'] ) && empty( $entry['payment_intent_id'] ) && empty( $entry['setup_intent_id'] ) ) {
 			$this->payment_method_id = $entry['payment_method_id'];
 		}
 
@@ -255,7 +271,7 @@ class PaymentIntents extends Common implements ApiInterface {
 			$this->payment_intent_id = $entry['payment_intent_id'];
 		}
 
-		if ( empty( $this->payment_method_id ) && empty( $this->payment_intent_id ) ) {
+		if ( empty( $this->payment_method_id ) && empty( $this->payment_intent_id ) && empty( $this->setup_intent_id ) ) {
 			$this->error = esc_html__( 'Stripe payment stopped, missing both PaymentMethod and PaymentIntent ids.', 'wpforms-lite' );
 		}
 	}
@@ -306,6 +322,10 @@ class PaymentIntents extends Common implements ApiInterface {
 	 * @throws ApiErrorException If the request fails.
 	 */
 	public function process_single( $args ) {
+
+		if ( $this->reject_setup_intent() ) {
+			return;
+		}
 
 		if ( $this->payment_method_id ) {
 
@@ -541,6 +561,17 @@ class PaymentIntents extends Common implements ApiInterface {
 	 */
 	public function process_subscription( $args ) {
 
+		// A trial collects the card without charging it, so it runs on a SetupIntent instead.
+		if ( ! empty( $args['trial'] ) ) {
+			$this->process_trial_subscription( $args );
+
+			return;
+		}
+
+		if ( $this->reject_setup_intent() ) {
+			return;
+		}
+
 		if ( $this->payment_method_id ) {
 
 			// Normal flow.
@@ -682,9 +713,9 @@ class PaymentIntents extends Common implements ApiInterface {
 	 */
 	public function get_charge_details( $keys ) {
 
-		$charge = isset( $this->intent->charges->data[0] ) ? $this->intent->charges->data[0] : null;
+		$source = $this->get_payment_method_details_source();
 
-		if ( empty( $charge ) || empty( $keys ) ) {
+		if ( empty( $source ) || empty( $keys ) ) {
 			return [];
 		}
 
@@ -695,24 +726,59 @@ class PaymentIntents extends Common implements ApiInterface {
 		$result = [];
 
 		foreach ( $keys as $key ) {
-			if ( isset( $charge->payment_method_details->card, $charge->payment_method_details->card->{$key} ) ) {
-				$result[ $key ] = sanitize_text_field( $charge->payment_method_details->card->{$key} );
+			if ( isset( $source['details']->card, $source['details']->card->{$key} ) ) {
+				$result[ $key ] = sanitize_text_field( $source['details']->card->{$key} );
 
 				continue;
 			}
 
-			if ( isset( $charge->payment_method_details->{$key} ) ) {
-				$result[ $key ] = sanitize_text_field( $charge->payment_method_details->{$key} );
+			if ( isset( $source['details']->{$key} ) ) {
+				$result[ $key ] = sanitize_text_field( $source['details']->{$key} );
 
 				continue;
 			}
 
-			if ( isset( $charge->billing_details->{$key} ) ) {
-				$result[ $key ] = sanitize_text_field( $charge->billing_details->{$key} );
+			if ( isset( $source['billing']->{$key} ) ) {
+				$result[ $key ] = sanitize_text_field( $source['billing']->{$key} );
 			}
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Get where the card details live: the charge of a PaymentIntent, or the saved payment method of a
+	 * SetupIntent, which has no charge.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @return array Empty, or `details` (type and card) plus `billing` (name and email) objects.
+	 */
+	private function get_payment_method_details_source(): array {
+
+		if ( isset( $this->intent->object ) && $this->intent->object === 'setup_intent' ) {
+			$payment_method = $this->intent->payment_method ?? null;
+
+			if ( ! is_object( $payment_method ) ) {
+				return [];
+			}
+
+			return [
+				'details' => $payment_method,
+				'billing' => $payment_method->billing_details ?? null,
+			];
+		}
+
+		$charge = $this->intent->charges->data[0] ?? null;
+
+		if ( empty( $charge ) ) {
+			return [];
+		}
+
+		return [
+			'details' => $charge->payment_method_details ?? null,
+			'billing' => $charge->billing_details ?? null,
+		];
 	}
 
 	/**
@@ -801,14 +867,17 @@ class PaymentIntents extends Common implements ApiInterface {
 		if (
 			! Helpers::is_payments_enabled( $form_data ) ||
 			empty( $form_data['settings']['recaptcha'] ) ||
-			empty( $entry['payment_intent_id'] )
+			( empty( $entry['payment_intent_id'] ) && ( empty( $entry['setup_intent_id'] ) || ! is_string( $entry['setup_intent_id'] ) ) )
 		) {
 			return $is_bypassed;
 		}
 
 		// This is executed before payment processing kicks in and fills `$this->intent`.
-		// PaymentIntent intent has to be retrieved from Stripe instead of getting it from `$this->intent`.
-		$intent = $this->retrieve_payment_intent( $entry['payment_intent_id'] );
+		// The intent has to be retrieved from Stripe instead of getting it from `$this->intent`.
+		// A trial signup confirms a SetupIntent, everything else a PaymentIntent.
+		$intent = ! empty( $entry['setup_intent_id'] ) && is_string( $entry['setup_intent_id'] )
+			? $this->retrieve_setup_intent( $entry['setup_intent_id'] )
+			: $this->retrieve_payment_intent( $entry['payment_intent_id'] );
 
 		if ( empty( $intent->status ) || $intent->status !== 'succeeded' ) {
 			return $is_bypassed;

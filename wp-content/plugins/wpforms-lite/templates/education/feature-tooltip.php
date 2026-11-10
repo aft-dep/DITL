@@ -16,6 +16,9 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+$has_button     = is_string( $button_markup ) && $button_markup !== '';
+$has_learn_more = is_string( $learn_more_url ) && $learn_more_url !== '';
 ?>
 <div class="wpforms-education-feature-tooltip wpforms-dismiss-container wpforms-dismiss-out">
 	<button
@@ -36,10 +39,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php echo esc_html( $text ); ?>
 	</p>
 
-	<?php if ( $button_markup !== '' || $learn_more_url !== '' ) : ?>
+	<?php if ( $has_button || $has_learn_more ) : ?>
 		<div class="wpforms-education-feature-tooltip-footer">
-			<?php echo $button_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			<?php if ( $learn_more_url !== '' ) : ?>
+			<?php if ( $has_button ) : ?>
+				<?php
+				echo wp_kses(
+					$button_markup,
+					[
+						'a' => [
+							'href'   => [],
+							'class'  => [],
+							'data-*' => true,
+						],
+					]
+				);
+				?>
+			<?php endif; ?>
+			<?php if ( $has_learn_more ) : ?>
 				<a href="<?php echo esc_url( $learn_more_url ); ?>" class="wpforms-education-feature-tooltip-learn-more" target="_blank" rel="noopener noreferrer"><?php echo esc_html( $learn_more_text ); ?></a>
 			<?php endif; ?>
 		</div>

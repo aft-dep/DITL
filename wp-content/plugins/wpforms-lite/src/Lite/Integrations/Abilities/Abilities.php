@@ -47,7 +47,6 @@ class Abilities extends AbilitiesBase {
 						'form_id' => [
 							'description' => __( 'The ID of the form to get stats for.', 'wpforms-lite' ),
 							'type'        => 'integer',
-							'required'    => true,
 							'minimum'     => 1,
 						],
 					],

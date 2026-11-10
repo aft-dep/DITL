@@ -115,6 +115,15 @@ class FormsLocatorScanTask extends Task {
 	private $interval;
 
 	/**
+	 * IDs, as keys, of posts whose Elementor data contains a WPForms widget, filled by search_in_posts().
+	 *
+	 * @since 2.0.4
+	 *
+	 * @var array
+	 */
+	private $elementor_post_ids = [];
+
+	/**
 	 * Log title.
 	 *
 	 * @since 1.9.1
@@ -366,6 +375,8 @@ class FormsLocatorScanTask extends Task {
 	/**
 	 * Search form in posts.
 	 *
+	 * Also fills the Elementor post IDs that get_form_locations_from_posts() reads.
+	 *
 	 * @since 1.7.4
 	 *
 	 * @return int[]
@@ -388,7 +399,52 @@ class FormsLocatorScanTask extends Task {
 		);
 		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-		return array_map( 'intval', $ids );
+		$content_ids              = array_map( 'intval', $ids );
+		$elementor_ids            = $this->search_in_elementor_data();
+		$this->elementor_post_ids = array_flip( $elementor_ids );
+
+		return array_values( array_unique( array_merge( $content_ids, $elementor_ids ) ) );
+	}
+
+	/**
+	 * Search for the WPForms widget in the Elementor data of posts.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @return int[]
+	 */
+	private function search_in_elementor_data(): array {
+
+		if ( ! defined( 'ELEMENTOR_VERSION' ) ) {
+			return [];
+		}
+
+		$meta_query = [ 'relation' => 'OR' ];
+
+		foreach ( Locator::ELEMENTOR_WIDGET_NEEDLES as $needle ) {
+			$meta_query[] = [
+				'key'     => '_elementor_data',
+				'value'   => $needle,
+				'compare' => 'LIKE',
+			];
+		}
+
+		// Filters are suppressed so multilingual plugins do not narrow the set the content query never narrows.
+		$query = new WP_Query(
+			[
+				'post_type'              => $this->locator->get_post_types(),
+				'post_status'            => $this->locator->get_post_statuses(),
+				'fields'                 => 'ids',
+				'posts_per_page'         => -1,
+				'no_found_rows'          => true,
+				'suppress_filters'       => true, // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.SuppressFilters_suppress_filters
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'meta_query'             => $meta_query, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			]
+		);
+
+		return array_map( 'intval', $query->posts );
 	}
 
 	/**
@@ -477,7 +533,15 @@ class FormsLocatorScanTask extends Task {
 
 		foreach ( $posts as $post ) {
 
-			$form_ids = $this->locator->get_form_ids( $post->post_content );
+			// Only posts matched by the Elementor meta query load their Elementor data, the rest stay content-only.
+			if ( isset( $this->elementor_post_ids[ (int) $post->ID ] ) ) {
+				$form_ids = $this->locator->get_form_ids_from_post( $post );
+
+				// The meta read above primed the whole post meta cache, which this one-off scan never reuses.
+				wp_cache_delete( $post->ID, 'post_meta' );
+			} else {
+				$form_ids = $this->locator->get_form_ids( $post->post_content );
+			}
 
 			if ( ! $form_ids ) {
 				continue;

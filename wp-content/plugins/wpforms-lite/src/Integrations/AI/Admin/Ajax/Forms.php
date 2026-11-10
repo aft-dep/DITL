@@ -282,6 +282,7 @@ class Forms extends Base {
 	 * Use form checks and prepare data.
 	 *
 	 * @since 1.9.2
+	 * @since 2.0.4 Read the generated form from the aiFormData key.
 	 *
 	 * @return array Form ID and the generated form data.
 	 */
@@ -294,7 +295,7 @@ class Forms extends Base {
 		}
 
 		$form_id   = $this->get_post_data( 'formId', 'int' );
-		$form_data = $this->get_post_data( 'formData', 'array' );
+		$form_data = $this->get_post_data( 'aiFormData', 'array' );
 
 		if ( empty( $form_data ) ) {
 			wp_send_json_error(

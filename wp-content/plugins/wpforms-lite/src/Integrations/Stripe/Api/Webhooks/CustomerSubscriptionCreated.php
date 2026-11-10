@@ -30,13 +30,17 @@ class CustomerSubscriptionCreated extends Base {
 			return false;
 		}
 
-		if ( ! wpforms()->obj( 'payment' )->update( $payment->id, [ 'subscription_status' => 'active' ] ) ) {
+		// A trial starts as trialing. Anything else is active here: Stripe reports a charged subscription
+		// as incomplete at creation, before the first invoice is paid.
+		$status = $this->data->object->status === 'trialing' ? 'trialing' : 'active';
+
+		if ( ! wpforms()->obj( 'payment' )->update( $payment->id, [ 'subscription_status' => $status ] ) ) {
 			throw new RuntimeException( 'Payment not updated' );
 		}
 
 		wpforms()->obj( 'payment_meta' )->add_log(
 			$payment->id,
-			'Stripe subscription was set to active.'
+			sprintf( 'Stripe subscription was set to %s.', $this->get_status_log_label( $status ) )
 		);
 
 		return true;

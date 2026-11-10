@@ -49,9 +49,14 @@ class CustomerSubscriptionUpdated extends Base {
 			throw new RuntimeException( 'Payment not updated' );
 		}
 
+		// Leaving trialing is the end of the trial, which the status line alone does not say.
+		if ( $payment->subscription_status === 'trialing' ) {
+			wpforms()->obj( 'payment_meta' )->add_log( $payment->id, 'Stripe subscription trial ended.' );
+		}
+
 		wpforms()->obj( 'payment_meta' )->add_log(
 			$payment->id,
-			sprintf( 'Stripe subscription was set to %1$s.', $this->data->object->status )
+			sprintf( 'Stripe subscription was set to %1$s.', $this->get_status_log_label( $this->data->object->status ) )
 		);
 
 		return true;

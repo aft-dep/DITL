@@ -3,6 +3,7 @@
 namespace WPForms\Integrations\Stripe\Admin\Builder;
 
 use WPForms\Integrations\Stripe\Helpers;
+use WPForms\Integrations\Stripe\TrialPeriod;
 
 /**
  * Script enqueues for the Stripe Builder settings panel.
@@ -60,6 +61,22 @@ class Enqueues {
 				],
 			]
 		);
+		$strings['stripe_webhooks_heading']          = esc_html__( 'Webhooks Required', 'wpforms-lite' );
+		$strings['stripe_webhooks_required']         = wp_kses(
+			sprintf( /* translators: %s - WPForms payment settings page URL. */
+				__( '<p>Stripe webhooks are required when using a trial period or a limited number of recurring cycles.</p><p>To proceed, please go to <a href="%s" target="_blank" rel="noopener noreferrer">Payment Settings</a> and check <strong>Enable Webhooks</strong>.</p>', 'wpforms-lite' ),
+				esc_url( Helpers::get_settings_page_url() )
+			),
+			[
+				'p'      => [],
+				'strong' => [],
+				'a'      => [
+					'href'   => [],
+					'target' => [],
+					'rel'    => [],
+				],
+			]
+		);
 
 		return $strings;
 	}
@@ -105,18 +122,21 @@ class Enqueues {
 		 *
 		 * @since 1.8.2
 		 * @since 1.9.5 Added the `field_slug` key.
+		 * @since 2.0.4 Added the `trial_units` and `webhooks_enabled` keys.
 		 *
 		 * @param array $data Script data.
 		 */
 		$script_data = (array) apply_filters(
 			'wpforms_integrations_stripe_admin_builder_enqueues_data',
 			[
-				'field_slug'  => Helpers::get_field_slug(),
-				'field_slugs' => [ 'stripe-credit-card' ],
-				'is_pro'      => Helpers::is_pro(),
-				'has_keys'    => Helpers::has_stripe_keys(),
-				'cycles_max'  => Helpers::recurring_plan_cycles_max(),
-				'i18n'        => [
+				'field_slug'       => Helpers::get_field_slug(),
+				'field_slugs'      => [ 'stripe-credit-card' ],
+				'is_pro'           => Helpers::is_pro(),
+				'has_keys'         => Helpers::has_stripe_keys(),
+				'cycles_max'       => Helpers::recurring_plan_cycles_max(),
+				'trial_units'      => TrialPeriod::get_units(),
+				'webhooks_enabled' => (bool) Helpers::is_webhook_enabled(),
+				'i18n'             => [
 					'cycles_default' => esc_html__( 'Unlimited', 'wpforms-lite' ),
 				],
 			]

@@ -264,18 +264,20 @@ class Addons {
 		$prefix = $this->prepare_prefix( $slug );
 
 		static $legacy_options = [
-			'offline_forms'     => [ 'offline_form' ],
-			'user_registration' => [ 'user_login_hide', 'user_reset_hide' ],
-			'surveys_polls'     => [ 'survey_enable', 'poll_enable' ],
+			'offline_forms' => [ 'offline_form' ],
+			'surveys_polls' => [ 'survey_enable', 'poll_enable' ],
 		];
 
-		// BC: User Registration addon has `registration_` prefix instead of `user_registration`.
-		if ( $prefix === 'user_registration' ) {
-			$prefix = 'registration';
-		}
+		// BC: User Registration stores conditional logic under `user_registration`, its options under `registration_`,
+		// the Login template options under `user_login_` and the Reset Password template options under `user_reset_`.
+		static $extra_prefixes = [
+			'user_registration' => [ 'registration', 'user_login', 'user_reset' ],
+		];
+
+		$prefixes = array_merge( [ $prefix ], $extra_prefixes[ $prefix ] ?? [] );
 
 		foreach ( $previous_settings as $setting_name => $value ) {
-			if ( strpos( $setting_name, $prefix ) === 0 ) {
+			if ( $this->setting_has_prefix( $setting_name, $prefixes ) ) {
 				$new_settings[ $setting_name ] = $value;
 
 				continue;
@@ -286,6 +288,27 @@ class Addons {
 				$new_settings[ $setting_name ] = $value;
 			}
 		}
+	}
+
+	/**
+	 * Determine whether the setting name starts with any of the given prefixes.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param string $setting_name Setting name.
+	 * @param array  $prefixes     Addon option prefixes.
+	 *
+	 * @return bool
+	 */
+	private function setting_has_prefix( string $setting_name, array $prefixes ): bool {
+
+		foreach ( $prefixes as $prefix ) {
+			if ( strpos( $setting_name, $prefix ) === 0 ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

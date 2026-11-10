@@ -739,8 +739,7 @@ abstract class Abilities implements IntegrationInterface {
 				'execute_callback'    => [ $this, 'ability_describe_editing_schema' ],
 				'permission_callback' => [ $this, 'check_view_forms_permission' ],
 				'input_schema'        => [
-					'type'       => 'object',
-					'properties' => [],
+					'type' => 'object',
 				],
 				'output_schema'       => [
 					'type'       => 'object',

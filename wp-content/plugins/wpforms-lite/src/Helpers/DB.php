@@ -5,6 +5,7 @@
 
 namespace WPForms\Helpers;
 
+use WPForms\Db\Analytics\DB as AnalyticsDB;
 // phpcs:ignore WPForms.PHP.UseStatement.UnusedUseStatement
 use WPForms_DB;
 use WPForms_Lite;
@@ -271,6 +272,7 @@ class DB {
 		self::$existing_tables = [];
 
 		Transient::delete( self::EXISTING_TABLES_TRANSIENT_NAME );
+		AnalyticsDB::flush_tables_exist_cache();
 	}
 
 	/**
@@ -359,6 +361,9 @@ class DB {
 
 		if ( $created ) {
 			Transient::delete( self::EXISTING_TABLES_TRANSIENT_NAME );
+
+			// A call without the up-front flush, or a miss cached before the creation, would otherwise keep a cached miss.
+			AnalyticsDB::flush_tables_exist_cache();
 		}
 	}
 

@@ -343,7 +343,7 @@ class Single implements PaymentsViewsInterface {
 				'payment_id_raw'      => $this->payment->id,
 				'status'              => $this->payment->status,
 				'status_label'        => $this->get_status_label(),
-				'disabled'            => $this->payment->status === 'refunded',
+				'disabled'            => $this->payment->status === 'refunded' || $this->is_trial_signup(),
 				'stat_cards'          => [
 					'total'  => [
 						'label'          => esc_html__( 'Total', 'wpforms-lite' ),
@@ -412,7 +412,7 @@ class Single implements PaymentsViewsInterface {
 				'gateway_action_link' => $this->get_gateway_action_link( 'cancel' ),
 				'payment_id_raw'      => $this->subscription->id,
 				'status'              => $this->subscription->subscription_status,
-				'status_label'        => ValueValidator::get_allowed_subscription_statuses()[ $this->subscription->subscription_status ],
+				'status_label'        => ValueValidator::get_allowed_subscription_statuses()[ $this->subscription->subscription_status ] ?? $this->subscription->subscription_status,
 				'disabled'            => in_array( $this->subscription->subscription_status, [ 'cancelled', 'completed' ], true ),
 				'stat_cards'          => [
 					'total'   => [
@@ -501,7 +501,7 @@ class Single implements PaymentsViewsInterface {
 		$allowed_intervals = ValueValidator::get_allowed_subscription_intervals();
 
 		if ( isset( $this->subscription_meta['subscription_period']->value, $allowed_intervals[ $this->subscription_meta['subscription_period']->value ] ) ) {
-			$amount   = wpforms_format_amount( wpforms_sanitize_amount( $this->payment->total_amount, $this->payment->currency ), true, $this->payment->currency );
+			$amount   = wpforms_format_amount( wpforms_sanitize_amount( $this->get_billed_amount(), $this->payment->currency ), true, $this->payment->currency );
 			$interval = $allowed_intervals[ $this->subscription_meta['subscription_period']->value ];
 
 			return "{$amount} / {$interval}";
@@ -542,7 +542,16 @@ class Single implements PaymentsViewsInterface {
 			$this->renewals[] = $this->subscription;
 		}
 
-		return count( $this->renewals );
+		// A trial signup is a payment record, but nothing was billed.
+		return count(
+			array_filter(
+				$this->renewals,
+				static function ( $row ) {
+
+					return strpos( (string) $row->transaction_id, 'seti_' ) !== 0;
+				}
+			)
+		);
 	}
 
 	/**
@@ -570,6 +579,11 @@ class Single implements PaymentsViewsInterface {
 			'semiyearly' => '+6 month',
 			'yearly'     => '+1 year',
 		];
+
+		// Until the first charge, the next payment is the one at the trial end.
+		if ( ! empty( $this->subscription_meta['subscription_trial_end']->value ) && ! $this->has_billed_renewal() ) {
+			return gmdate( 'M d, Y', (int) $this->subscription_meta['subscription_trial_end']->value );
+		}
 
 		if ( ! isset( $this->subscription_meta['subscription_period']->value, $converted_periods[ $this->subscription_meta['subscription_period']->value ] ) ) {
 			return '';
@@ -606,6 +620,52 @@ class Single implements PaymentsViewsInterface {
 
 		// Date strings in "Y-m-d H:i:s" format compare lexicographically as chronologically.
 		return $dates ? max( $dates ) : $this->payment->date_created_gmt;
+	}
+
+	/**
+	 * Whether the viewed payment is a trial signup: a saved card for a trialing subscription, nothing charged.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @return bool
+	 */
+	private function is_trial_signup(): bool {
+
+		return strpos( (string) $this->payment->transaction_id, 'seti_' ) === 0;
+	}
+
+	/**
+	 * Get the amount the viewed payment bills: a trial signup collected nothing, so it is the plan price.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @return string
+	 */
+	private function get_billed_amount(): string {
+
+		if ( (float) $this->payment->total_amount > 0 || empty( $this->subscription_meta['subscription_plan_amount']->value ) ) {
+			return (string) $this->payment->total_amount;
+		}
+
+		return (string) $this->subscription_meta['subscription_plan_amount']->value;
+	}
+
+	/**
+	 * Whether the subscription has had a renewal, i.e. a charge after the signup.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @return bool
+	 */
+	private function has_billed_renewal(): bool {
+
+		foreach ( $this->renewals as $row ) {
+			if ( $row->type === 'renewal' ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -1149,7 +1209,8 @@ class Single implements PaymentsViewsInterface {
 
 		switch ( $this->payment->gateway ) {
 			case 'stripe':
-				$link = 'payments/';
+				// A trial signup is a SetupIntent, which has its own dashboard page.
+				$link = $this->is_trial_signup() ? 'setup_intents/' : 'payments/';
 				break;
 
 			case 'paypal_standard':

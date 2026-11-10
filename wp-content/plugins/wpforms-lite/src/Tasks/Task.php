@@ -438,8 +438,11 @@ class Task {
 		 */
 		$interval = (int) apply_filters( 'wpforms_tasks_task_log_register_failure_interval', HOUR_IN_SECONDS, $this->action );
 
-		set_transient( $transient, 1, $interval );
+		// A dropped record must not start the throttle, or the next failure would go unlogged too.
+		if ( ! wpforms_log( 'Task registration failure', "Task '{$this->action}' was not registered: {$reason}", [ 'type' => 'error' ] ) ) {
+			return;
+		}
 
-		wpforms_log( 'Task registration failure', "Task '{$this->action}' was not registered: {$reason}", [ 'type' => 'error' ] );
+		set_transient( $transient, 1, $interval );
 	}
 }

@@ -355,7 +355,9 @@ abstract class SmartTag {
 		}
 
 		if ( ! $this->is_html_field_value( $field ) ) {
-			return wpforms_neutralize_html_tags( $value );
+			// A multi-value field arrives with `<br/>` between its values once the email notifications filter ran.
+			// Keep those breaks as newlines, so the strip below does not join the values.
+			return wpforms_neutralize_html_tags( preg_replace( '/<br\s*\/?>/i', "\n", $value ) );
 		}
 
 		return wp_kses( $value, wpforms_get_allowed_html_tags_for_smart_tag_value() );

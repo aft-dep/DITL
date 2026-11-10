@@ -3,7 +3,6 @@
 namespace WPForms\Integrations\Divi;
 
 use WPForms\Integrations\Divi\Interfaces\LocalizedDataInterface;
-use WPForms_Field_Select;
 use WPForms\Integrations\IntegrationInterface;
 
 /**
@@ -201,7 +200,7 @@ class Divi implements IntegrationInterface {
 			'wpforms-choicesjs',
 			WPFORMS_PLUGIN_URL . "assets/css/integrations/divi/choices{$min}.css",
 			[],
-			WPForms_Field_Select::CHOICES_VERSION
+			WPFORMS_VERSION
 		);
 
 		if ( empty( $styles_name ) ) {

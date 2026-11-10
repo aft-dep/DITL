@@ -211,8 +211,9 @@ class ScopeRegistry {
 	 * Invoke a resolver callable and wrap its result in the standard envelope.
 	 *
 	 * Mirrors the β `args` into the legacy `request_data.args` slot for back-compat,
-	 * calls the resolver, and converts any thrown exception into a `resolver_failure`
-	 * error envelope.
+	 * calls the resolver, converts a returned `WP_Error` into an error envelope carrying
+	 * its code, message and `hint` data, and converts any thrown exception into a
+	 * `resolver_failure` error envelope.
 	 *
 	 * @since 2.0.0
 	 *
@@ -239,6 +240,17 @@ class ScopeRegistry {
 
 			// Invoke the resolver callable.
 			$result = $resolver( $resolver_payload );
+
+			if ( is_wp_error( $result ) ) {
+				$error_data = (array) $result->get_error_data();
+
+				return $this->format_tool_error(
+					$result->get_error_code(),
+					sanitize_text_field( $result->get_error_message() ),
+					sanitize_text_field( (string) ( $error_data['hint'] ?? '' ) ),
+					$scope_slug
+				);
+			}
 		} catch ( Throwable $e ) {
 			return $this->format_tool_error(
 				'resolver_failure',

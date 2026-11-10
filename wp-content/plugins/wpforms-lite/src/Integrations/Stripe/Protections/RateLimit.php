@@ -51,8 +51,9 @@ final class RateLimit {
 	 * Constructor.
 	 *
 	 * @since 2.0.0
+	 * @since 2.0.4 Added the 'trial' scope.
 	 *
-	 * @param string $scope Rate limit scope ('ip' for per-IP, 'global' for site-wide).
+	 * @param string $scope Rate limit scope ('ip' for per-IP failures, 'global' for site-wide failures, 'trial' for per-IP trial signups).
 	 */
 	public function __construct( string $scope = 'ip' ) {
 
@@ -95,6 +96,41 @@ final class RateLimit {
 			 * @param int $expires_in Expiration time in seconds.
 			 */
 			$this->expires_in = (int) apply_filters( 'wpforms_stripe_rate_limit_global_expires_in', HOUR_IN_SECONDS );
+			// phpcs:enable WPForms.PHP.ValidateHooks.InvalidHookName
+
+			return;
+		}
+
+		// A trial signup verifies a card without charging it, so successful signups get their own per-IP cap.
+		if ( $this->scope === 'trial' ) {
+
+			// phpcs:disable WPForms.PHP.ValidateHooks.InvalidHookName
+			/**
+			 * This filter allows disabling the Stripe trial signups rate limit.
+			 *
+			 * @since 2.0.4
+			 *
+			 * @param bool $enabled Whether the trial signups rate limit is active.
+			 */
+			$this->enabled = (bool) apply_filters( 'wpforms_stripe_rate_limit_trial_enabled', true );
+
+			/**
+			 * This filter allows modifying the number of trial signups one IP address may complete.
+			 *
+			 * @since 2.0.4
+			 *
+			 * @param int $count Trial signups per IP address before the block kicks in.
+			 */
+			$this->allowed_attempts = (int) apply_filters( 'wpforms_stripe_rate_limit_trial_allowed_attempts', 5 );
+
+			/**
+			 * This filter allows modifying the Stripe trial signups rate limit expiration time.
+			 *
+			 * @since 2.0.4
+			 *
+			 * @param int $expires_in Expiration time in seconds.
+			 */
+			$this->expires_in = (int) apply_filters( 'wpforms_stripe_rate_limit_trial_expires_in', HOUR_IN_SECONDS * 6 );
 			// phpcs:enable WPForms.PHP.ValidateHooks.InvalidHookName
 
 			return;
@@ -177,10 +213,12 @@ final class RateLimit {
 	 * Get rate limit entry id.
 	 *
 	 * Per-IP scope hashes the requesting IP; global scope hashes the site URL,
-	 * so all attempts site-wide share a single counter row.
+	 * so all attempts site-wide share a single counter row. The trial scope keeps
+	 * its own per-IP row, separate from the failure counter.
 	 *
 	 * @since 1.8.2
 	 * @since 2.0.0 Added global scope support.
+	 * @since 2.0.4 Added trial scope support.
 	 *
 	 * @return string
 	 */
@@ -188,6 +226,10 @@ final class RateLimit {
 
 		if ( $this->scope === 'global' ) {
 			return 'wpforms_stripe_attempt_global_' . wp_hash( site_url() );
+		}
+
+		if ( $this->scope === 'trial' ) {
+			return 'wpforms_stripe_trial_signup_' . wp_hash( wpforms_get_ip() );
 		}
 
 		return 'wpforms_stripe_attempt_' . wp_hash( wpforms_get_ip() );

@@ -3,18 +3,14 @@
 namespace WPForms\Admin\Payments\Views\Overview;
 
 use WPForms\Admin\Helpers\Datepicker;
+use WPForms\Helpers\PaymentGatewayDetector;
 use WPForms\Db\Payments\ValueValidator;
 use WPForms\Admin\Payments\Payments;
 use WPForms\Admin\Payments\Views\PaymentsViewsInterface;
 use WPForms\Integrations\Stripe\Helpers as StripeHelpers;
 use WPForms\Integrations\Stripe\Stripe;
-use WPForms\Integrations\Square\Helpers as SquareHelpers;
 use WPForms\Integrations\Square\Square;
-use WPForms\Integrations\PayPalCommerce\Connection as PayPalCommerceConnection;
 use WPForms\Integrations\PayPalCommerce\PayPalCommerce;
-use WPFormsAuthorizeNet\Helpers as AuthorizeNetHelpers;
-use WPFormsMercadoPago\Helpers as MercadoPagoHelpers;
-use WPFormsPaystack\Helpers as PaystackHelpers;
 
 /**
  * Payments Overview Page class.
@@ -518,12 +514,7 @@ class Page implements PaymentsViewsInterface {
 	 */
 	private function is_gateway_configured(): bool {
 
-		$is_configured = StripeHelpers::has_stripe_keys()
-			|| SquareHelpers::is_square_configured()
-			|| self::is_paypal_commerce_configured()
-			|| self::is_authorize_net_configured()
-			|| self::is_mercado_pago_configured()
-			|| self::is_paystack_configured();
+		$is_configured = PaymentGatewayDetector::is_any_payment_gateway_configured();
 
 		/**
 		 * Allow to modify a status whether a payment gateway is configured.
@@ -533,68 +524,6 @@ class Page implements PaymentsViewsInterface {
 		 * @param bool $is_configured True if any supported payment gateway is configured.
 		 */
 		return (bool) apply_filters( 'wpforms_admin_payments_views_overview_page_gateway_is_configured', $is_configured );
-	}
-
-	/**
-	 * Determine whether the PayPal Commerce gateway has a saved connection.
-	 *
-	 * @since 1.10.1.1
-	 *
-	 * @return bool
-	 */
-	private static function is_paypal_commerce_configured(): bool {
-
-		$connection = PayPalCommerceConnection::get();
-
-		return $connection && $connection->is_configured();
-	}
-
-	/**
-	 * Determine whether the Authorize.Net addon is active and has API credentials saved.
-	 *
-	 * @since 1.10.1.1
-	 *
-	 * @return bool
-	 */
-	private static function is_authorize_net_configured(): bool {
-
-		if ( ! class_exists( AuthorizeNetHelpers::class ) ) {
-			return false;
-		}
-
-		return (bool) AuthorizeNetHelpers::has_authorize_net_keys();
-	}
-
-	/**
-	 * Determine whether the Mercado Pago addon is active and has a valid connection.
-	 *
-	 * @since 2.0.1
-	 *
-	 * @return bool
-	 */
-	private static function is_mercado_pago_configured(): bool {
-
-		if ( ! class_exists( MercadoPagoHelpers::class ) ) {
-			return false;
-		}
-
-		return MercadoPagoHelpers::is_configured();
-	}
-
-	/**
-	 * Determine whether the Paystack gateway has a saved connection.
-	 *
-	 * @since 2.0.2.2
-	 *
-	 * @return bool
-	 */
-	private static function is_paystack_configured(): bool {
-
-		if ( ! class_exists( PaystackHelpers::class ) ) {
-			return false;
-		}
-
-		return PaystackHelpers::is_configured();
 	}
 
 	/**

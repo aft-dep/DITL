@@ -342,7 +342,16 @@ class Page implements ImportViewsInterface {
 			return new WP_Error( 'bad_json', __( 'Please upload a valid .json form export file.', 'wpforms-lite' ) );
 		}
 
-		if ( ! $this->save_forms( $forms ) ) {
+		$is_saved = $this->save_forms( $forms );
+
+		/**
+		 * Fires after a WPForms export file is processed, even if no form was saved.
+		 *
+		 * @since 2.0.4
+		 */
+		do_action( 'wpforms_admin_tools_import_views_forms_page_import_forms' );
+
+		if ( ! $is_saved ) {
 			return new WP_Error( 'no_permission', __( 'There was an error saving your form. Please check your file and try again.', 'wpforms-lite' ) );
 		}
 

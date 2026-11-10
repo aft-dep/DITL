@@ -144,6 +144,12 @@ function wpforms_count_words( $string ) {
 		return 0;
 	}
 
+	$string = trim( $string );
+
+	if ( $string === '' ) {
+		return 0;
+	}
+
 	$patterns = [
 		'/([A-Z]+),([A-Z]+)/i',
 		'/([0-9]+),([A-Z]+)/i',

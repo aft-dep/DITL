@@ -607,7 +607,10 @@ class WPForms_Field_Email extends WPForms_Field {
 			$value = ! empty( $field_submit ) ? $field_submit : '';
 		}
 
-		if ( $value && ! wpforms_is_email( $value ) ) {
+		// Validate before decoding: Punycode expects a well-formed string.
+		$decoded = ( $value && wpforms_is_email( $value, false ) ) ? $this->decode_punycode( $value ) : '';
+
+		if ( $value && $decoded === '' ) {
 			wpforms()->obj( 'process' )->errors[ $form_data['id'] ][ $field_id ] = esc_html__( 'The provided email is not valid.', 'wpforms-lite' );
 
 			return;
@@ -618,7 +621,7 @@ class WPForms_Field_Email extends WPForms_Field {
 		// Set final field details.
 		wpforms()->obj( 'process' )->fields[ $field_id ] = [
 			'name'  => sanitize_text_field( $name ),
-			'value' => sanitize_text_field( $this->decode_punycode( $value ) ),
+			'value' => sanitize_text_field( $decoded ),
 			'id'    => wpforms_validate_field_id( $field_id ),
 			'type'  => $this->type,
 		];
@@ -1047,6 +1050,11 @@ class WPForms_Field_Email extends WPForms_Field {
 			$email = $this->decode_punycode( $email );
 		}
 
+		// An address Punycode can't decode can't be matched against the rules either.
+		if ( $email === '' ) {
+			return false;
+		}
+
 		$patterns = $this->sanitize_restricted_rules( $field[ $field['filter_type'] ] );
 		$patterns = array_map( [ $this, 'decode_punycode' ], $patterns );
 		$patterns = array_map( [ $this, 'sanitize_email_pattern' ], $patterns );
@@ -1299,11 +1307,14 @@ class WPForms_Field_Email extends WPForms_Field {
 	 */
 	private function email_encode_punycode( $email ) {
 
-		if ( ! wpforms_is_email( $email ) ) {
+		if ( ! wpforms_is_email( $email, false ) ) {
 			return '';
 		}
 
-		return $this->encode_punycode( $email );
+		$encoded = $this->encode_punycode( $email );
+
+		// is_restricted_email() decodes it back, so an address that can't be decoded is invalid, not restricted.
+		return $this->decode_punycode( $encoded ) === '' ? '' : $encoded;
 	}
 
 	/**
@@ -1334,13 +1345,7 @@ class WPForms_Field_Email extends WPForms_Field {
 	 */
 	private function encode_punycode( $email_pattern ) {
 
-		try {
-			$encoded = $this->transform_punycode( $email_pattern, [ $this->get_punycode(), 'encode' ] );
-		} catch ( Exception $e ) {
-			return '';
-		}
-
-		return $encoded;
+		return $this->transform_punycode( $email_pattern, [ $this->get_punycode(), 'encode' ] );
 	}
 
 	/**
@@ -1365,18 +1370,22 @@ class WPForms_Field_Email extends WPForms_Field {
 	 * @param string   $email_pattern Email pattern.
 	 * @param callable $callback      Punycode callback.
 	 *
-	 * @return string
+	 * @return string Transformed pattern, or an empty string when Punycode rejects a label.
 	 */
 	private function transform_punycode( $email_pattern, callable $callback ) {
 
 		$parts = $this->get_email_pattern_parts( $email_pattern );
 
-		foreach ( $parts as $key => $part ) {
-			if ( ! $part[0] ) {
-				continue;
-			}
+		try {
+			foreach ( $parts as $key => $part ) {
+				if ( ! $part[0] ) {
+					continue;
+				}
 
-			$parts[ $key ][0] = call_user_func( $callback, $part[0] );
+				$parts[ $key ][0] = call_user_func( $callback, $part[0] );
+			}
+		} catch ( Exception $e ) {
+			return '';
 		}
 
 		return $this->glue_email_pattern_parts( $parts );

@@ -37,6 +37,30 @@ class Helpers {
 	}
 
 	/**
+	 * Get a payment row as it bills: a trial signup collected nothing, so it carries the plan price instead.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array $item Payment row.
+	 *
+	 * @return array
+	 */
+	public static function get_subscription_billed_item( array $item ): array {
+
+		if ( ! isset( $item['total_amount'] ) || (float) $item['total_amount'] > 0 ) {
+			return $item;
+		}
+
+		$plan_amount = wpforms()->obj( 'payment_meta' )->get_single( $item['id'], 'subscription_plan_amount' );
+
+		if ( $plan_amount !== null && $plan_amount !== '' ) {
+			$item['total_amount'] = $plan_amount;
+		}
+
+		return $item;
+	}
+
+	/**
 	 * Return a placeholder text "N/A" when there is no actual data to display.
 	 *
 	 * @since 1.8.2

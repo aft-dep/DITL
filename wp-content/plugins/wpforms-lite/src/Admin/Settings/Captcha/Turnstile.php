@@ -101,6 +101,13 @@ class Turnstile extends Captcha {
 					'dark'  => esc_html__( 'Dark', 'wpforms-lite' ),
 				],
 			],
+			'turnstile-execution'  => [
+				'id'     => 'turnstile-execution',
+				'name'   => esc_html__( 'Run on Interaction', 'wpforms-lite' ),
+				'desc'   => esc_html__( 'Start the verification when a visitor first interacts with the form instead of on page load.', 'wpforms-lite' ),
+				'type'   => 'toggle',
+				'status' => true,
+			],
 		];
 	}
 }

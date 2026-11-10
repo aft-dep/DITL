@@ -52,6 +52,30 @@ class Locator {
 	const WPFORMS_WIDGET_OPTION = 'widget_' . self::WPFORMS_WIDGET_NAME;
 
 	/**
+	 * Elementor widget type of the WPForms widget placed from Elementor's WordPress widgets.
+	 *
+	 * @since 2.0.4
+	 */
+	const ELEMENTOR_WPFORMS_WIDGET_TYPE = 'wp-widget-' . self::WPFORMS_WIDGET_NAME;
+
+	/**
+	 * Elementor meta keys that decide which forms a post embeds.
+	 *
+	 * @since 2.0.4
+	 */
+	private const ELEMENTOR_META_KEYS = [ '_elementor_data', '_elementor_edit_mode' ];
+
+	/**
+	 * Substrings of `_elementor_data` that mark a WPForms widget, shared by the live hooks and the scan.
+	 *
+	 * @since 2.0.4
+	 */
+	const ELEMENTOR_WIDGET_NEEDLES = [
+		'"widgetType":"wpforms"',
+		'"widgetType":"' . self::ELEMENTOR_WPFORMS_WIDGET_TYPE . '"',
+	];
+
+	/**
 	 * Text widget name.
 	 *
 	 * @since 1.7.4
@@ -170,6 +194,15 @@ class Locator {
 	private $scan_status;
 
 	/**
+	 * Elementor form IDs per post, recorded before its Elementor meta is overwritten or deleted.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @var array
+	 */
+	private $elementor_form_ids_before = [];
+
+	/**
 	 * Init class.
 	 *
 	 * @since 1.7.4
@@ -204,8 +237,15 @@ class Locator {
 		add_action( 'post_updated', [ $this, 'post_updated' ], 10, 3 );
 		add_action( 'wp_trash_post', [ $this, 'trash_post' ] );
 		add_action( 'untrash_post', [ $this, 'untrash_post' ] );
-		add_action( 'delete_post', [ $this, 'trash_post' ] );
+		// The delete_post action fires after wp_delete_post() removed the meta, too late to read `_elementor_data`.
+		add_action( 'before_delete_post', [ $this, 'trash_post' ] );
 		add_action( 'permalink_structure_changed', [ $this, 'permalink_structure_changed' ], 10, 2 );
+		add_action( 'update_post_meta', [ $this, 'elementor_data_before_update' ], 10, 3 );
+		add_action( 'added_post_meta', [ $this, 'elementor_data_updated' ], 10, 3 );
+		add_action( 'updated_post_meta', [ $this, 'elementor_data_updated' ], 10, 3 );
+		// Switching a page back to the WordPress editor deletes `_elementor_edit_mode` and leaves `_elementor_data` in place.
+		add_action( 'delete_post_meta', [ $this, 'elementor_data_before_update' ], 10, 3 );
+		add_action( 'deleted_post_meta', [ $this, 'elementor_data_updated' ], 10, 3 );
 
 		$wpforms_widget_option = self::WPFORMS_WIDGET_OPTION;
 		$text_widget_option    = self::TEXT_WIDGET_OPTION;
@@ -695,15 +735,11 @@ class Locator {
 	 */
 	public function save_post( $post_ID, $post, $update ) {
 
-		if (
-			$update ||
-			! in_array( $post->post_type, $this->get_post_types(), true ) ||
-			! in_array( $post->post_status, $this->get_post_statuses(), true )
-		) {
+		if ( $update || ! $this->is_locatable_post( $post ) ) {
 			return;
 		}
 
-		$form_ids = $this->get_form_ids( $post->post_content );
+		$form_ids = $this->get_form_ids_from_post( $post );
 
 		$this->update_form_locations_metas( null, $post, [], $form_ids );
 	}
@@ -721,15 +757,17 @@ class Locator {
 	 */
 	public function post_updated( $post_id, $post_after, $post_before ) {
 
-		if (
-			! in_array( $post_after->post_type, $this->get_post_types(), true ) ||
-			! in_array( $post_after->post_status, $this->get_post_statuses(), true )
-		) {
+		if ( ! $this->is_locatable_post( $post_after ) ) {
 			return;
 		}
 
-		$form_ids_before = $this->get_form_ids( $post_before->post_content );
-		$form_ids_after  = $this->get_form_ids( $post_after->post_content );
+		$elementor_ids_after = $this->get_elementor_form_ids( (int) $post_id );
+
+		$form_ids_before = $this->merge_form_ids(
+			$this->get_form_ids( $post_before->post_content ),
+			$this->elementor_form_ids_before[ $post_id ] ?? $elementor_ids_after
+		);
+		$form_ids_after  = $this->merge_form_ids( $this->get_form_ids( $post_after->post_content ), $elementor_ids_after );
 
 		$this->update_form_locations_metas( $post_before, $post_after, $form_ids_before, $form_ids_after );
 	}
@@ -743,8 +781,14 @@ class Locator {
 	 */
 	public function trash_post( $post_id ) {
 
-		$post            = get_post( $post_id );
-		$form_ids_before = $this->get_form_ids( $post->post_content );
+		$post = get_post( $post_id );
+
+		// The before_delete_post action also fires when WordPress prunes old revisions.
+		if ( ! $post instanceof WP_Post || ! in_array( $post->post_type, $this->get_post_types(), true ) ) {
+			return;
+		}
+
+		$form_ids_before = $this->get_form_ids_from_post( $post );
 		$form_ids_after  = [];
 
 		$this->update_form_locations_metas( null, $post, $form_ids_before, $form_ids_after );
@@ -761,9 +805,80 @@ class Locator {
 
 		$post            = get_post( $post_id );
 		$form_ids_before = [];
-		$form_ids_after  = $this->get_form_ids( $post->post_content );
+		$form_ids_after  = $this->get_form_ids_from_post( $post );
 
 		$this->update_form_locations_metas( null, $post, $form_ids_before, $form_ids_after );
+	}
+
+	/**
+	 * Record the Elementor form IDs of a post before its Elementor meta is overwritten or deleted.
+	 *
+	 * The update_post_meta and delete_post_meta actions fire before the row changes, the only
+	 * point where the previous widget set is still readable.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param int|array $meta_id  Meta ID, or meta IDs on deletion.
+	 * @param int       $post_id  Post ID.
+	 * @param string    $meta_key Meta key.
+	 *
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function elementor_data_before_update( $meta_id, $post_id, $meta_key ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed
+
+		// The post type check skips the autosave revisions Elementor writes the same meta to, so they are never decoded.
+		if ( ! in_array( $meta_key, self::ELEMENTOR_META_KEYS, true ) || ! in_array( get_post_type( $post_id ), $this->get_post_types(), true ) ) {
+			return;
+		}
+
+		$this->elementor_form_ids_before[ $post_id ] = $this->get_elementor_form_ids( (int) $post_id );
+	}
+
+	/**
+	 * Update form locations once the Elementor meta of a post is saved or deleted.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param int|array $meta_id  Meta ID, or meta IDs on deletion.
+	 * @param int       $post_id  Post ID.
+	 * @param string    $meta_key Meta key.
+	 *
+	 * @noinspection PhpUnusedParameterInspection
+	 */
+	public function elementor_data_updated( $meta_id, $post_id, $meta_key ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed
+
+		if ( ! in_array( $meta_key, self::ELEMENTOR_META_KEYS, true ) ) {
+			return;
+		}
+
+		$post                 = get_post( $post_id );
+		$elementor_ids_before = $this->elementor_form_ids_before[ $post_id ] ?? [];
+
+		unset( $this->elementor_form_ids_before[ $post_id ] );
+
+		if ( ! $post instanceof WP_Post || ! $this->is_locatable_post( $post ) ) {
+			return;
+		}
+
+		$form_ids_before = $this->merge_form_ids( $this->get_form_ids( $post->post_content ), $elementor_ids_before );
+		$form_ids_after  = $this->get_form_ids_from_post( $post );
+
+		$this->update_form_locations_metas( $post, $post, $form_ids_before, $form_ids_after );
+	}
+
+	/**
+	 * Determine whether the post has a post type and status the Locator tracks.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param WP_Post $post Post object.
+	 *
+	 * @return bool
+	 */
+	private function is_locatable_post( WP_Post $post ): bool {
+
+		return in_array( $post->post_type, $this->get_post_types(), true ) &&
+			in_array( $post->post_status, $this->get_post_statuses(), true );
 	}
 
 	/**
@@ -1200,6 +1315,109 @@ class Locator {
 		}
 
 		return $form_ids;
+	}
+
+	/**
+	 * Get form ids embedded in a post, from its content and from the Elementor widget.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param WP_Post $post Post object.
+	 *
+	 * @return int[]
+	 */
+	public function get_form_ids_from_post( WP_Post $post ): array {
+
+		return $this->merge_form_ids( $this->get_form_ids( $post->post_content ), $this->get_elementor_form_ids( (int) $post->ID ) );
+	}
+
+	/**
+	 * Merge two sets of form ids, so a form embedded both ways is listed once.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array $content_form_ids   Form ids found in the post content.
+	 * @param array $elementor_form_ids Form ids found in the Elementor data.
+	 *
+	 * @return int[]
+	 */
+	private function merge_form_ids( array $content_form_ids, array $elementor_form_ids ): array {
+
+		return array_values( array_unique( array_map( 'intval', array_merge( $content_form_ids, $elementor_form_ids ) ) ) );
+	}
+
+	/**
+	 * Get the form IDs embedded with the Elementor widget.
+	 *
+	 * Gated three times over, because `_elementor_data` runs to hundreds of kilobytes on a
+	 * heavy page.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param int $post_id Post ID.
+	 *
+	 * @return int[]
+	 */
+	public function get_elementor_form_ids( int $post_id ): array {
+
+		// Elementor keeps a stale `_elementor_data` after a page is switched back to the WordPress editor.
+		if ( ! defined( 'ELEMENTOR_VERSION' ) || get_post_meta( $post_id, '_elementor_edit_mode', true ) !== 'builder' ) {
+			return [];
+		}
+
+		$data = get_post_meta( $post_id, '_elementor_data', true );
+
+		if ( ! is_string( $data ) ) {
+			return [];
+		}
+
+		// A substring scan over that string is cheap; decoding it is not.
+		foreach ( self::ELEMENTOR_WIDGET_NEEDLES as $needle ) {
+			if ( strpos( $data, $needle ) !== false ) {
+				$decoded = json_decode( $data, true );
+
+				return is_array( $decoded ) ? array_values( array_unique( $this->find_elementor_form_ids( $decoded ) ) ) : [];
+			}
+		}
+
+		return [];
+	}
+
+	/**
+	 * Walk the Elementor element tree for WPForms widgets.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param array $elements Elementor elements.
+	 *
+	 * @return int[]
+	 */
+	private function find_elementor_form_ids( array $elements ): array {
+
+		$form_ids = [];
+
+		foreach ( $elements as $element ) {
+			if ( ! is_array( $element ) ) {
+				continue;
+			}
+
+			$widget_type = $element['widgetType'] ?? '';
+
+			if ( $widget_type === 'wpforms' ) {
+				$form_ids[] = (int) ( $element['settings']['form_id'] ?? 0 );
+			}
+
+			// Elementor keeps a wrapped WordPress widget's instance under `wp`.
+			if ( $widget_type === self::ELEMENTOR_WPFORMS_WIDGET_TYPE ) {
+				$form_ids[] = (int) ( $element['settings']['wp']['form_id'] ?? 0 );
+			}
+
+			if ( ! empty( $element['elements'] ) && is_array( $element['elements'] ) ) {
+				$form_ids = array_merge( $form_ids, $this->find_elementor_form_ids( $element['elements'] ) );
+			}
+		}
+
+		return array_filter( $form_ids );
 	}
 
 	/**

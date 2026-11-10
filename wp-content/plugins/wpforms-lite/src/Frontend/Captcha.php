@@ -178,6 +178,10 @@ class Captcha {
 			$form_data
 		);
 
+		if ( wpforms_setting( 'turnstile-execution' ) ) {
+			$data['execution'] = 'execute';
+		}
+
 		return $data;
 	}
 
@@ -540,22 +544,55 @@ class Captcha {
 			$data .= $turnstile_update_class;
 
 			$data .= /** @lang JavaScript */
-				'var wpformsRecaptchaLoad = function () {
-					Array.prototype.forEach.call(document.querySelectorAll(".wpforms-turnstile"), function (el) {
-						let form = el.closest( "form" ),
-						formId = form.dataset.formid,
-						captchaID = turnstile.render(el, {
-							theme: "' . $captcha_settings['theme'] . '",
-							callback: function () {
-								turnstileUpdateContainer(el);
-								wpformsRecaptchaCallback(el);
-							},
-							"timeout-callback": function() {
-								turnstileUpdateContainer(el);
-							}
-						});
-						el.setAttribute("data-recaptcha-id", captchaID);
-					});
+				'var wpformsTurnstileClear = function (el) {
+					var hdn = el.parentNode.querySelector(".wpforms-recaptcha-hidden");
+					hdn.value = "";
+					wpformsDispatchEvent(hdn, "change", false);
+				};
+				var wpformsTurnstileRender = function (el) {
+					var isExecute = el.dataset.execution === "execute",
+					params = {
+						theme: "' . $captcha_settings['theme'] . '",
+						execution: isExecute ? "execute" : "render",
+						// The default "always" reserves an empty box until execute(), so show the widget only once the challenge starts.
+						appearance: el.dataset.appearance || (isExecute ? "execute" : "always"),
+						callback: function () {
+							turnstileUpdateContainer(el);
+							wpformsRecaptchaCallback(el);
+						},
+						"timeout-callback": function() {
+							turnstileUpdateContainer(el);
+							isExecute && wpformsTurnstileClear(el);
+						}
+					};
+
+					// wpforms.js re-arms a spent widget for the next focus or submit, so Turnstile must not refresh it on its own.
+					if (isExecute) {
+						params["refresh-expired"] = "never";
+						params.retry = "never";
+						params["expired-callback"] = function() {
+							wpformsTurnstileClear(el);
+						};
+						params["error-callback"] = function() {
+							wpformsTurnstileClear(el);
+						};
+
+						// A held submit stops its own timeout while the visitor solves an interactive challenge.
+						params["before-interactive-callback"] = function() {
+							el.dataset.interactive = "1";
+						};
+						params["after-interactive-callback"] = function() {
+							delete el.dataset.interactive;
+						};
+					}
+
+					var captchaID = turnstile.render(el, params);
+					el.setAttribute("data-recaptcha-id", captchaID);
+
+					return captchaID;
+				};
+				var wpformsRecaptchaLoad = function () {
+					Array.prototype.forEach.call(document.querySelectorAll(".wpforms-turnstile"), wpformsTurnstileRender);
 
 					wpformsDispatchEvent( document, "wpformsRecaptchaLoaded", true );
 				};

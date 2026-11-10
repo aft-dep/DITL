@@ -408,13 +408,7 @@ function wpforms_panel_field( $option, $panel, $field, $form_data, $label, $args
 		 * @since 1.9.8
 		 */
 		case 'number':
-			if ( isset( $args['min'] ) ) {
-				$data_attr .= sprintf( ' min="%1$d" oninput="validity.valid||(value=\'%1$d\');" ', esc_attr( $args['min'] ) );
-			}
-
-			if ( isset( $args['step'] ) ) {
-				$data_attr .= sprintf( ' step="%1$d" oninput="validity.valid||(value=\'%1$d\');" ', esc_attr( $args['step'] ) );
-			}
+			$data_attr .= wpforms_panel_field_get_number_attributes( $args );
 
 			$output = '<div class="wpforms-panel-field-number-wrapper">';
 
@@ -488,6 +482,44 @@ function wpforms_panel_field( $option, $panel, $field, $form_data, $label, $args
 	}
 
 	return $output;
+}
+
+/**
+ * Get the range attributes of a number panel field.
+ *
+ * The `min`, `max` and `step` bounds share one `oninput` handler: an input tag carries a single
+ * `oninput` attribute, so a second one would be dropped by the browser together with its bound.
+ *
+ * @since 2.0.4
+ *
+ * @param array $args Panel field arguments.
+ *
+ * @return string
+ */
+function wpforms_panel_field_get_number_attributes( array $args ): string {
+
+	$attributes = '';
+	$handler    = '';
+
+	if ( isset( $args['max'] ) ) {
+		$attributes .= sprintf( ' max="%d"', (int) $args['max'] );
+		$handler    .= sprintf( "validity.rangeOverflow&&(value='%d');", (int) $args['max'] );
+	}
+
+	if ( isset( $args['min'] ) ) {
+		$attributes .= sprintf( ' min="%d"', (int) $args['min'] );
+		$handler    .= sprintf( "validity.valid||(value='%d');", (int) $args['min'] );
+	}
+
+	if ( isset( $args['step'] ) ) {
+		$attributes .= sprintf( ' step="%d"', (int) $args['step'] );
+	}
+
+	if ( $handler ) {
+		$attributes .= sprintf( ' oninput="%s"', $handler );
+	}
+
+	return $attributes;
 }
 
 /**

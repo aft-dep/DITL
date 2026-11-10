@@ -12,8 +12,9 @@ use WPForms\Vendor\ProductApi\ProductApi;
  *
  * Neither event can send from where it happens: a submission is unauthenticated and a
  * gateway webhook has no user, and either way an outbound request does not belong on that
- * page load. Both write one row to the product events buffer, and FlushProductEventsTask
- * sends the rows in batches with each row's own occurrence time.
+ * page load. Both write one row to the product events buffer, an entry past the cap at most
+ * one a day, and FlushProductEventsTask sends the rows in batches with each row's own
+ * occurrence time.
  *
  * Nothing is reconstructed for entries or payments received before consent. A Pro form's
  * entry counter is seeded once from the entries table so an old form does not report its
@@ -24,7 +25,7 @@ use WPForms\Vendor\ProductApi\ProductApi;
 class SubmissionEvents implements IntegrationInterface {
 
 	/**
-	 * Event sent once per accepted submission.
+	 * Event sent once per accepted submission up to ENTRY_NUMBER_CAP, then once per form per UTC day.
 	 *
 	 * @since 2.0.2.1
 	 */
@@ -43,6 +44,13 @@ class SubmissionEvents implements IntegrationInterface {
 	 * @since 2.0.2.1
 	 */
 	public const ENTRIES_META = 'wpforms_product_events_entries';
+
+	/**
+	 * Form post meta holding the UTC date of the form's last entry row past ENTRY_NUMBER_CAP.
+	 *
+	 * @since 2.0.4
+	 */
+	public const ENTRY_DAY_META = 'wpforms_product_events_entry_day';
 
 	/**
 	 * Payment meta marking a payment row that has been reported.
@@ -156,11 +164,19 @@ class SubmissionEvents implements IntegrationInterface {
 				return;
 			}
 
+			$entry_number = $this->next_entry_number( $form_id, (int) $entry_id );
+
+			if ( $entry_number === null ) {
+				$this->maybe_track_daily_entry( $product_events, $form_id );
+
+				return;
+			}
+
 			$product_events->buffer(
 				self::EVENT_ENTRY,
 				[
 					'form_id'      => (string) $form_id,
-					'entry_number' => $this->next_entry_number( $form_id, (int) $entry_id ),
+					'entry_number' => $entry_number,
 				],
 				ProductEvents::CONTEXT_VISITOR
 			);
@@ -168,6 +184,42 @@ class SubmissionEvents implements IntegrationInterface {
 			// This runs inside the visitor's submission. Losing the event costs a row in a
 			// funnel; letting it escape costs the visitor their submission.
 			unset( $e );
+		}
+	}
+
+	/**
+	 * Report a form past ENTRY_NUMBER_CAP once per UTC day, with its running entry total.
+	 *
+	 * Past the cap a row says only that the form is still collecting, so one a day keeps
+	 * that signal, and differences between the daily totals give the volume.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param ProductEvents $product_events Product events.
+	 * @param int           $form_id        Form ID.
+	 */
+	private function maybe_track_daily_entry( ProductEvents $product_events, int $form_id ): void {
+
+		$today = gmdate( 'Y-m-d' );
+
+		if ( get_post_meta( $form_id, self::ENTRY_DAY_META, true ) === $today ) {
+			return;
+		}
+
+		$is_stored = $product_events->buffer(
+			self::EVENT_ENTRY,
+			[
+				'form_id'          => (string) $form_id,
+				'entry_number'     => null,
+				'form_entry_total' => $this->get_entry_total( $form_id ),
+			],
+			ProductEvents::CONTEXT_VISITOR
+		);
+
+		// Written only once the row is stored, so a row that threw or was not stored leaves
+		// the next submission to retry.
+		if ( $is_stored ) {
+			update_post_meta( $form_id, self::ENTRY_DAY_META, $today );
 		}
 	}
 
@@ -349,8 +401,33 @@ class SubmissionEvents implements IntegrationInterface {
 	 */
 	private function seed_entry_count( int $form_id, int $entry_id ): int {
 
+		$count = $this->get_entry_total( $form_id );
+
 		if ( ! wpforms()->is_pro() ) {
-			return max( 0, (int) get_post_meta( $form_id, self::LITE_COUNTER_META, true ) - 1 );
+			return max( 0, $count - 1 );
+		}
+
+		// The entry row is saved before wpforms_process_complete fires, so when this
+		// submission was stored it is already in the count and must not be counted twice.
+		return $entry_id > 0 ? max( 0, $count - 1 ) : $count;
+	}
+
+	/**
+	 * How many entries the form has, read from what the plugin already keeps.
+	 *
+	 * Lite reads its per-form submission counter, Pro counts its stored entries. Both
+	 * already hold the submission being handled when it was counted or stored.
+	 *
+	 * @since 2.0.4
+	 *
+	 * @param int $form_id Form ID.
+	 *
+	 * @return int
+	 */
+	private function get_entry_total( int $form_id ): int {
+
+		if ( ! wpforms()->is_pro() ) {
+			return max( 0, (int) get_post_meta( $form_id, self::LITE_COUNTER_META, true ) );
 		}
 
 		$entry_handler = wpforms()->obj( 'entry' );
@@ -367,11 +444,7 @@ class SubmissionEvents implements IntegrationInterface {
 			true
 		);
 
-		$count = max( 0, $count - $drafts );
-
-		// The entry row is saved before wpforms_process_complete fires, so when this
-		// submission was stored it is already in the count and must not be counted twice.
-		return $entry_id > 0 ? max( 0, $count - 1 ) : $count;
+		return max( 0, $count - $drafts );
 	}
 
 	/**
