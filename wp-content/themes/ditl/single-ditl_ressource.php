@@ -1,12 +1,14 @@
 <?php
 /**
- * Fiche detail d'un outil (type ditl_ressource, maquettes V3 p. 26-27).
+ * Fiche detail d'un outil (type ditl_ressource, maquettes finales du
+ * 10/11/2026 p. 26-27).
  *
- * Fil d'Ariane, lien de retour (resultats du parcours, catalogue ou page
- * Boite a outils : ditl_boite_url_retour), H1, badges (types de
- * compensation, sous-type), bouton "Imprimer la fiche" (devis ; absent des
- * maquettes, revele par le script : sans JavaScript, l'impression du
- * navigateur reste disponible), illustration, "Apport de la compensation"
+ * Bandeau haut : fil d'Ariane "Accueil de la boite a outils > Vos outils >
+ * titre" ("Vos outils" ramene aux resultats du parcours, ou au catalogue :
+ * ditl_boite_front_ariane_liste) et bouton "Imprimer la fiche produit"
+ * (revele par le script : sans JavaScript, l'impression du navigateur reste
+ * disponible). Puis H1, etiquettes (types de compensation, sous-type),
+ * illustration, "Apport de la compensation"
  * (contenu), "Points de vigilance", colonne "Informations" (rubriques vides
  * non rendues), carrousel "Explorer mes autres outils"
  * (ditl_boite_autres_fiches, sans defilement automatique).
@@ -65,23 +67,7 @@ get_header(); ?>
 				$ditl_parcours = $ditl_contexte['parcours'];
 				$ditl_textes   = $ditl_contexte['textes'];
 				$ditl_lang     = $ditl_contexte['langue'];
-				$ditl_page_id  = (int) $ditl_contexte['page_id'];
 				$ditl_vue      = isset( $ditl_parcours['vue'] ) ? $ditl_parcours['vue'] : 'questionnaire';
-
-				// Retour et fil d'Ariane selon l'origine de la visite.
-				if ( 'resultats' === $ditl_vue ) {
-					$ditl_retour_libelle = __( 'Retourner à mes outils', 'ditl' );
-					$ditl_ariane_liste   = $ditl_textes['resultats_titre'];
-				} elseif ( 'catalogue' === $ditl_vue ) {
-					$ditl_retour_libelle = __( 'Retourner à tous les outils', 'ditl' );
-					$ditl_ariane_liste   = $ditl_textes['catalogue_titre'];
-				} else {
-					$ditl_retour_libelle = __( 'Retourner à la boîte à outils', 'ditl' );
-					$ditl_ariane_liste   = '';
-				}
-
-				$ditl_url_retour = ditl_boite_url_retour( $ditl_parcours );
-				$ditl_titre_boite = $ditl_page_id > 0 ? get_the_title( $ditl_page_id ) : $ditl_textes['titre'];
 
 				$ditl_types      = array_merge( ditl_boite_front_termes_fiche( $ditl_post_id, 'ditl_type_compensation' ), ditl_boite_front_termes_fiche( $ditl_post_id, 'ditl_sous_type' ) );
 				$ditl_image_id   = (int) get_post_thumbnail_id( $ditl_post_id );
@@ -190,23 +176,29 @@ get_header(); ?>
 						<div class="ditl-boite ditl-boite--fiche" data-ditl-boite-suivi="<?php echo esc_attr( ditl_boite_front_suivi_json( $ditl_suivi ) ); ?>">
 							<div class="ditl-boite__conteneur">
 
-								<nav class="ditl-boite-ariane" aria-label="<?php esc_attr_e( 'Fil d\'Ariane', 'ditl' ); ?>">
-									<ol class="ditl-boite-ariane__liste">
-										<li><a href="<?php echo esc_url( ditl_boite_accueil_langue( $ditl_lang ) ); ?>"><?php esc_html_e( 'Accueil', 'ditl' ); ?></a></li>
-										<li><a href="<?php echo esc_url( ditl_boite_url( array() ) ); ?>"><?php echo esc_html( wp_strip_all_tags( $ditl_titre_boite ) ); ?></a></li>
-										<?php if ( '' !== $ditl_ariane_liste ) { ?>
-										<li><a href="<?php echo esc_url( $ditl_url_retour ); ?>"><?php echo esc_html( wp_strip_all_tags( $ditl_ariane_liste ) ); ?></a></li>
-										<?php } ?>
-										<li><a href="<?php echo esc_url( get_permalink( $ditl_post_id ) ); ?>" aria-current="page"><?php echo esc_html( get_the_title() ); ?></a></li>
-									</ol>
-								</nav>
-
-								<p class="ditl-boite-retour">
-									<a href="<?php echo esc_url( $ditl_url_retour ); ?>">
-										<?php echo ditl_boite_front_icone( 'retour' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
-										<?php echo esc_html( $ditl_retour_libelle ); ?>
-									</a>
-								</p>
+								<div class="ditl-fiche__haut">
+									<?php
+									ditl_boite_front_fil_ariane(
+										array(
+											array(
+												'libelle' => __( 'Accueil de la boîte à outils', 'ditl' ),
+												'url'     => ditl_boite_front_url_accueil_boite(),
+											),
+											ditl_boite_front_ariane_liste( $ditl_parcours, $ditl_textes ),
+											array(
+												'libelle' => get_the_title(),
+												'url'     => get_permalink( $ditl_post_id ),
+											),
+										)
+									);
+									?>
+									<p class="ditl-fiche__actions">
+										<button type="button" class="ditl-boite-bouton ditl-boite-bouton--petit ditl-fiche__imprimer" data-ditl-imprimer hidden>
+											<?php esc_html_e( 'Imprimer la fiche produit', 'ditl' ); ?>
+											<?php echo ditl_boite_front_icone( 'imprimer' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
+										</button>
+									</p>
+								</div>
 
 								<div class="ditl-fiche<?php echo $ditl_a_infos ? '' : ' ditl-fiche--sans-infos'; ?>">
 
@@ -219,12 +211,6 @@ get_header(); ?>
 											<?php } ?>
 										</ul>
 										<?php } ?>
-										<p class="ditl-fiche__actions">
-											<button type="button" class="ditl-boite-bouton ditl-boite-bouton--petit ditl-fiche__imprimer" data-ditl-imprimer hidden>
-												<?php echo ditl_boite_front_icone( 'imprimer' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
-												<?php esc_html_e( 'Imprimer la fiche', 'ditl' ); ?>
-											</button>
-										</p>
 									</div>
 
 									<div class="ditl-fiche__corps">

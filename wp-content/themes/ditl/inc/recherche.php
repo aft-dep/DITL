@@ -143,7 +143,8 @@ function ditl_recherche_icone_envoi() {
  * (pre_get_search_form) et laisse la main aux filtres tiers. Le markup est
  * fourni par un filtre pose puis retire immediatement autour de l'appel,
  * plutot que par un searchform.php de theme : le formulaire des pages sans
- * resultat et de la page 404, servi par Astra, reste inchange (iso-rendu).
+ * resultat, servi par Astra, reste inchange (iso-rendu). La page 404 du
+ * theme (404.php) n'affiche pas de formulaire, conformement a la maquette.
  *
  * Priorite 98, juste avant celle de Polylang (99) : c'est l'extension
  * multilingue qui reecrit l'action du formulaire vers l'URL de recherche de

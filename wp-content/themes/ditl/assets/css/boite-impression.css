@@ -5,7 +5,7 @@
  * Fiche outil (usage professionnel intensif, devis phase 3) : une page
  * propre, lisible en noir et blanc. Masques : en-tete, menus et pied du
  * site, bandeau de cookies, liens d'evitement, fil d'Ariane, liens de
- * retour, boutons, carrousel. Conserves : titre, badges, illustration
+ * retour, boutons, carrousel. Conserves : titre, etiquettes, illustration
  * (hauteur plafonnee), apport, points de vigilance, bloc "Informations"
  * place en fin de fiche, adresses des liens externes imprimees en clair,
  * adresse de la fiche en pied. Coupures evitees dans les rubriques.
@@ -47,6 +47,7 @@
 .ditl-boite-profil__reinitialiser,
 .ditl-boite__autre-vue,
 .ditl-boite-pagination,
+.ditl-fiche__haut,
 .ditl-fiche__actions,
 .ditl-fiche__autres,
 .ditl-boite-carte__plus {
@@ -300,6 +301,44 @@ body,
 	display: none;
 }
 
-.ditl-boite-carte .ditl-boite-badges {
-	margin-top: 0.05cm;
+/* Environnements des cartes : libelle en clair a la place de la pastille
+ * numerotee (lisible en noir et blanc). */
+.ditl-boite-carte__environnements {
+	display: block;
+	padding: 0;
+	font-size: 9pt;
+	text-align: left;
+}
+
+.ditl-boite .ditl-boite-pastilles {
+	display: inline;
+}
+
+.ditl-boite .ditl-boite-pastille {
+	display: inline-block;
+	min-width: 0;
+	height: auto;
+	margin: 0 0.15cm 0 0;
+	padding: 0.03cm 0.15cm;
+	border: 1px solid #000;
+	border-radius: 0;
+	background: #fff !important;
+	color: #000 !important;
+	font-size: 9pt;
+	font-weight: 400;
+}
+
+.ditl-boite-pastille__numero {
+	display: none;
+}
+
+.ditl-boite-pastille .screen-reader-text {
+	position: static !important;
+	width: auto !important;
+	height: auto !important;
+	margin: 0 !important;
+	overflow: visible !important;
+	clip: auto !important;
+	clip-path: none !important;
+	white-space: normal !important;
 }

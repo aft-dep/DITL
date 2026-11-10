@@ -3,11 +3,15 @@
  * Boite a outils : carte d'une fiche (resultats, catalogue, carrousel
  * "Explorer mes autres outils" de la fiche detail).
  *
- * Ordre du DOM : titre (contenant LE lien vers la fiche), badges
- * d'environnement, image decorative, "En savoir plus" (decoratif). L'ordre
- * visuel de la maquette (badges, image, titre) est obtenu en CSS (flex et
- * order, comme les cartes d'actualites du lot B1). Le lien est etendu a
- * toute la carte par un pseudo-element : une seule tabulation par carte.
+ * Maquettes finales du 10/11/2026 : image, titre, ligne "Environnement :"
+ * (pastilles rondes numerotees a la couleur de chaque environnement), puis
+ * bandeau "En savoir plus" pleine largeur en pied de carte.
+ *
+ * Ordre du DOM : titre (contenant LE lien vers la fiche), environnements,
+ * image decorative, "En savoir plus" (decoratif). L'image passe en tete par
+ * CSS (flex et order, comme les cartes d'actualites du lot B1). Le lien est
+ * etendu a toute la carte par un pseudo-element : une seule tabulation par
+ * carte.
  * Le conteneur de liste (li) est fourni par l'appelant.
  *
  * Arguments : fiche_id (int), parcours (contexte conserve dans le lien),
@@ -45,7 +49,7 @@ $ditl_image_id = (int) get_post_thumbnail_id( $ditl_fiche_id );
 		<a class="ditl-boite-carte__lien" href="<?php echo esc_url( $ditl_url ); ?>" data-ditl-suivi-clic="<?php echo esc_attr( $ditl_clic ); ?>" data-ditl-suivi-fiche="<?php echo esc_attr( ditl_boite_front_id_fiche( $ditl_fiche_id ) ); ?>" data-ditl-suivi-position="<?php echo esc_attr( (string) $ditl_position ); ?>" data-ditl-suivi-vue="<?php echo esc_attr( $ditl_vue ); ?>"><?php echo esc_html( get_the_title( $ditl_fiche_id ) ); ?></a>
 	</h<?php echo (int) $ditl_niveau; ?>>
 
-	<?php ditl_boite_front_badges_environnements( $ditl_fiche_id, 'ditl-boite-carte__badges' ); ?>
+	<?php ditl_boite_front_pastilles_environnements( $ditl_fiche_id ); ?>
 
 	<div class="ditl-boite-carte__image<?php echo $ditl_image_id > 0 ? '' : ' ditl-boite-carte__image--vide'; ?>">
 		<?php

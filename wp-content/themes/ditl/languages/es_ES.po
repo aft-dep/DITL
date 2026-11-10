@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: DiTL\n"
-"PO-Revision-Date: 2026-10-17 12:00+0000\n"
+"PO-Revision-Date: 2026-11-10 12:00+0000\n"
 "Last-Translator: DiTL\n"
 "Language-Team: Español\n"
 "Language: es_ES\n"
@@ -40,6 +40,22 @@ msgstr ""
 #: style.css
 msgid "https://www.web-wave.fr"
 msgstr ""
+
+#: 404.php:37
+msgid "Code d'erreur : 404"
+msgstr "Código de error: 404"
+
+#: 404.php:42
+msgid "Oups..."
+msgstr "Vaya..."
+
+#: 404.php:43
+msgid "La page que vous cherchez est introuvable."
+msgstr "No se encuentra la página que busca."
+
+#: 404.php:45
+msgid "Revenir à la page d'accueil"
+msgstr "Volver a la página de inicio"
 
 #. translators: %d : numero d'ordre du fabricant.
 #: inc/boite/admin-fiche.php:232
@@ -113,7 +129,7 @@ msgid "Couleur non valide : saisir un code hexadécimal, ex. #00b0cf."
 msgstr ""
 
 #: inc/boite/admin-fiche.php:250
-#: inc/boite/admin-termes.php:384
+#: inc/boite/admin-termes.php:385
 msgid "Exemple"
 msgstr ""
 
@@ -122,7 +138,7 @@ msgid "Nom de l'outil (ex. Rallonges de pédales)"
 msgstr ""
 
 #: inc/boite/admin-fiche.php:307
-#: single-ditl_ressource.php:239
+#: single-ditl_ressource.php:241
 msgid "Apport de la compensation"
 msgstr "Aporte de la compensación"
 
@@ -175,7 +191,7 @@ msgid "Phrase affichée dans le bloc « Informations » de la fiche, ex. « Comp
 msgstr ""
 
 #: inc/boite/admin-fiche.php:552
-#: single-ditl_ressource.php:344
+#: single-ditl_ressource.php:347
 msgid "Descriptif technique"
 msgstr "Descripción técnica"
 
@@ -184,7 +200,7 @@ msgid "Fonctionnement et caractéristiques de l'outil, affichés dans le bloc «
 msgstr ""
 
 #: inc/boite/admin-fiche.php:558
-#: single-ditl_ressource.php:251
+#: single-ditl_ressource.php:253
 msgid "Points de vigilance"
 msgstr "Puntos de atención"
 
@@ -221,7 +237,7 @@ msgid "Décrit l'illustration (bloc « Illustration de la fiche ») pour les per
 msgstr ""
 
 #. translators: %s : liste des adresses refusees.
-#: inc/boite/admin-fiche.php:785
+#: inc/boite/admin-fiche.php:789
 #, php-format
 msgid "Adresse(s) non valide(s), non enregistrée(s) : %s. Une adresse web commence par https:// ou http://."
 msgstr ""
@@ -330,107 +346,107 @@ msgstr ""
 msgid "Code hexadécimal, ex. #00b0cf. Laisser vide : badge sans couleur. La couleur du texte (bleu de la charte, noir ou blanc) est choisie automatiquement pour rester lisible (contraste d'au moins 4,5:1)."
 msgstr ""
 
-#: inc/boite/admin-termes.php:372
-#: inc/boite/admin-termes.php:413
-#: inc/boite/admin-termes.php:1052
-#: inc/boite/admin-termes.php:1068
+#: inc/boite/admin-termes.php:373
+#: inc/boite/admin-termes.php:414
+#: inc/boite/admin-termes.php:1060
+#: inc/boite/admin-termes.php:1076
 msgid "Code"
 msgstr ""
 
-#: inc/boite/admin-termes.php:373
+#: inc/boite/admin-termes.php:374
 msgid "automatique"
 msgstr ""
 
-#: inc/boite/admin-termes.php:377
-#: inc/boite/admin-termes.php:421
+#: inc/boite/admin-termes.php:378
+#: inc/boite/admin-termes.php:422
 msgid "Ordre d'affichage"
 msgstr ""
 
-#: inc/boite/admin-termes.php:383
-#: inc/boite/admin-termes.php:429
+#: inc/boite/admin-termes.php:384
+#: inc/boite/admin-termes.php:430
 msgid "Couleur du badge"
 msgstr ""
 
 #. translators: 1 : code saisi, 2 : code retenu.
-#: inc/boite/admin-termes.php:497
+#: inc/boite/admin-termes.php:503
 #, php-format
 msgid "Le code « %1$s » a été normalisé en « %2$s » (minuscules, chiffres, « _ » et « - » uniquement)."
 msgstr ""
 
 #. translators: 1 : code saisi, 2 : code des traductions.
-#: inc/boite/admin-termes.php:512
+#: inc/boite/admin-termes.php:517
 #, php-format
 msgid "Le code « %1$s » n'a pas été retenu : une traduction porte le même code que l'élément d'origine (« %2$s »). Pour changer le code de tout le groupe, modifiez-le une fois l'élément créé."
 msgstr ""
 
-#: inc/boite/admin-termes.php:522
+#: inc/boite/admin-termes.php:527
 msgid "Il a tout de même été repris des traductions : corrigez le code de l'un des deux éléments."
 msgstr ""
 
 #. translators: %s : code conserve.
-#: inc/boite/admin-termes.php:540
+#: inc/boite/admin-termes.php:545
 #, php-format
 msgid "Le code ne peut pas être vidé : le code « %s » a été conservé."
 msgstr ""
 
-#: inc/boite/admin-termes.php:561
+#: inc/boite/admin-termes.php:566
 msgid "Il n'a pas été enregistré : un code automatique a été attribué, à vérifier dans la colonne Code."
 msgstr ""
 
-#: inc/boite/admin-termes.php:562
+#: inc/boite/admin-termes.php:567
 msgid "Il n'a pas été enregistré : l'ancien code est conservé."
 msgstr ""
 
 #. translators: %s : valeur saisie.
-#: inc/boite/admin-termes.php:595
+#: inc/boite/admin-termes.php:600
 #, php-format
 msgid "Ordre d'affichage non valide (« %s ») : 0 a été enregistré."
 msgstr ""
 
 #. translators: %s : valeur saisie.
-#: inc/boite/admin-termes.php:625
+#: inc/boite/admin-termes.php:630
 #, php-format
 msgid "Couleur non valide (« %s ») : saisir un code hexadécimal, ex. #00b0cf. La couleur n'a pas été modifiée."
 msgstr ""
 
-#: inc/boite/admin-termes.php:810
+#: inc/boite/admin-termes.php:815
 msgid "Ce code a été déduit du libellé : modifiez-le sur l'un des deux éléments."
 msgstr ""
 
-#: inc/boite/admin-termes.php:830
+#: inc/boite/admin-termes.php:838
 msgid "Élément ajouté, avec un avertissement :"
 msgstr ""
 
-#: inc/boite/admin-termes.php:884
+#: inc/boite/admin-termes.php:892
 msgid "Cette liste n'a qu'un niveau : un élément ne peut pas avoir de parent."
 msgstr ""
 
-#: inc/boite/admin-termes.php:890
+#: inc/boite/admin-termes.php:898
 msgid "Le parent choisi est déjà un élément de second niveau : choisissez un élément de premier niveau."
 msgstr ""
 
-#: inc/boite/admin-termes.php:906
+#: inc/boite/admin-termes.php:914
 msgid "Cet élément a des sous-éléments : il ne peut pas être rattaché à un parent."
 msgstr ""
 
-#: inc/boite/admin-termes.php:964
+#: inc/boite/admin-termes.php:972
 msgid "Le parent n'a pas été modifié."
 msgstr ""
 
-#: inc/boite/admin-termes.php:1053
-#: inc/boite/admin-termes.php:1069
+#: inc/boite/admin-termes.php:1061
+#: inc/boite/admin-termes.php:1077
 msgid "Ordre"
 msgstr ""
 
-#: inc/boite/admin-termes.php:1070
+#: inc/boite/admin-termes.php:1078
 msgid "Couleur"
 msgstr ""
 
-#: inc/boite/admin-termes.php:1102
+#: inc/boite/admin-termes.php:1110
 msgid "Aucun code"
 msgstr ""
 
-#: inc/boite/admin-termes.php:1113
+#: inc/boite/admin-termes.php:1121
 msgid "Aucune couleur"
 msgstr ""
 
@@ -452,8 +468,8 @@ msgid "Vous avez repéré une situation de travail ou de formation qui pourrait 
 msgstr "Ha detectado una situación de trabajo o de formación que podría requerir una adaptación. Seleccione la profesión implicada y déjese guiar por las preguntas de exploración para descubrir posibles adaptaciones."
 
 #: inc/boite/commun.php:100
-msgid "Sélectionnez votre métier"
-msgstr "Seleccione su profesión"
+msgid "Sélectionnez votre métier :"
+msgstr "Seleccione su profesión:"
 
 #: inc/boite/commun.php:103
 msgid "Tâche"
@@ -468,8 +484,8 @@ msgid "Le métier que vous avez choisi est composé de différentes tâches à r
 msgstr "La profesión elegida se compone de diferentes tareas. En este paso, identifique la tarea que plantea dificultades en la situación y selecciónela en la lista propuesta. Si hay varias tareas implicadas, tendrá que realizar varias búsquedas."
 
 #: inc/boite/commun.php:106
-msgid "Sélectionnez votre tâche"
-msgstr "Seleccione su tarea"
+msgid "Sélectionnez votre tâche :"
+msgstr "Seleccione su tarea:"
 
 #: inc/boite/commun.php:109
 msgid "Difficulté"
@@ -484,8 +500,8 @@ msgid "Une difficulté d'aptitude correspond à une limitation de la capacité �
 msgstr "Una dificultad de aptitud corresponde a una limitación de la capacidad para realizar una tarea. Es posible que varias aptitudes afecten a una misma tarea: en ese caso será necesario realizar varias búsquedas (una por cada aptitud implicada)."
 
 #: inc/boite/commun.php:112
-msgid "Sélectionnez votre difficulté d'aptitude"
-msgstr "Seleccione la dificultad de aptitud"
+msgid "Sélectionnez votre difficulté d'aptitude :"
+msgstr "Seleccione la dificultad de aptitud:"
 
 #: inc/boite/commun.php:115
 msgid "Empêchement"
@@ -500,8 +516,8 @@ msgid "Cette liste permet de préciser l'aptitude concernée par la difficulté 
 msgstr "Esta lista permite precisar la aptitud afectada por la dificultad en la realización de la tarea."
 
 #: inc/boite/commun.php:118
-msgid "Sélectionnez votre empêchement"
-msgstr "Seleccione el impedimento"
+msgid "Sélectionnez votre empêchement :"
+msgstr "Seleccione el impedimento:"
 
 #: inc/boite/commun.php:121
 msgid "Vos solutions"
@@ -529,11 +545,19 @@ msgstr "Todas las herramientas"
 
 #: inc/boite/front.php:450
 #: inc/boite/modele.php:92
-#: single-ditl_ressource.php:311
+#: single-ditl_ressource.php:314
 msgid "Environnement"
 msgid_plural "Environnements"
 msgstr[0] "Entorno"
 msgstr[1] "Entornos"
+
+#: inc/boite/front.php:511
+msgid "Environnement :"
+msgstr "Entorno:"
+
+#: inc/boite/front.php:589
+msgid "Fil d'Ariane"
+msgstr "Ruta de navegación"
 
 #: inc/boite/modele.php:77
 msgid "Métiers et tâches"
@@ -560,7 +584,7 @@ msgid "Premier niveau : les difficultés d'aptitude. Second niveau : les empêch
 msgstr "Primer nivel: las dificultades de aptitud. Segundo nivel: los impedimentos de cada dificultad (elegir la dificultad como superior)."
 
 #: inc/boite/modele.php:91
-#: template-parts/boite/filtres.php:65
+#: template-parts/boite/filtres.php:49
 msgid "Environnements"
 msgstr "Entornos"
 
@@ -573,8 +597,8 @@ msgid "Types de compensation"
 msgstr "Tipos de compensación"
 
 #: inc/boite/modele.php:99
-#: single-ditl_ressource.php:200
-#: single-ditl_ressource.php:267
+#: single-ditl_ressource.php:208
+#: single-ditl_ressource.php:270
 msgid "Type de compensation"
 msgid_plural "Types de compensation"
 msgstr[0] "Tipo de compensación"
@@ -714,7 +738,8 @@ msgstr "ningún resultado"
 
 #. translators: %s : nombre de resultats.
 #: inc/boite/seo.php:121
-#: template-parts/boite/filtres.php:50
+#: template-parts/boite/filtres.php:34
+#: template-parts/boite/liste.php:93
 #, php-format
 msgid "%s résultat"
 msgid_plural "%s résultats"
@@ -724,7 +749,7 @@ msgstr[1] "%s resultados"
 #. translators: 1: titre de la liste (ex. Vos outils), 2: nombre de resultats (ex. 3 resultats).
 #. translators: 1: difficulte d'aptitude, 2: empechements separes par des virgules.
 #: inc/boite/seo.php:128
-#: single-ditl_ressource.php:287
+#: single-ditl_ressource.php:290
 #, php-format
 msgid "%1$s : %2$s"
 msgstr "%1$s: %2$s"
@@ -739,81 +764,66 @@ msgstr "%1$s, página %2$s"
 msgid "Gabarit Boite a outils"
 msgstr ""
 
-#: single-ditl_ressource.php:60
-msgid "Retourner à mes outils"
-msgstr "Volver a mis herramientas"
+#: single-ditl_ressource.php:184
+#: template-parts/boite/liste.php:52
+msgid "Accueil de la boîte à outils"
+msgstr "Inicio de la caja de herramientas"
 
-#: single-ditl_ressource.php:63
-msgid "Retourner à tous les outils"
-msgstr "Volver a todas las herramientas"
+#: single-ditl_ressource.php:197
+msgid "Imprimer la fiche produit"
+msgstr "Imprimir la ficha del producto"
 
-#: single-ditl_ressource.php:66
-msgid "Retourner à la boîte à outils"
-msgstr "Volver a la caja de herramientas"
-
-#: single-ditl_ressource.php:177
-msgid "Fil d'Ariane"
-msgstr "Ruta de navegación"
-
-#: single-ditl_ressource.php:179
-msgid "Accueil"
-msgstr "Inicio"
-
-#: single-ditl_ressource.php:209
-msgid "Imprimer la fiche"
-msgstr "Imprimir la ficha"
-
-#: single-ditl_ressource.php:261
+#: single-ditl_ressource.php:264
 msgid "Informations"
 msgstr "Información"
 
-#: single-ditl_ressource.php:277
+#: single-ditl_ressource.php:280
 msgid "Aptitude"
 msgstr "Aptitud"
 
-#: single-ditl_ressource.php:321
+#: single-ditl_ressource.php:324
 msgid "Fabricant"
 msgid_plural "Fabricants"
 msgstr[0] "Fabricante"
 msgstr[1] "Fabricantes"
 
-#: single-ditl_ressource.php:354
+#: single-ditl_ressource.php:357
 msgid "Source"
 msgid_plural "Sources"
 msgstr[0] "Fuente"
 msgstr[1] "Fuentes"
 
-#: single-ditl_ressource.php:369
+#: single-ditl_ressource.php:373
 msgid "Explorer mes autres outils"
 msgstr "Explorar mis otras herramientas"
 
-#: single-ditl_ressource.php:369
+#: single-ditl_ressource.php:373
 msgid "Explorer d'autres outils"
 msgstr "Explorar otras herramientas"
 
-#: single-ditl_ressource.php:374
+#: single-ditl_ressource.php:378
 msgid "carrousel"
 msgstr "carrusel"
 
 #. translators: 1: rang de l'outil, 2: nombre d'outils.
-#: single-ditl_ressource.php:388
+#: single-ditl_ressource.php:392
 #, php-format
 msgid "Outil %1$d sur %2$d"
 msgstr "Herramienta %1$d de %2$d"
 
-#: single-ditl_ressource.php:412
+#: single-ditl_ressource.php:416
 msgid "Outils précédents"
 msgstr "Herramientas anteriores"
 
-#: single-ditl_ressource.php:415
+#: single-ditl_ressource.php:419
 msgid "Outils suivants"
 msgstr "Herramientas siguientes"
 
-#: single-ditl_ressource.php:425
+#: single-ditl_ressource.php:429
 msgid "Adresse de la fiche :"
 msgstr "Dirección de la ficha:"
 
-#: template-parts/boite/carte.php:72
+#: template-parts/boite/carte.php:76
 msgid "En savoir plus"
 msgstr "Más información"
 
@@ -862,50 +872,45 @@ msgstr "Respuesta:"
 msgid "(disponible une fois toutes les questions répondues)"
 msgstr "(disponible cuando se hayan respondido todas las preguntas)"
 
-#: template-parts/boite/filtres.php:47
+#: template-parts/boite/filtres.php:31
 msgid "Aucun résultat"
 msgstr "Ningún resultado"
 
 #. translators: %s : nombre d'outils.
-#: template-parts/boite/filtres.php:73
+#: template-parts/boite/filtres.php:57
 #, php-format
 msgid "%s outil"
 msgid_plural "%s outils"
 msgstr[0] "%s herramienta"
 msgstr[1] "%s herramientas"
 
-#: template-parts/boite/filtres.php:87
+#: template-parts/boite/filtres.php:71
 msgid "Appliquer les filtres"
 msgstr "Aplicar los filtros"
 
-#: template-parts/boite/liste.php:48
-#: template-parts/boite/questionnaire.php:70
-msgid "Retourner à la page d'accueil"
-msgstr "Volver a la página de inicio"
-
-#: template-parts/boite/liste.php:60
+#: template-parts/boite/liste.php:68
 msgid "Faire le questionnaire"
 msgstr "Hacer el cuestionario"
 
-#: template-parts/boite/liste.php:62
-#: template-parts/boite/liste.php:123
-#: template-parts/boite/questionnaire.php:163
+#: template-parts/boite/liste.php:70
+#: template-parts/boite/liste.php:141
+#: template-parts/boite/questionnaire.php:164
 msgid "Voir tous les outils"
 msgstr "Ver todas las herramientas"
 
-#: template-parts/boite/liste.php:113
+#: template-parts/boite/liste.php:131
 msgid "Aucun outil ne correspond à ces filtres."
 msgstr "Ninguna herramienta corresponde a estos filtros."
 
-#: template-parts/boite/liste.php:115
+#: template-parts/boite/liste.php:133
 msgid "Aucun outil n'est disponible pour le moment."
 msgstr "Por el momento no hay ninguna herramienta disponible."
 
-#: template-parts/boite/liste.php:120
+#: template-parts/boite/liste.php:138
 msgid "Retirer les filtres"
 msgstr "Quitar los filtros"
 
-#: template-parts/boite/liste.php:124
+#: template-parts/boite/liste.php:142
 msgid "Recommencer le questionnaire"
 msgstr "Empezar de nuevo el cuestionario"
 
@@ -936,6 +941,10 @@ msgstr "%s:"
 msgid "Réinitialiser le questionnaire"
 msgstr "Reiniciar el cuestionario"
 
+#: template-parts/boite/questionnaire.php:70
+msgid "Retourner à l'accueil de la boîte à outils"
+msgstr "Volver al inicio de la caja de herramientas"
+
 #. translators: %s : libelle court de la question (ex. Tache).
 #: template-parts/boite/questionnaire.php:78
 #, php-format
@@ -948,32 +957,34 @@ msgstr "La respuesta enviada para la pregunta «%s» no está disponible: elija 
 msgid "Question %1$d sur %2$d"
 msgstr "Pregunta %1$d de %2$d"
 
-#: template-parts/boite/questionnaire.php:138
-msgid "Choisir dans la liste"
-msgstr "Elegir en la lista"
-
-#: template-parts/boite/questionnaire.php:148
+#: template-parts/boite/questionnaire.php:149
 msgid "Valider"
 msgstr "Validar"
 
 #. translators: %d : numero de la question.
-#: template-parts/boite/questionnaire.php:151
+#: template-parts/boite/questionnaire.php:152
 #, php-format
 msgid "ma réponse à la question %d"
 msgstr "mi respuesta a la pregunta %d"
 
-#: template-parts/boite/questionnaire.php:158
+#: template-parts/boite/questionnaire.php:159
 msgid "Aucun choix n'est disponible pour cette question pour le moment."
 msgstr "Por el momento no hay ninguna opción disponible para esta pregunta."
 
-#: template-parts/boite/questionnaire.php:161
+#: template-parts/boite/questionnaire.php:162
 msgid "Modifier la réponse précédente"
 msgstr "Modificar la respuesta anterior"
 
-#: template-parts/boite/questionnaire.php:174
+#: template-parts/boite/questionnaire.php:175
 msgid "Question précédente"
 msgstr "Pregunta anterior"
 
-#: template-parts/boite/questionnaire.php:182
+#: template-parts/boite/questionnaire.php:183
 msgid "Question suivante"
 msgstr "Pregunta siguiente"
+
+#. translators: mot affiche au-dessus de "404" dans l'illustration de la page d'erreur.
+#: template-parts/erreur-404-illustration.php:21
+msgctxt "illustration 404"
+msgid "Erreur"
+msgstr "Error"

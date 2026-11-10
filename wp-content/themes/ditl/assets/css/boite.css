@@ -2,12 +2,12 @@
  * Boite a outils (phase 3) : habillage de la page Boite a outils
  * (questionnaire, resultats, catalogue) et de la fiche outil.
  *
- * PROVISOIRE : mise en page et hierarchie des maquettes V3 (non definitives,
- * desktop 1440 px seulement), avec la charte actuelle du site (titres Exo,
- * texte Arial, bleu #1E448F). Les couleurs attendent la decision du client
- * apres la revue Access42 : elles sont TOUTES regroupees dans les proprietes
- * personnalisees ci-dessous, un changement de palette tient en quelques
- * lignes. Couleur des badges d'environnement : couleur du terme (saisie
+ * Mise en page et hierarchie des maquettes finales DESKTOP du 10/11/2026
+ * (le mobile suivra ; d'ici la, une colonne sans casse sous 1025 px), avec
+ * la charte actuelle du site (titres Exo, texte Arial, bleu #1E448F). Les
+ * couleurs attendent la decision du client apres la revue Access42 : elles
+ * sont TOUTES regroupees dans les proprietes personnalisees ci-dessous, un
+ * changement de palette tient en quelques lignes. Couleur des badges d'environnement : couleur du terme (saisie
  * dans l'admin), texte calcule pour rester lisible (ditl_boite_couleur_texte),
  * passees en ligne par le gabarit (--ditl-boite-badge-fond / -texte).
  *
@@ -44,8 +44,10 @@
 	--ditl-boite-inactif-texte: #4a5560;       /* (5,9:1 sur son fond) */
 	--ditl-boite-badge-defaut-fond: #e9eef5;   /* badge sans couleur saisie */
 	--ditl-boite-badge-defaut-texte: #1e448f;
-	--ditl-boite-type-fond: #1e448f;           /* badges "type de compensation" */
-	--ditl-boite-type-texte: #fff;
+	--ditl-boite-type-fond: #fff;              /* etiquettes "type de compensation" (fond blanc, maquettes finales) */
+	--ditl-boite-type-texte: #1e448f;          /* (9,2:1 sur blanc) */
+	--ditl-boite-plus-fond: #1e448f;           /* bandeau "En savoir plus" des cartes */
+	--ditl-boite-plus-texte: #fff;
 	--ditl-boite-message-fond: #fff4e0;        /* message de reponse non disponible */
 	--ditl-boite-message-bordure: #9a5b00;
 	--ditl-boite-ombre: rgba(30, 68, 143, 0.1);
@@ -159,6 +161,12 @@
 
 	.ditl-boite__principal {
 		padding-bottom: 5rem;
+	}
+
+	/* Resultats et catalogue : compteur au plus pres du bouton de l'en-tete
+	   (maquettes finales). */
+	.ditl-boite--liste .ditl-boite__principal {
+		padding-top: 0.5rem;
 	}
 }
 
@@ -571,11 +579,15 @@
 	text-align: left;
 }
 
+/* Etiquette centree au-dessus de la liste, texte courant en gras
+ * (maquettes finales du 10/11/2026). */
 .ditl-boite-champ__etiquette {
 	display: block;
 	margin: 0 0 0.5rem;
-	color: var(--ditl-boite-bleu);
+	color: var(--ditl-boite-texte);
+	font-size: 0.9375rem;
 	font-weight: 700;
+	text-align: center;
 }
 
 .ditl-boite-champ__liste {
@@ -744,6 +756,17 @@
 	margin: 0;
 }
 
+/* Compteur "N resultats" au-dessus des cartes (titre H2 de la section). */
+.ditl-boite .ditl-boite-cartes__compteur {
+	margin: 0 0 0.75rem;
+	color: var(--ditl-boite-texte-doux);
+	font-family: inherit;
+	font-size: 0.875rem;
+	font-weight: 700;
+	line-height: 1.4;
+	text-align: left;
+}
+
 /* ---------------------------------------------------------------------------
  * Cartes des fiches (resultats, catalogue, carrousel de la fiche)
  * ------------------------------------------------------------------------ */
@@ -762,21 +785,19 @@
 	margin: 0;
 }
 
-/* Ordre du DOM : titre, badges, image, "En savoir plus" ; ordre visuel de
- * la maquette : badges, image, titre (flex + order, comme le lot B1). */
+/* Ordre du DOM : titre, environnements, image, "En savoir plus" ; ordre
+ * visuel des maquettes finales : image, titre, environnements, bandeau
+ * (flex + order, comme le lot B1). Coins arrondis en haut seulement : le
+ * bandeau "En savoir plus" ferme la carte a angle droit. */
 .ditl-boite-carte {
 	position: relative;
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	border-radius: var(--ditl-boite-rayon-carte);
+	border-radius: var(--ditl-boite-rayon-carte) var(--ditl-boite-rayon-carte) 0 0;
 	background-color: var(--ditl-boite-surface);
 	box-shadow: 0 0.25rem 1.25rem var(--ditl-boite-ombre);
 	overflow: hidden;
-}
-
-.ditl-boite-carte__badges {
-	order: -2;
 }
 
 .ditl-boite-carte__image {
@@ -812,7 +833,7 @@
 	align-items: center;
 	justify-content: center;
 	margin: 0;
-	padding: 1.25rem 1rem 0.75rem;
+	padding: 1.25rem 1rem 0.5rem;
 	font-size: 1.3125rem;
 	font-weight: 500;
 	line-height: 1.25;
@@ -835,12 +856,17 @@
 	bottom: 0;
 	left: 0;
 	z-index: 1;
-	border-radius: var(--ditl-boite-rayon-carte);
+	border-radius: var(--ditl-boite-rayon-carte) var(--ditl-boite-rayon-carte) 0 0;
 }
 
 .ditl-boite-carte:hover .ditl-boite-carte__lien {
 	text-decoration: underline;
 	text-underline-offset: 0.15em;
+}
+
+.ditl-boite-carte:hover .ditl-boite-carte__plus,
+.ditl-boite-carte:focus-within .ditl-boite-carte__plus {
+	background-color: var(--ditl-boite-bleu-fonce);
 }
 
 /*
@@ -867,22 +893,72 @@
 	}
 }
 
+/* Bandeau "En savoir plus" pleine largeur en pied de carte (decoratif : le
+ * lien est porte par le titre et etendu a toute la carte). */
 .ditl-boite-carte__plus {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
-	align-self: center;
+	justify-content: center;
 	gap: 0.35rem;
-	margin: 0 1rem 1.25rem;
-	padding: 0.3rem 0.75rem;
-	border-radius: var(--ditl-boite-rayon);
-	background-color: var(--ditl-boite-fond);
-	font-size: 0.8125rem;
+	margin: 0;
+	padding: 0.4rem 0.75rem;
+	background-color: var(--ditl-boite-plus-fond);
+	color: var(--ditl-boite-plus-texte);
+	font-size: 0.9375rem;
+	line-height: 1.4;
 }
 
 .ditl-boite-carte__plus .ditl-boite-icone {
 	width: 1em;
 	height: 1em;
 	vertical-align: 0;
+}
+
+/* Ligne "Environnement :" des cartes : libelle puis pastilles rondes
+ * numerotees (couleur du terme passee en ligne, chiffre a 4,5:1 au moins). */
+.ditl-boite-carte__environnements {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.25rem;
+	padding: 0 1rem 0.9rem;
+	color: var(--ditl-boite-texte);
+	font-size: 0.875rem;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.ditl-boite .ditl-boite-pastilles {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.3rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite .ditl-boite-pastille {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.5rem;
+	height: 1.5rem;
+	margin: 0;
+	padding: 0 0.25rem;
+	border-radius: 0.75rem;
+	background-color: var(--ditl-boite-badge-fond, var(--ditl-boite-badge-defaut-fond));
+	color: var(--ditl-boite-badge-texte, var(--ditl-boite-badge-defaut-texte));
+	font-size: 0.875rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+/* Contraste eleve : couleurs systeme, la pastille garde un contour. */
+@media (forced-colors: active) {
+	.ditl-boite .ditl-boite-pastille {
+		border: 1px solid CanvasText;
+	}
 }
 
 /* Badges d'environnement (couleur du terme passee en ligne). */
@@ -962,16 +1038,19 @@
 	padding-bottom: 4rem;
 }
 
-/* Fil d'Ariane. */
+/* Fil d'Ariane (resultats, catalogue, fiche). Separateur : triangle
+ * dessine par les bordures, jamais lu par les lecteurs d'ecran. */
 .ditl-boite .ditl-boite-ariane__liste {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
+	justify-content: flex-start;
 	margin: 0 0 1rem;
 	padding: 0;
 	list-style: none;
-	font-size: 0.8125rem;
+	font-size: 0.875rem;
 	color: var(--ditl-boite-texte-doux);
+	text-align: left;
 }
 
 .ditl-boite-ariane__liste li {
@@ -981,9 +1060,13 @@
 }
 
 .ditl-boite-ariane__liste li + li::before {
-	content: "/";
-	margin: 0 0.5rem;
-	color: var(--ditl-boite-texte-doux);
+	content: "";
+	width: 0;
+	height: 0;
+	margin: 0 0.45rem;
+	border-top: 0.3em solid transparent;
+	border-bottom: 0.3em solid transparent;
+	border-left: 0.45em solid currentColor;
 }
 
 .ditl-boite .ditl-boite-ariane__liste a {
@@ -993,6 +1076,22 @@
 .ditl-boite .ditl-boite-ariane__liste a[aria-current="page"] {
 	color: var(--ditl-boite-texte);
 	text-decoration: none;
+}
+
+/* Bandeau haut de la fiche : fil d'Ariane a gauche, bouton "Imprimer la
+ * fiche produit" a droite sur la meme ligne (passe dessous si la place
+ * manque). */
+.ditl-fiche__haut {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem 1.5rem;
+	margin-bottom: 1rem;
+}
+
+.ditl-fiche__haut .ditl-boite-ariane__liste {
+	margin: 0;
 }
 
 .ditl-fiche {
@@ -1082,13 +1181,8 @@
 	border-radius: var(--ditl-boite-rayon);
 	background-color: var(--ditl-boite-type-fond);
 	color: var(--ditl-boite-type-texte);
-	font-size: 0.8125rem;
+	font-size: 0.9375rem;
 	line-height: 1.4;
-}
-
-.ditl-boite .ditl-fiche__type--sous-type {
-	background-color: var(--ditl-boite-surface);
-	color: var(--ditl-boite-type-fond);
 }
 
 .ditl-fiche__actions {

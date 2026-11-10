@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.35.0' );
+define( 'DITL_THEME_VERSION', '0.36.0' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -73,6 +73,12 @@ require_once get_stylesheet_directory() . '/inc/accessibilite.php';
  * Search (menu principal, motif Disclosure accessible, rendu iso-design).
  */
 require_once get_stylesheet_directory() . '/inc/recherche.php';
+
+/*
+ * Page d'erreur 404 sur mesure (gabarit 404.php, maquettes finales du
+ * 10/11/2026) : mise en page Astra pleine largeur et feuille dediee.
+ */
+require_once get_stylesheet_directory() . '/inc/erreur-404.php';
 
 /*
  * Reglages d'extensions tierces sans option equivalente (hooks, constantes).

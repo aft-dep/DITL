@@ -1,10 +1,11 @@
 <?php
 /**
- * Boite a outils : vues resultats ("Vos outils", maquettes V3 p. 23 a 25)
- * et catalogue ("Tous les outils", PROVISOIRE : ecran non maquette, meme
- * vue sans profil).
+ * Boite a outils : vues resultats ("Vos outils", maquettes finales du
+ * 10/11/2026 p. 23 a 25) et catalogue ("Tous les outils", PROVISOIRE :
+ * ecran non maquette, meme vue sans profil).
  *
- * Ordre du DOM : en-tete (retour a l'accueil, H1, lien vers l'autre vue),
+ * Ordre du DOM : en-tete (fil d'Ariane "Accueil de la boite a outils >
+ * Vos outils" ou "> Tous les outils", H1, lien vers l'autre vue),
  * colonne laterale (profil, filtres, compteur), puis les cartes. En deux
  * colonnes, la grille CSS place l'en-tete au-dessus des cartes : l'ordre de
  * lecture reste en-tete, filtres, resultats, a l'ecran comme au clavier.
@@ -44,12 +45,17 @@ $ditl_suivi = array_merge(
 	<div class="ditl-boite__conteneur">
 
 		<div class="ditl-boite__entete">
-			<p class="ditl-boite-retour">
-				<a href="<?php echo esc_url( ditl_boite_accueil_langue( $ditl_lang ) ); ?>">
-					<?php echo ditl_boite_front_icone( 'retour' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
-					<?php esc_html_e( 'Retourner à la page d\'accueil', 'ditl' ); ?>
-				</a>
-			</p>
+			<?php
+			ditl_boite_front_fil_ariane(
+				array(
+					array(
+						'libelle' => __( 'Accueil de la boîte à outils', 'ditl' ),
+						'url'     => ditl_boite_front_url_accueil_boite(),
+					),
+					ditl_boite_front_ariane_liste( $ditl_parcours, $ditl_textes ),
+				)
+			);
+			?>
 
 			<h1 class="ditl-boite__titre-liste"><?php echo esc_html( $ditl_catalogue ? $ditl_textes['catalogue_titre'] : $ditl_textes['resultats_titre'] ); ?></h1>
 
@@ -83,8 +89,8 @@ $ditl_suivi = array_merge(
 				// Vignettes chargees en une fois pour toute la page de resultats.
 				update_post_thumbnail_cache( $ditl_requete );
 				?>
-			<?php // Titre de section reserve aux lecteurs d'ecran : les cartes (H3) ne sont pas au niveau des titres de la colonne (H2). ?>
-			<h2 class="screen-reader-text"><?php echo esc_html( sprintf( _n( '%s résultat', '%s résultats', $ditl_total, 'ditl' ), number_format_i18n( $ditl_total ) ) ); ?></h2>
+			<?php // Compteur visible au-dessus des cartes (maquettes finales), qui sert aussi de titre (H2) a la section des cartes (H3). ?>
+			<h2 class="ditl-boite-cartes__compteur"><?php echo esc_html( sprintf( _n( '%s résultat', '%s résultats', $ditl_total, 'ditl' ), number_format_i18n( $ditl_total ) ) ); ?></h2>
 			<ul class="ditl-boite-cartes">
 				<?php
 				$ditl_rang = 0;

@@ -457,6 +457,146 @@ function ditl_boite_front_badges_environnements( $post_id, $classe = '' ) {
 }
 
 /**
+ * Numeros des environnements affiches dans les pastilles des cartes.
+ *
+ * PROVISOIRE (maquettes finales du 10/11/2026, ou les environnements
+ * s'appellent "Environnement 1" a "Environnement 8") : numero = rang de
+ * l'environnement dans la liste ordonnee des environnements de la langue
+ * (ordre saisi _ditl_ordre puis libelle, comme le panneau de filtres). Il ne
+ * depend donc ni de la vue ni des fiches affichees, et reste identique dans
+ * toutes les langues si l'ordre l'est.
+ *
+ * @return int[] Tableau [term_id => numero] de la langue courante.
+ */
+function ditl_boite_front_numeros_environnements() {
+	static $memo = array();
+
+	$lang = ditl_boite_langue();
+
+	if ( ! isset( $memo[ $lang ] ) ) {
+		$termes        = ditl_boite_termes( $lang );
+		$memo[ $lang ] = array();
+		$rang          = 0;
+
+		foreach ( $termes['ditl_environnement'] as $terme ) {
+			$memo[ $lang ][ (int) $terme->term_id ] = ++$rang;
+		}
+	}
+
+	return $memo[ $lang ];
+}
+
+/**
+ * Affiche la ligne "Environnement :" d'une carte : une pastille ronde par
+ * environnement de la fiche, a la couleur du terme, portant son numero
+ * (ditl_boite_front_numeros_environnements).
+ *
+ * Accessibilite : le numero et la couleur sont doubles d'un texte reserve
+ * aux lecteurs d'ecran (libelle complet de l'environnement) ; la couleur du
+ * chiffre est calculee pour un contraste d'au moins 4,5:1 sur la pastille
+ * (ditl_boite_front_style_badge, comme les badges).
+ *
+ * @param int $post_id ID de la fiche.
+ */
+function ditl_boite_front_pastilles_environnements( $post_id ) {
+	$environnements = ditl_boite_front_termes_fiche( $post_id, 'ditl_environnement' );
+
+	if ( array() === $environnements ) {
+		return;
+	}
+
+	$numeros = ditl_boite_front_numeros_environnements();
+	?>
+	<div class="ditl-boite-carte__environnements">
+		<span class="ditl-boite-carte__environnements-libelle"><?php esc_html_e( 'Environnement :', 'ditl' ); ?></span>
+		<ul class="ditl-boite-pastilles">
+			<?php foreach ( $environnements as $terme ) { ?>
+				<?php
+				$style  = ditl_boite_front_style_badge( $terme );
+				$numero = isset( $numeros[ (int) $terme->term_id ] ) ? (string) $numeros[ (int) $terme->term_id ] : '';
+				?>
+			<li class="ditl-boite-pastille"<?php echo '' !== $style ? ' style="' . esc_attr( $style ) . '"' : ''; ?>><span class="ditl-boite-pastille__numero" aria-hidden="true"><?php echo esc_html( $numero ); ?></span><span class="screen-reader-text"><?php echo esc_html( $terme->name ); ?></span></li>
+			<?php } ?>
+		</ul>
+	</div>
+	<?php
+}
+
+/**
+ * URL de "l'accueil de la boite a outils" (lien de retour du questionnaire,
+ * premier element des fils d'Ariane).
+ *
+ * PROVISOIRE (maquettes finales du 10/11/2026) : page Boite a outils sans
+ * parcours, c'est-a-dire la premiere question. Si le client cree une page
+ * d'accueil dediee a la boite a outils, c'est la seule ligne a changer.
+ *
+ * @return string URL (non echappee).
+ */
+function ditl_boite_front_url_accueil_boite() {
+	return ditl_boite_url( array() );
+}
+
+/**
+ * Element "liste" des fils d'Ariane (resultats, catalogue, fiche) : ou
+ * ramene "Vos outils" selon le parcours porte par l'URL.
+ *
+ * - Parcours complet (vue resultats) : "Vos outils", resultats du parcours
+ *   (reponses, environnements coches et page conserves).
+ * - Vue catalogue : "Tous les outils", catalogue (filtres et page conserves).
+ * - Sinon (fiche ouverte sans parcours : recherche du site, lien direct) :
+ *   "Tous les outils", catalogue sans filtre, puisqu'il n'y a aucun
+ *   resultat personnel a retrouver.
+ * Libelles = titres H1 des vues cibles (textes de la page, metabox).
+ *
+ * @param array $parcours Parcours (ditl_boite_lire_parcours).
+ * @param array $textes   Textes de la page (ditl_boite_textes).
+ * @return array {libelle, url} (url non echappee).
+ */
+function ditl_boite_front_ariane_liste( array $parcours, array $textes ) {
+	$vue = isset( $parcours['vue'] ) ? $parcours['vue'] : 'questionnaire';
+
+	if ( 'resultats' === $vue ) {
+		return array(
+			'libelle' => wp_strip_all_tags( (string) $textes['resultats_titre'] ),
+			'url'     => ditl_boite_url_retour( $parcours ),
+		);
+	}
+
+	return array(
+		'libelle' => wp_strip_all_tags( (string) $textes['catalogue_titre'] ),
+		'url'     => 'catalogue' === $vue ? ditl_boite_url_retour( $parcours ) : ditl_boite_url( array( DITL_BOITE_PARAM_VUE => 'catalogue' ) ),
+	);
+}
+
+/**
+ * Affiche un fil d'Ariane de la boite a outils (maquettes finales :
+ * "Accueil de la boite a outils > Vos outils > titre de la fiche").
+ *
+ * Liste ordonnee dans un nav nomme ; le dernier element est la page
+ * courante (aria-current). Separateurs dessines en CSS (triangles), donc
+ * jamais lus par les lecteurs d'ecran.
+ *
+ * @param array $elements Elements {libelle, url} dans l'ordre, page courante en dernier.
+ */
+function ditl_boite_front_fil_ariane( array $elements ) {
+	$elements = array_values( array_filter( $elements, 'is_array' ) );
+	$dernier  = count( $elements ) - 1;
+
+	if ( $dernier < 0 ) {
+		return;
+	}
+	?>
+	<nav class="ditl-boite-ariane" aria-label="<?php esc_attr_e( 'Fil d\'Ariane', 'ditl' ); ?>">
+		<ol class="ditl-boite-ariane__liste">
+			<?php foreach ( $elements as $rang => $element ) { ?>
+			<li><a href="<?php echo esc_url( isset( $element['url'] ) ? (string) $element['url'] : '' ); ?>"<?php echo $rang === $dernier ? ' aria-current="page"' : ''; ?>><?php echo esc_html( isset( $element['libelle'] ) ? (string) $element['libelle'] : '' ); ?></a></li>
+			<?php } ?>
+		</ol>
+	</nav>
+	<?php
+}
+
+/**
  * URL lisible pour un affichage en clair (sans protocole, sans "www." ni
  * barre finale).
  *

@@ -3,7 +3,7 @@
  * Boite a outils : vue questionnaire (maquettes V3 p. 2 a 22).
  *
  * Colonne laterale : H1 de la boite a outils, etapier, "Vos solutions".
- * Zone principale : retour a l'accueil, rappel de la reponse a l'etape
+ * Zone principale : retour a l'accueil de la boite a outils, rappel de la reponse a l'etape
  * precedente, question en H2 PUIS "Question N sur M" (ordre du DOM demande
  * par Access42, l'ordre visuel inverse est obtenu en CSS), aide, formulaire
  * GET (etiquette visible, liste deroulante native, bouton Valider), liens
@@ -65,9 +65,9 @@ $ditl_suivi = array(
 		<div class="ditl-boite__principal">
 
 			<p class="ditl-boite-retour">
-				<a href="<?php echo esc_url( ditl_boite_accueil_langue( $ditl_lang ) ); ?>">
+				<a href="<?php echo esc_url( ditl_boite_front_url_accueil_boite() ); ?>">
 					<?php echo ditl_boite_front_icone( 'retour' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
-					<?php esc_html_e( 'Retourner à la page d\'accueil', 'ditl' ); ?>
+					<?php esc_html_e( 'Retourner à l\'accueil de la boîte à outils', 'ditl' ); ?>
 				</a>
 			</p>
 
@@ -135,7 +135,8 @@ $ditl_suivi = array(
 						<label class="ditl-boite-champ__etiquette" for="<?php echo esc_attr( $ditl_id_select ); ?>"><?php echo esc_html( wp_strip_all_tags( $ditl_textes_q['etiquette'] ) ); ?></label>
 						<div class="ditl-boite-champ__liste">
 							<select id="<?php echo esc_attr( $ditl_id_select ); ?>" name="<?php echo esc_attr( $ditl_cle ); ?>" required data-ditl-suivi-liste="<?php echo esc_attr( $ditl_cle ); ?>">
-								<option value=""><?php esc_html_e( 'Choisir dans la liste', 'ditl' ); ?></option>
+								<?php // Option vide neutre "--" (maquettes finales du 10/11/2026) : l'etiquette visible associee nomme le champ. ?>
+								<option value="">--</option>
 								<?php foreach ( $ditl_choix as $ditl_terme ) { ?>
 									<?php $ditl_code = ditl_boite_code_terme( $ditl_terme ); ?>
 								<option value="<?php echo esc_attr( $ditl_code ); ?>"<?php selected( $ditl_code, $ditl_code_act ); ?>><?php echo esc_html( $ditl_terme->name ); ?></option>
