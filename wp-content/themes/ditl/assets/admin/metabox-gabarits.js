@@ -369,13 +369,29 @@
 			}
 		};
 
+		var quicktags = true;
+
 		if ( textarea ) {
 			ditlAppliquerFormats( tinymceSettings, textarea.getAttribute( 'data-ditl-formats' ) );
+
+			// Mode "simple" (blocs de coordonnees du gabarit Contact) : gras,
+			// italique et lien seulement, Entree = <br> sans paragraphe <p>
+			// (le gabarit enrobe deja le texte), balises limitees a celles que
+			// le filtre PHP conserve, collage en texte brut, pas d'onglet
+			// "Texte" (le client ne voit jamais le code).
+			if ( 'simple' === textarea.getAttribute( 'data-ditl-editeur' ) ) {
+				tinymceSettings.toolbar1          = 'bold,italic,link,unlink,undo,redo';
+				tinymceSettings.forced_root_block = false;
+				tinymceSettings.valid_elements    = 'a[href|title],strong/b,em/i,br';
+				tinymceSettings.paste_as_text     = true;
+				tinymceSettings.height            = 140;
+				quicktags                         = false;
+			}
 		}
 
 		wp.editor.initialize( editorId, {
 			tinymce: tinymceSettings,
-			quicktags: true,
+			quicktags: quicktags,
 			mediaButtons: false
 		} );
 	}

@@ -18,11 +18,14 @@
  *                                        description = contenu du bloc, HTML riche
  *                                          (liens tel:/mailto: et <br> conserves).
  *
- * Les descriptions des blocs de coordonnees sont saisies en zone de texte SIMPLE,
- * sans editeur TinyMCE : l'existant melange sauts de ligne et <br> dans un seul
- * paragraphe, et l'editeur enroberait le tout d'un <p> supplementaire (meme parade
- * que le titre H3 du gabarit Partenaires). Le HTML reste autorise, filtre par
- * wp_kses_post - qui accepte le protocole tel: et preserve les <br>.
+ * Les descriptions des blocs de coordonnees sont saisies dans un editeur riche
+ * SIMPLE (data-ditl-editeur="simple", assets/admin/metabox-gabarits.js) : gras,
+ * italique et lien seulement, Entree = <br>, aucun paragraphe <p> cree
+ * (forced_root_block desactive : l'existant melange sauts de ligne et <br> dans
+ * un seul paragraphe, que le gabarit enrobe deja de son propre <p>), pas
+ * d'onglet "Texte". Le client ne voit plus le code des liens tel:/mailto: et
+ * des <br>. Le HTML reste filtre a l'enregistrement et au rendu par
+ * ditl_contact_filtrer_description (a, br, strong, em ; protocole tel: accepte).
  *
  * Les metas de banniere (_ditl_hero_image_id, _ditl_hero_title) sont gerees
  * par la metabox commune inc/metaboxes/banniere.php.
@@ -320,8 +323,8 @@ add_action( 'add_meta_boxes_page', 'ditl_contact_add_metabox' );
  * (assets/admin/metabox-gabarits.js), le selecteur de media par la
  * mecanique .ditl-media-field partagee.
  *
- * La description est une zone de texte simple (pas de classe
- * ditl-section-editor) : voir l'en-tete du fichier.
+ * La description utilise l'editeur riche des sections en mode "simple" :
+ * voir l'en-tete du fichier.
  *
  * @param string|int $index Index de la ligne (ou "%index%" pour le modele).
  * @param array      $bloc  Donnees du bloc (cles du contrat de meta).
@@ -342,9 +345,9 @@ function ditl_contact_render_bloc_row( $index, $bloc = array() ) {
 
 		<label>
 			<span class="ditl-field-label"><?php esc_html_e( 'Contenu du bloc', 'ditl' ); ?></span>
-			<textarea class="widefat" id="<?php echo esc_attr( 'ditl-contact-coord-description-' . $index ); ?>" name="ditl_contact_coord_description[]" rows="5"><?php echo esc_textarea( $description ); ?></textarea>
+			<textarea class="widefat ditl-section-editor" data-ditl-editeur="simple" id="<?php echo esc_attr( 'ditl-contact-coord-description-' . $index ); ?>" name="ditl_contact_coord_description[]" rows="5"><?php echo esc_textarea( $description ); ?></textarea>
 		</label>
-		<p class="description"><?php esc_html_e( 'Balises autorisees : <br> pour un retour a la ligne, <a href="tel:...">, <a href="mailto:...">, <strong> et <em>. Le texte n\'est pas mis en forme automatiquement. Attention : la couleur de l\'intitule du premier bloc differe de celle des suivants (reprise du site existant), elle suit donc l\'ordre des blocs.', 'ditl' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Touche Entree pour aller a la ligne. Pour un numero ou une adresse e-mail cliquable, selectionnez le texte puis le bouton lien, avec tel:+33... ou mailto:... comme adresse. Attention : la couleur de l\'intitule du premier bloc differe de celle des suivants (reprise du site existant), elle suit donc l\'ordre des blocs.', 'ditl' ); ?></p>
 	</div>
 	<?php
 }
