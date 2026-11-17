@@ -541,7 +541,20 @@ class Plugin {
 
 		do_action( 'wps_hide_login_before_redirect', $request );
 
-		if ( ! ( isset( $_GET['action'] ) && $_GET['action'] === 'postpass' && isset( $_POST['post_password'] ) ) ) {
+        $is_postpass = (
+                isset( $_REQUEST['action'], $_POST['post_password'] )
+                && is_string( $_REQUEST['action'] )
+                && wp_unslash( $_REQUEST['action'] ) === 'postpass'
+                && (
+                        ! isset( $_POST['action'] )
+                        || (
+                                is_string( $_POST['action'] )
+                                && wp_unslash( $_POST['action'] ) === 'postpass'
+                        )
+                )
+        );
+
+        if ( ! $is_postpass ) {
 
 			if ( is_admin() && ! is_user_logged_in() && ! defined( 'WP_CLI' ) && ! defined( 'DOING_AJAX' ) && ! defined( 'DOING_CRON' ) && $pagenow !== 'admin-post.php' && $request['path'] !== '/wp-admin/options.php' ) {
 				wp_safe_redirect( $this->new_redirect_url() );

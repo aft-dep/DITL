@@ -4,7 +4,7 @@ Tags: security, malware, 2fa, firewall, scanner
 Requires at least: 4.7
 Requires PHP: 7.0
 Tested up to: 7.1
-Stable tag: 9.1.0
+Stable tag: 9.1.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -207,6 +207,9 @@ Secure your website with Wordfence.
 9. Logging in is easy with Wordfence 2FA.
 
 == Changelog ==
+
+= 9.1.1 - November 10, 2026 =
+* Improvement: Updated bundled cacert.pem
 
 = 9.1.0 - November 9, 2026 =
 * Improvement: Added security news widget to the WordPress and Wordfence dashboards
