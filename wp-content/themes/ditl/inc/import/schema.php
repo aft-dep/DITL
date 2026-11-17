@@ -14,6 +14,12 @@
  * Les colonnes fabricant_N / fabricant_N_url (N de 1 a 100) sont reconnues
  * par motif, en plus de la colonne "fabricants" du format de juillet.
  *
+ * Colonnes "metier" / "tache" = familles de metiers et taches (ditl_metier) ;
+ * colonne "postes" (alias "poste") = metiers precis du filtre "Metiers"
+ * (ditl_poste, avenant du 17/11/2026) : nom distinct, la colonne "metier" et
+ * son alias "metiers" designant deja les familles. Colonne facultative : les
+ * fichiers de juillet et du 07/09, qui ne l'ont pas, restent valables.
+ *
  * Regle de mise a jour : une colonne ABSENTE du fichier ne touche pas le
  * champ correspondant d'une fiche existante (import partiel possible) ; une
  * colonne presente mais vide vide le champ, SAUF l'image : cellule vide =
@@ -116,6 +122,11 @@ function ditl_import_schema_fiches() {
 			'type'  => 'codes',
 			'cible' => array( 'taxonomie', 'ditl_metier', 2 ),
 		),
+		'postes'               => array(
+			'alias' => array( 'poste' ),
+			'type'  => 'codes',
+			'cible' => array( 'taxonomie', 'ditl_poste', 1 ),
+		),
 		'environnement'        => array(
 			'alias' => array( 'environnements' ),
 			'type'  => 'codes',
@@ -162,7 +173,9 @@ function ditl_import_schema_fiches() {
 
 /**
  * Colonnes fixes du fichier des referentiels. Les colonnes de libelles
- * (une par langue active : fr, en, de, es, pt) s'y ajoutent.
+ * (une par langue active : fr, en, de, es, pt) s'y ajoutent. Colonne
+ * "famille" (facultative) : code de la famille de metiers d'un metier de la
+ * liste "poste" (code d'une ligne "metier").
  *
  * @return array Tableau [nom canonique => definition].
  */
@@ -180,6 +193,10 @@ function ditl_import_schema_referentiels() {
 		),
 		'parent'    => array(
 			'alias' => array( 'code_parent' ),
+			'type'  => 'texte',
+		),
+		'famille'   => array(
+			'alias' => array( 'code_famille' ),
 			'type'  => 'texte',
 		),
 		'couleur'   => array(
@@ -220,6 +237,7 @@ function ditl_import_listes_referentiels() {
 		'metier'            => array( 'ditl_metier', 1 ),
 		'tache'             => array( 'ditl_metier', 2 ),
 		'environnement'     => array( 'ditl_environnement', 1 ),
+		'poste'             => array( 'ditl_poste', 1 ),
 	);
 
 	// Pluriels et variantes usuelles.
@@ -233,6 +251,7 @@ function ditl_import_listes_referentiels() {
 		'metiers'               => 'metier',
 		'taches'                => 'tache',
 		'environnements'        => 'environnement',
+		'postes'                => 'poste',
 	);
 
 	foreach ( $variantes as $variante => $canonique ) {
@@ -386,6 +405,7 @@ function ditl_import_entetes_modele_fiches( $fabricants = 6 ) {
 		'aptitude_texte',
 		'metier',
 		'tache',
+		'postes',
 		'environnement',
 		'apport',
 		'descriptif_technique',

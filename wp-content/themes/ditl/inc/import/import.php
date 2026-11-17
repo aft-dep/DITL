@@ -121,6 +121,8 @@ function ditl_import_verifier_modele() {
 		'ditl_boite_sanitize_couleur',
 		'ditl_boite_sanitize_ordre',
 		'ditl_boite_taxonomies',
+		'ditl_boite_taxonomie_famille',
+		'ditl_boite_famille_terme',
 		'ditl_ml_extension',
 		'ditl_ml_langues',
 		'ditl_ml_langue_defaut',
@@ -164,7 +166,7 @@ function ditl_import_verifier_modele() {
  * @return string[] Noms de taxonomies.
  */
 function ditl_import_taxonomies() {
-	return array( 'ditl_type_compensation', 'ditl_sous_type', 'ditl_aptitude', 'ditl_metier', 'ditl_environnement' );
+	return array( 'ditl_type_compensation', 'ditl_sous_type', 'ditl_aptitude', 'ditl_metier', 'ditl_environnement', 'ditl_poste' );
 }
 
 /**

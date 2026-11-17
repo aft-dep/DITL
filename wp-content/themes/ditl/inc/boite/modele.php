@@ -25,17 +25,28 @@
  *
  * Taxonomies (hierarchiques pour l'interface a cases a cocher, non publiques :
  * aucune page d'archive, elles n'existent que dans la boite a outils) :
- * - ditl_metier            : niveau 1 = metier, niveau 2 = tache ;
+ * - ditl_metier            : niveau 1 = famille de metiers (etape "Metier"
+ *                            du questionnaire), niveau 2 = tache ;
  * - ditl_aptitude          : niveau 1 = difficulte, niveau 2 = empechement ;
  * - ditl_environnement     : liste simple, couleur par terme ;
  * - ditl_type_compensation : liste simple ;
- * - ditl_sous_type         : liste simple.
+ * - ditl_sous_type         : liste simple ;
+ * - ditl_poste             : liste simple des metiers precis (ex. cariste,
+ *                            conducteur autocar), chacun rattache a une
+ *                            famille (meta _ditl_famille) : filtre "Metiers"
+ *                            des resultats et du catalogue, badges de la
+ *                            fiche (avenant du 17/11/2026). Nom distinct de
+ *                            ditl_metier, qui porte deja les familles.
  * Metas de termes :
  * - _ditl_code    : code neutre, IDENTIQUE dans toutes les langues (cle des
  *                   URL du questionnaire, du suivi d'audience et de l'import),
  *                   unique dans toute la taxonomie ([a-z0-9_-]) ;
  * - _ditl_couleur : couleur hexadecimale #rrggbb (environnements) ;
- * - _ditl_ordre   : rang d'affichage dans les listes (entier, 0 par defaut).
+ * - _ditl_ordre   : rang d'affichage dans les listes (entier, 0 par defaut) ;
+ * - _ditl_famille : code de la famille de rattachement, terme de niveau 1 de
+ *                   la taxonomie designee par le registre (cle "famille" :
+ *                   ditl_metier pour ditl_poste), IDENTIQUE dans toutes les
+ *                   langues ; vide = metier sans famille (catalogue seul).
  *
  * Regle de marquage d'une fiche (taxonomies a niveaux) : on coche le terme le
  * plus precis. Une fiche cochee sur un terme de niveau 1 SANS aucun de ses
@@ -67,20 +78,25 @@ define( 'DITL_BOITE_REECRITURE_VERSION', '1' );
 /**
  * Registre des taxonomies de la boite a outils.
  *
- * @return array Tableau [taxonomie => {niveaux, couleur, libelles}].
+ * Cle "famille" : taxonomie dont un terme de niveau 1 sert de famille de
+ * rattachement (meta _ditl_famille), '' sans rattachement.
+ *
+ * @return array Tableau [taxonomie => {niveaux, couleur, famille, libelles}].
  */
 function ditl_boite_taxonomies() {
 	return array(
 		'ditl_metier'            => array(
 			'niveaux'  => 2,
 			'couleur'  => false,
-			'pluriel'  => __( 'Métiers et tâches', 'ditl' ),
-			'singulier' => __( 'Métier ou tâche', 'ditl' ),
-			'aide'     => __( 'Premier niveau : les métiers. Second niveau : les tâches de chaque métier (choisir le métier comme parent).', 'ditl' ),
+			'famille'  => '',
+			'pluriel'  => __( 'Familles de métiers et tâches', 'ditl' ),
+			'singulier' => __( 'Famille de métiers ou tâche', 'ditl' ),
+			'aide'     => __( 'Premier niveau : les familles de métiers (étape « Métier » du questionnaire). Second niveau : les tâches de chaque famille (choisir la famille comme parent). Les métiers précis de chaque famille se gèrent dans la liste « Métiers ».', 'ditl' ),
 		),
 		'ditl_aptitude'          => array(
 			'niveaux'  => 2,
 			'couleur'  => false,
+			'famille'  => '',
 			'pluriel'  => __( 'Difficultés et empêchements', 'ditl' ),
 			'singulier' => __( 'Difficulté ou empêchement', 'ditl' ),
 			'aide'     => __( 'Premier niveau : les difficultés d\'aptitude. Second niveau : les empêchements de chaque difficulté (choisir la difficulté comme parent).', 'ditl' ),
@@ -88,6 +104,7 @@ function ditl_boite_taxonomies() {
 		'ditl_environnement'     => array(
 			'niveaux'  => 1,
 			'couleur'  => true,
+			'famille'  => '',
 			'pluriel'  => __( 'Environnements', 'ditl' ),
 			'singulier' => __( 'Environnement', 'ditl' ),
 			'aide'     => __( 'Environnements de travail, utilisés comme filtre des résultats.', 'ditl' ),
@@ -95,6 +112,7 @@ function ditl_boite_taxonomies() {
 		'ditl_type_compensation' => array(
 			'niveaux'  => 1,
 			'couleur'  => false,
+			'famille'  => '',
 			'pluriel'  => __( 'Types de compensation', 'ditl' ),
 			'singulier' => __( 'Type de compensation', 'ditl' ),
 			'aide'     => '',
@@ -102,11 +120,45 @@ function ditl_boite_taxonomies() {
 		'ditl_sous_type'         => array(
 			'niveaux'  => 1,
 			'couleur'  => false,
+			'famille'  => '',
 			'pluriel'  => __( 'Sous-types', 'ditl' ),
 			'singulier' => __( 'Sous-type', 'ditl' ),
 			'aide'     => '',
 		),
+		'ditl_poste'             => array(
+			'niveaux'  => 1,
+			'couleur'  => false,
+			'famille'  => 'ditl_metier',
+			'pluriel'  => __( 'Métiers', 'ditl' ),
+			'singulier' => __( 'Métier', 'ditl' ),
+			'aide'     => __( 'Métiers précis (ex. cariste, conducteur autocar), rattachés chacun à une famille de métiers : filtre « Métiers » des résultats et de « Voir tous les outils », badges de la fiche. Dans les résultats, seuls les métiers de la famille choisie à la première question sont proposés.', 'ditl' ),
+		),
 	);
+}
+
+/**
+ * Taxonomie de famille d'une taxonomie de la boite a outils.
+ *
+ * @param string $taxonomie Taxonomie de la boite a outils.
+ * @return string Taxonomie dont les termes de niveau 1 sont les familles,
+ *                '' si la taxonomie n'a pas de rattachement.
+ */
+function ditl_boite_taxonomie_famille( $taxonomie ) {
+	$taxonomies = ditl_boite_taxonomies();
+
+	return isset( $taxonomies[ $taxonomie ]['famille'] ) && is_string( $taxonomies[ $taxonomie ]['famille'] ) ? $taxonomies[ $taxonomie ]['famille'] : '';
+}
+
+/**
+ * Code de la famille de rattachement d'un terme (meta _ditl_famille).
+ *
+ * @param WP_Term|int $terme Terme ou ID de terme.
+ * @return string Code de la famille ('' si aucune).
+ */
+function ditl_boite_famille_terme( $terme ) {
+	$term_id = $terme instanceof WP_Term ? (int) $terme->term_id : absint( $terme );
+
+	return $term_id > 0 ? ditl_boite_sanitize_code( get_term_meta( $term_id, '_ditl_famille', true ) ) : '';
 }
 
 /**
@@ -253,7 +305,8 @@ add_filter( 'pll_get_taxonomies', 'ditl_boite_polylang_taxonomies' );
  * Copie les metas neutres d'un terme vers une nouvelle traduction (Polylang),
  * sans synchronisation ulterieure.
  *
- * Le code, la couleur et le rang sont identiques dans toutes les langues :
+ * Le code, la couleur, le rang et la famille sont identiques dans toutes les
+ * langues :
  * Polylang les recopie a la creation d'une traduction depuis l'admin. La
  * synchronisation est volontairement coupee : a chaque enregistrement d'un
  * terme, elle effacerait chez ses traductions toute meta absente du terme
@@ -268,7 +321,7 @@ add_filter( 'pll_get_taxonomies', 'ditl_boite_polylang_taxonomies' );
  * @return array Cles filtrees.
  */
 function ditl_boite_polylang_metas_termes( $metas, $sync = false ) {
-	$cles = array( '_ditl_code', '_ditl_couleur', '_ditl_ordre' );
+	$cles = array( '_ditl_code', '_ditl_couleur', '_ditl_ordre', '_ditl_famille' );
 
 	if ( $sync ) {
 		return array_values( array_diff( (array) $metas, $cles ) );
@@ -507,6 +560,20 @@ function ditl_boite_enregistrer_metas() {
 					'type'              => 'string',
 					'single'            => true,
 					'sanitize_callback' => 'ditl_boite_sanitize_couleur',
+					'auth_callback'     => 'ditl_boite_meta_terme_auth_callback',
+					'show_in_rest'      => false,
+				)
+			);
+		}
+
+		if ( '' !== $definition['famille'] ) {
+			register_term_meta(
+				$taxonomie,
+				'_ditl_famille',
+				array(
+					'type'              => 'string',
+					'single'            => true,
+					'sanitize_callback' => 'ditl_boite_sanitize_code',
 					'auth_callback'     => 'ditl_boite_meta_terme_auth_callback',
 					'show_in_rest'      => false,
 				)

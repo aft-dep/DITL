@@ -739,6 +739,43 @@
 	color: var(--ditl-boite-texte-doux);
 }
 
+/* Deux groupes de filtres (environnements, metiers) : legendes visibles et
+ * espace entre les groupes. Un seul groupe : legende masquee (rendu
+ * d'origine, le titre du bloc suffit). */
+.ditl-boite-filtres__groupe + .ditl-boite-filtres__groupe {
+	margin-top: 1.25rem;
+}
+
+.ditl-boite .ditl-boite-filtres__legende {
+	margin: 0 0 0.35rem;
+	padding: 0;
+	color: var(--ditl-boite-bleu);
+	font-size: 0.9375rem;
+	font-weight: 700;
+	line-height: 1.4;
+}
+
+/* Metiers du catalogue : un sous-groupe par famille de metiers. */
+.ditl-boite-filtres__sous-groupe {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.ditl-boite-filtres__sous-groupe + .ditl-boite-filtres__sous-groupe {
+	margin-top: 0.75rem;
+}
+
+.ditl-boite .ditl-boite-filtres__sous-legende {
+	margin: 0 0 0.1rem;
+	padding: 0;
+	color: var(--ditl-boite-texte-doux);
+	font-size: 0.8125rem;
+	font-weight: 700;
+	line-height: 1.4;
+}
+
 .ditl-boite-filtres__actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -1329,6 +1366,46 @@
 	border-radius: var(--ditl-boite-rayon);
 }
 
+/* Badges des metiers : liens vers "Voir tous les outils" filtre sur le
+ * metier. Contour bleu sur fond blanc et forme de pilule, distincts des
+ * pastilles pleines et colorees des environnements ; texte souligne
+ * (a11y.css, lien dans une liste du contenu) ; anneau de focus commun. */
+.ditl-boite .ditl-fiche__metiers {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	margin: 0.35rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite .ditl-fiche__metiers li {
+	margin: 0;
+}
+
+.ditl-boite .ditl-fiche__metier {
+	display: inline-flex;
+	align-items: center;
+	min-height: 1.75rem;
+	padding: 0.2rem 0.75rem;
+	border: 1px solid var(--ditl-boite-bleu);
+	border-radius: 1rem;
+	background-color: var(--ditl-boite-surface);
+	color: var(--ditl-boite-bleu);
+	font-size: 0.8125rem;
+	font-weight: 700;
+	line-height: 1.4;
+}
+
+.ditl-boite a.ditl-fiche__metier:hover {
+	background-color: var(--ditl-boite-fond);
+	color: var(--ditl-boite-bleu-fonce);
+}
+
+.ditl-boite .ditl-fiche__metier--texte {
+	border-style: dashed;
+}
+
 /* ---------------------------------------------------------------------------
  * Fiche : carrousel "Explorer mes autres outils" (ditl-carousel.js)
  * ------------------------------------------------------------------------ */
@@ -1607,6 +1684,24 @@ html.ditl-boite-fenetre-ouverte {
 .ditl-boite-fenetre .ditl-boite-profil__reponse + .ditl-boite-profil__reponse,
 .ditl-boite-fenetre .ditl-boite-filtre + .ditl-boite-filtre {
 	border-top: 1px solid var(--ditl-boite-texte-doux);
+}
+
+/* Deux groupes de filtres dans la fenetre : titres a la taille des lignes. */
+.ditl-boite-fenetre .ditl-boite-filtres__groupe + .ditl-boite-filtres__groupe {
+	margin-top: 1.75rem;
+}
+
+.ditl-boite .ditl-boite-fenetre .ditl-boite-filtres__legende {
+	margin-bottom: 0.25rem;
+	font-size: 1.25rem;
+}
+
+.ditl-boite-fenetre .ditl-boite-filtres__sous-groupe + .ditl-boite-filtres__sous-groupe {
+	margin-top: 1rem;
+}
+
+.ditl-boite .ditl-boite-fenetre .ditl-boite-filtres__sous-legende {
+	font-size: 1.0625rem;
 }
 
 .ditl-boite .ditl-boite-fenetre .ditl-boite-modifier {

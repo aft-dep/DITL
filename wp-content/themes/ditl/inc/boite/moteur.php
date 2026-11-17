@@ -13,6 +13,9 @@
  * - ditl_boite_fiches_correspondantes( array $parcours )
  * - ditl_boite_filtrer_environnements( array $ids, array $parcours )
  * - ditl_boite_environnements_disponibles( array $ids )
+ * - ditl_boite_filtrer_groupe( array $ids, array $parcours, $param )
+ * - ditl_boite_appliquer_filtres( array $ids, array $parcours, $sauf = '' )
+ * - ditl_boite_filtre_disponibles( $param, array $ids, array $parcours = array() )
  * - ditl_boite_requete_fiches( array $ids, $page, $par_page = DITL_BOITE_PAR_PAGE )
  * - ditl_boite_contexte()
  * - ditl_boite_args_parcours( array $parcours, array $remplacements = array() )
@@ -40,6 +43,10 @@
  *                    (?vue=resultats est accepte mais sans effet) ;
  *   environnements : [code => WP_Term] environnements coches (ordre des
  *                    listes) ;
+ *   postes         : [code => WP_Term] metiers coches (ordre des listes) ;
+ *                    hors catalogue, seuls les metiers de la famille
+ *                    repondue a l'etape "metier" sont retenus (aucun sans
+ *                    reponse) ; une cle par groupe de ditl_boite_filtres() ;
  *   page           : numero de page des resultats (1 a DITL_BOITE_PAGE_MAX) ;
  *   invalide       : cle de l'etape dont la valeur transmise a ete rejetee
  *                    (code inconnu, mauvais niveau, choix non propose), ''
@@ -52,10 +59,17 @@
  * ancetres SANS aucun descendant de cet ancetre (regle de branche, voir
  * modele.php).
  *
+ * Filtres des resultats et du catalogue (ditl_boite_filtres : environnements,
+ * metiers) : OU entre les choix coches d'un groupe, ET entre les groupes. Le
+ * nombre d'outils affiche pour chaque choix est compte parmi les fiches
+ * retenues par les AUTRES groupes (cocher un environnement ne change pas les
+ * nombres des environnements ; sans metier coche, les nombres des
+ * environnements sont ceux d'avant l'ajout du filtre des metiers).
+ *
  * Performances (cible : 300 fiches x 5 langues) : par langue, une requete
  * d'identifiants de fiches, un appel groupe wp_get_object_terms et une
  * lecture groupee des referentiels ; tout le reste (couverture, choix,
- * correspondance, environnements) est calcule en memoire et memorise pour
+ * correspondance, filtres) est calcule en memoire et memorise pour
  * la duree de la requete. Aucune requete par fiche ni par choix. Aucune
  * requete au chargement des autres pages du site : rien n'est calcule tant
  * qu'un gabarit de la boite a outils (ou seo.php, sur la seule page Boite a
@@ -82,7 +96,8 @@ define( 'DITL_BOITE_PAR_PAGE', 12 );
 // Garde-fou sur le numero de page lu dans l'URL (300 fiches = 25 pages).
 define( 'DITL_BOITE_PAGE_MAX', 500 );
 
-// Garde-fou sur le nombre d'environnements lus dans l'URL.
+// Garde-fou sur le nombre de codes lus dans l'URL pour un groupe de filtres
+// (environnements, metiers).
 define( 'DITL_BOITE_ENV_MAX', 100 );
 
 /**
@@ -206,7 +221,7 @@ function ditl_boite_est_page_boite() {
 
 /**
  * Indique si une source de parametres contient au moins un parametre du
- * parcours (etapes, environnements, vue, etape, page), meme vide.
+ * parcours (etapes, filtres, vue, etape, page), meme vide.
  *
  * @param array|null $source Parametres (null = $_GET).
  * @return bool True si un parametre du parcours est present.
@@ -220,7 +235,7 @@ function ditl_boite_parametres_presents( $source = null ) {
 		return false;
 	}
 
-	$cles = array_merge( array_keys( ditl_boite_etapes() ), array( DITL_BOITE_PARAM_ENV, DITL_BOITE_PARAM_VUE, DITL_BOITE_PARAM_ETAPE, DITL_BOITE_PARAM_PAGE ) );
+	$cles = array_merge( array_keys( ditl_boite_etapes() ), array_keys( ditl_boite_filtres() ), array( DITL_BOITE_PARAM_VUE, DITL_BOITE_PARAM_ETAPE, DITL_BOITE_PARAM_PAGE ) );
 
 	foreach ( $cles as $cle ) {
 		if ( array_key_exists( $cle, $source ) ) {
@@ -690,7 +705,7 @@ function ditl_boite_lire_code( array $source, $cle ) {
 }
 
 /**
- * Lit une liste de codes (tableau env[] ou chaine "a,b").
+ * Lit une liste de codes (tableau env[] / poste[] ou chaine "a,b").
  *
  * @param mixed $valeur Valeur brute.
  * @return string[] Codes nettoyes, uniques, DITL_BOITE_ENV_MAX au plus.
@@ -747,6 +762,7 @@ function ditl_boite_lire_parcours( $source = null ) {
 		'complet'        => false,
 		'vue'            => 'questionnaire',
 		'environnements' => array(),
+		'postes'         => array(),
 		'page'           => 1,
 		'invalide'       => '',
 	);
@@ -803,13 +819,22 @@ function ditl_boite_lire_parcours( $source = null ) {
 		$parcours['vue'] = 'resultats';
 	}
 
-	// Environnements : codes valides de la langue, dans l'ordre des listes.
-	$demandes = array_flip( ditl_boite_lire_codes( isset( $source[ DITL_BOITE_PARAM_ENV ] ) ? $source[ DITL_BOITE_PARAM_ENV ] : array() ) );
+	// Filtres (environnements, metiers) : codes valides de la langue, dans
+	// l'ordre des listes ; un groupe limite a une famille ne retient, hors
+	// catalogue, que les termes de la famille repondue.
+	foreach ( ditl_boite_filtres() as $param => $filtre ) {
+		$parcours[ $filtre['cle'] ] = array();
 
-	if ( array() !== $demandes ) {
-		foreach ( ditl_boite_termes_par_code( 'ditl_environnement', $lang ) as $code => $terme ) {
-			if ( isset( $demandes[ $code ] ) ) {
-				$parcours['environnements'][ $code ] = $terme;
+		$demandes = array_flip( ditl_boite_lire_codes( isset( $source[ $param ] ) ? $source[ $param ] : array() ) );
+		$famille  = array() !== $demandes ? ditl_boite_famille_filtre( $filtre, $parcours ) : false;
+
+		if ( false === $famille ) {
+			continue;
+		}
+
+		foreach ( ditl_boite_termes_par_code( $filtre['taxonomie'], $lang ) as $code => $terme ) {
+			if ( isset( $demandes[ $code ] ) && ( null === $famille || ditl_boite_famille_terme( $terme ) === $famille ) ) {
+				$parcours[ $filtre['cle'] ][ $code ] = $terme;
 			}
 		}
 	}
@@ -819,6 +844,27 @@ function ditl_boite_lire_parcours( $source = null ) {
 	$parcours['page'] = max( 1, min( DITL_BOITE_PAGE_MAX, $page ) );
 
 	return $parcours;
+}
+
+/**
+ * Famille qui limite les choix d'un groupe de filtres dans un parcours.
+ *
+ * @param array $filtre   Groupe de filtres (ditl_boite_filtres()).
+ * @param array $parcours Parcours (au moins vue et reponses).
+ * @return string|null|false Code de la famille (choix limites a ses termes),
+ *                           null (aucune limite : groupe sans famille ou
+ *                           catalogue), false (groupe limite a une famille
+ *                           sans reponse a l'etape : aucun choix).
+ */
+function ditl_boite_famille_filtre( array $filtre, array $parcours ) {
+	if ( empty( $filtre['famille'] ) || ( isset( $parcours['vue'] ) && 'catalogue' === $parcours['vue'] ) ) {
+		return null;
+	}
+
+	$reponse = isset( $parcours['reponses'][ $filtre['famille'] ] ) ? $parcours['reponses'][ $filtre['famille'] ] : null;
+	$code    = $reponse instanceof WP_Term ? ditl_boite_code_terme( $reponse ) : '';
+
+	return '' !== $code ? $code : false;
 }
 
 /**
@@ -957,22 +1003,28 @@ function ditl_boite_fiches_correspondantes( array $parcours ) {
 }
 
 /**
- * Filtre des fiches par environnement (OU entre les environnements coches).
+ * Filtre des fiches par un groupe de filtres (OU entre les termes coches du
+ * groupe).
  *
- * @param int[] $ids      IDs des fiches.
- * @param array $parcours Parcours (environnements coches).
- * @return int[] IDs conserves, dans l'ordre recu.
+ * @param int[]  $ids      IDs des fiches.
+ * @param array  $parcours Parcours (termes coches sous la cle du groupe).
+ * @param string $param    Parametre d'URL du groupe (cle de ditl_boite_filtres()).
+ * @return int[] IDs conserves, dans l'ordre recu (tous si rien n'est coche
+ *               ou si le groupe est inconnu).
  */
-function ditl_boite_filtrer_environnements( array $ids, array $parcours ) {
-	$environnements = isset( $parcours['environnements'] ) && is_array( $parcours['environnements'] ) ? $parcours['environnements'] : array();
+function ditl_boite_filtrer_groupe( array $ids, array $parcours, $param ) {
+	$filtres = ditl_boite_filtres();
+	$cle     = is_string( $param ) && isset( $filtres[ $param ] ) ? $filtres[ $param ]['cle'] : '';
+	$coches  = '' !== $cle && isset( $parcours[ $cle ] ) && is_array( $parcours[ $cle ] ) ? $parcours[ $cle ] : array();
 
-	if ( array() === $environnements ) {
+	if ( array() === $coches ) {
 		return array_values( array_map( 'intval', $ids ) );
 	}
 
-	$voulus = array();
+	$taxonomie = $filtres[ $param ]['taxonomie'];
+	$voulus    = array();
 
-	foreach ( $environnements as $terme ) {
+	foreach ( $coches as $terme ) {
 		if ( $terme instanceof WP_Term ) {
 			$voulus[ (int) $terme->term_id ] = true;
 		}
@@ -984,11 +1036,11 @@ function ditl_boite_filtrer_environnements( array $ids, array $parcours ) {
 	foreach ( $ids as $id ) {
 		$id = (int) $id;
 
-		if ( ! isset( $index[ $id ]['ditl_environnement'] ) ) {
+		if ( ! isset( $index[ $id ][ $taxonomie ] ) ) {
 			continue;
 		}
 
-		foreach ( $index[ $id ]['ditl_environnement'] as $term_id ) {
+		foreach ( $index[ $id ][ $taxonomie ] as $term_id ) {
 			if ( isset( $voulus[ $term_id ] ) ) {
 				$filtrees[] = $id;
 				break;
@@ -997,6 +1049,99 @@ function ditl_boite_filtrer_environnements( array $ids, array $parcours ) {
 	}
 
 	return $filtrees;
+}
+
+/**
+ * Applique tous les groupes de filtres du parcours (ET entre les groupes).
+ *
+ * @param int[]  $ids      IDs des fiches.
+ * @param array  $parcours Parcours.
+ * @param string $sauf     Parametre d'un groupe a ne pas appliquer ('' :
+ *                         tous), pour compter les choix de ce groupe.
+ * @return int[] IDs conserves, dans l'ordre recu.
+ */
+function ditl_boite_appliquer_filtres( array $ids, array $parcours, $sauf = '' ) {
+	$ids = array_values( array_map( 'intval', $ids ) );
+
+	foreach ( array_keys( ditl_boite_filtres() ) as $param ) {
+		if ( $param !== $sauf ) {
+			$ids = ditl_boite_filtrer_groupe( $ids, $parcours, $param );
+		}
+	}
+
+	return $ids;
+}
+
+/**
+ * Filtre des fiches par environnement (OU entre les environnements coches).
+ *
+ * @param int[] $ids      IDs des fiches.
+ * @param array $parcours Parcours (environnements coches).
+ * @return int[] IDs conserves, dans l'ordre recu.
+ */
+function ditl_boite_filtrer_environnements( array $ids, array $parcours ) {
+	return ditl_boite_filtrer_groupe( $ids, $parcours, DITL_BOITE_PARAM_ENV );
+}
+
+/**
+ * Choix d'un groupe de filtres avec le nombre de fiches concernees.
+ *
+ * Tous les termes de la taxonomie du groupe dans la langue du parcours ;
+ * pour un groupe limite a une famille (metiers), seulement ceux de la
+ * famille repondue, sauf au catalogue (tous), aucun sans reponse.
+ *
+ * @param string $param    Parametre d'URL du groupe (cle de ditl_boite_filtres()).
+ * @param int[]  $ids      IDs des fiches a compter.
+ * @param array  $parcours Parcours (langue, vue, reponses ; vide = langue
+ *                         courante, sans reponse).
+ * @return array Tableau [term_id => array( 'terme' => WP_Term, 'nombre' =>
+ *               int )], dans l'ordre des listes (rang puis libelle).
+ */
+function ditl_boite_filtre_disponibles( $param, array $ids, array $parcours = array() ) {
+	$filtres = ditl_boite_filtres();
+
+	if ( ! is_string( $param ) || ! isset( $filtres[ $param ] ) ) {
+		return array();
+	}
+
+	$taxonomie = $filtres[ $param ]['taxonomie'];
+	$famille   = ditl_boite_famille_filtre( $filtres[ $param ], $parcours );
+
+	if ( false === $famille ) {
+		return array();
+	}
+
+	$lang        = ditl_boite_langue( isset( $parcours['langue'] ) ? $parcours['langue'] : null );
+	$index       = ditl_boite_index( $lang );
+	$termes      = ditl_boite_termes( $lang );
+	$disponibles = array();
+
+	foreach ( isset( $termes[ $taxonomie ] ) ? $termes[ $taxonomie ] : array() as $terme ) {
+		if ( null === $famille || ditl_boite_famille_terme( $terme ) === $famille ) {
+			$disponibles[ (int) $terme->term_id ] = array(
+				'terme'  => $terme,
+				'nombre' => 0,
+			);
+		}
+	}
+
+	if ( array() === $disponibles ) {
+		return $disponibles;
+	}
+
+	foreach ( array_unique( array_map( 'intval', $ids ) ) as $id ) {
+		if ( ! isset( $index[ $id ][ $taxonomie ] ) ) {
+			continue;
+		}
+
+		foreach ( $index[ $id ][ $taxonomie ] as $term_id ) {
+			if ( isset( $disponibles[ $term_id ] ) ) {
+				$disponibles[ $term_id ]['nombre']++;
+			}
+		}
+	}
+
+	return $disponibles;
 }
 
 /**
@@ -1009,31 +1154,7 @@ function ditl_boite_filtrer_environnements( array $ids, array $parcours ) {
  *               des listes (rang puis libelle).
  */
 function ditl_boite_environnements_disponibles( array $ids ) {
-	$lang        = ditl_boite_langue();
-	$index       = ditl_boite_index( $lang );
-	$termes      = ditl_boite_termes( $lang );
-	$disponibles = array();
-
-	foreach ( $termes['ditl_environnement'] as $terme ) {
-		$disponibles[ (int) $terme->term_id ] = array(
-			'terme'  => $terme,
-			'nombre' => 0,
-		);
-	}
-
-	foreach ( array_unique( array_map( 'intval', $ids ) ) as $id ) {
-		if ( ! isset( $index[ $id ]['ditl_environnement'] ) ) {
-			continue;
-		}
-
-		foreach ( $index[ $id ]['ditl_environnement'] as $term_id ) {
-			if ( isset( $disponibles[ $term_id ] ) ) {
-				$disponibles[ $term_id ]['nombre']++;
-			}
-		}
-	}
-
-	return $disponibles;
+	return ditl_boite_filtre_disponibles( DITL_BOITE_PARAM_ENV, $ids );
 }
 
 /**
@@ -1090,6 +1211,7 @@ function ditl_boite_contexte_vide() {
 		'pages'          => 0,
 		'par_page'       => DITL_BOITE_PAR_PAGE,
 		'environnements' => array(),
+		'filtres'        => array(),
 		'requete'        => null,
 	);
 }
@@ -1117,7 +1239,7 @@ function ditl_boite_calculer_contexte( $type, $source = null ) {
 	}
 
 	$contexte['ids']         = ditl_boite_fiches_correspondantes( $parcours );
-	$contexte['ids_filtres'] = ditl_boite_filtrer_environnements( $contexte['ids'], $parcours );
+	$contexte['ids_filtres'] = ditl_boite_appliquer_filtres( $contexte['ids'], $parcours );
 	$contexte['total']       = count( $contexte['ids_filtres'] );
 	$contexte['pages']       = (int) ceil( $contexte['total'] / $contexte['par_page'] );
 
@@ -1125,7 +1247,13 @@ function ditl_boite_calculer_contexte( $type, $source = null ) {
 	$contexte['page'] = max( 1, min( $parcours['page'], $contexte['pages'] ) );
 
 	if ( 'boite' === $contexte['type'] ) {
-		$contexte['environnements'] = ditl_boite_environnements_disponibles( $contexte['ids'] );
+		// Choix de chaque groupe, comptes parmi les fiches retenues par les
+		// autres groupes (voir l'en-tete).
+		foreach ( array_keys( ditl_boite_filtres() ) as $param ) {
+			$contexte['filtres'][ $param ] = ditl_boite_filtre_disponibles( $param, ditl_boite_appliquer_filtres( $contexte['ids'], $parcours, $param ), $parcours );
+		}
+
+		$contexte['environnements'] = $contexte['filtres'][ DITL_BOITE_PARAM_ENV ];
 		$contexte['requete']        = ditl_boite_requete_fiches( $contexte['ids_filtres'], $contexte['page'], $contexte['par_page'] );
 	}
 
@@ -1138,10 +1266,12 @@ function ditl_boite_calculer_contexte( $type, $source = null ) {
  *
  * Cles : type ("boite", "fiche" ou "" hors boite a outils), langue,
  * page_id (page Boite a outils de la langue), textes (ditl_boite_textes),
- * parcours, ids (fiches correspondantes), ids_filtres (apres filtre des
- * environnements), total, page (bornee a la derniere page), pages,
- * par_page, environnements (ditl_boite_environnements_disponibles, page
- * Boite a outils seulement), requete (WP_Query paginee, page Boite a outils
+ * parcours, ids (fiches correspondantes), ids_filtres (apres les filtres
+ * des environnements et des metiers), total, page (bornee a la derniere
+ * page), pages, par_page, filtres ([parametre => choix du groupe],
+ * ditl_boite_filtre_disponibles, page Boite a outils seulement),
+ * environnements (choix du groupe des environnements, idem), requete
+ * (WP_Query paginee, page Boite a outils
  * en vue resultats ou catalogue, null sinon). En vue questionnaire, ids,
  * ids_filtres et total restent vides.
  *
@@ -1189,10 +1319,11 @@ function ditl_boite_numero_etape( $cle ) {
 
 /**
  * Normalise des arguments d'URL du parcours : ordre fixe (etapes dans
- * l'ordre, env, vue, etape, pg), valeurs nettoyees, valeurs vides omises.
+ * l'ordre, env, poste, vue, etape, pg), valeurs nettoyees, valeurs vides
+ * omises.
  *
  * @param array $args Arguments bruts.
- * @return array Arguments normalises (env = liste de codes).
+ * @return array Arguments normalises (env, poste = listes de codes).
  */
 function ditl_boite_normaliser_args( array $args ) {
 	$etapes = ditl_boite_etapes();
@@ -1210,11 +1341,13 @@ function ditl_boite_normaliser_args( array $args ) {
 		}
 	}
 
-	if ( isset( $args[ DITL_BOITE_PARAM_ENV ] ) ) {
-		$env = ditl_boite_lire_codes( $args[ DITL_BOITE_PARAM_ENV ] );
+	foreach ( array_keys( ditl_boite_filtres() ) as $param ) {
+		if ( isset( $args[ $param ] ) ) {
+			$codes = ditl_boite_lire_codes( $args[ $param ] );
 
-		if ( array() !== $env ) {
-			$propre[ DITL_BOITE_PARAM_ENV ] = $env;
+			if ( array() !== $codes ) {
+				$propre[ $param ] = $codes;
+			}
 		}
 	}
 
@@ -1242,10 +1375,11 @@ function ditl_boite_normaliser_args( array $args ) {
 /**
  * Arguments d'URL decrivant un parcours.
  *
- * Etapes repondues (codes), environnements coches, vue "catalogue", etape
- * affichee si elle differe de l'etape courante (modification d'une
- * reponse), page si > 1 en vue resultats ou catalogue. Les remplacements
- * ecrasent les valeurs (cles : etapes, env, vue, etape, pg ; '' ou array()
+ * Etapes repondues (codes), environnements et metiers coches, vue
+ * "catalogue", etape affichee si elle differe de l'etape courante
+ * (modification d'une reponse), page si > 1 en vue resultats ou catalogue.
+ * Les remplacements ecrasent les valeurs (cles : etapes, env, poste, vue,
+ * etape, pg ; '' ou array()
  * retire la valeur ; autres cles ignorees). Remplacer une reponse ne retire
  * pas les suivantes : la validation du parcours les ecartera si elles ne
  * sont plus coherentes.
@@ -1261,7 +1395,9 @@ function ditl_boite_args_parcours( array $parcours, array $remplacements = array
 		$args[ $cle ] = isset( $parcours['reponses'][ $cle ] ) && $parcours['reponses'][ $cle ] instanceof WP_Term ? ditl_boite_code_terme( $parcours['reponses'][ $cle ] ) : '';
 	}
 
-	$args[ DITL_BOITE_PARAM_ENV ] = isset( $parcours['environnements'] ) && is_array( $parcours['environnements'] ) ? array_map( 'strval', array_keys( $parcours['environnements'] ) ) : array();
+	foreach ( ditl_boite_filtres() as $param => $filtre ) {
+		$args[ $param ] = isset( $parcours[ $filtre['cle'] ] ) && is_array( $parcours[ $filtre['cle'] ] ) ? array_map( 'strval', array_keys( $parcours[ $filtre['cle'] ] ) ) : array();
+	}
 
 	$vue = isset( $parcours['vue'] ) ? $parcours['vue'] : 'questionnaire';
 
@@ -1286,8 +1422,8 @@ function ditl_boite_args_parcours( array $parcours, array $remplacements = array
 }
 
 /**
- * Chaine de requete des arguments du parcours (ordre fixe, env encode comme
- * le fait un formulaire GET : env%5B%5D=a&env%5B%5D=b).
+ * Chaine de requete des arguments du parcours (ordre fixe, env et poste
+ * encodes comme le fait un formulaire GET : env%5B%5D=a&env%5B%5D=b).
  *
  * @param array $args Arguments (normalises ici).
  * @return string Chaine de requete sans "?" ('' si aucun argument).
@@ -1344,8 +1480,8 @@ function ditl_boite_url( array $args ) {
 }
 
 /**
- * URL d'une fiche portant le contexte du parcours (reponses, environnements,
- * vue catalogue, page) : la fiche sait ainsi revenir aux resultats.
+ * URL d'une fiche portant le contexte du parcours (reponses, filtres, vue
+ * catalogue, page) : la fiche sait ainsi revenir aux resultats.
  *
  * @param int   $fiche_id ID de la fiche.
  * @param array $parcours Parcours.
@@ -1374,6 +1510,27 @@ function ditl_boite_url_retour( array $parcours ) {
 }
 
 /**
+ * Taxonomies prises en compte pour la proximite des fiches ("Explorer
+ * d'autres outils").
+ *
+ * PROVISOIRE : les metiers (ditl_poste, avenant du 17/11/2026) en sont
+ * exclus, le classement reste celui d'avant l'avenant (familles et taches
+ * deja comptees). Pour les compter, retirer l'exclusion.
+ *
+ * @return string[] Taxonomies.
+ */
+function ditl_boite_taxonomies_proximite() {
+	// Memorise : appele pour chaque fiche de l'index (carrousel de la fiche).
+	static $taxonomies = null;
+
+	if ( null === $taxonomies ) {
+		$taxonomies = array_values( array_diff( array_keys( ditl_boite_taxonomies() ), array( 'ditl_poste' ) ) );
+	}
+
+	return $taxonomies;
+}
+
+/**
  * Termes d'une fiche de l'index completes de leurs ancetres (proximite).
  *
  * @param array $termes_fiche Tableau [taxonomie => int[]] de l'index.
@@ -1382,7 +1539,7 @@ function ditl_boite_url_retour( array $parcours ) {
 function ditl_boite_termes_etendus( array $termes_fiche ) {
 	$etendus = array();
 
-	foreach ( $termes_fiche as $taxonomie => $term_ids ) {
+	foreach ( array_intersect_key( $termes_fiche, array_flip( ditl_boite_taxonomies_proximite() ) ) as $taxonomie => $term_ids ) {
 		foreach ( (array) $term_ids as $term_id ) {
 			$etendus[ (int) $term_id ] = true;
 
@@ -1398,11 +1555,12 @@ function ditl_boite_termes_etendus( array $termes_fiche ) {
 /**
  * Autres fiches a proposer sur une fiche.
  *
- * Parcours en vue resultats : les resultats du parcours (filtre des
- * environnements compris), sans la fiche. Sinon (ou si la fiche etait le
+ * Parcours en vue resultats : les resultats du parcours (filtres des
+ * environnements et des metiers compris), sans la fiche. Sinon (ou si la fiche etait le
  * seul resultat) : fiches proches, classees par nombre de termes communs
- * decroissant (termes coches et leurs ancetres, toutes taxonomies) puis par
- * titre ; une fiche sans aucun terme commun n'est pas proposee.
+ * decroissant (termes coches et leurs ancetres, toutes taxonomies sauf les
+ * metiers, voir ditl_boite_taxonomies_proximite) puis par titre ; une fiche
+ * sans aucun terme commun n'est pas proposee.
  *
  * @param int   $fiche_id ID de la fiche affichee.
  * @param array $parcours Parcours.
@@ -1414,7 +1572,7 @@ function ditl_boite_autres_fiches( $fiche_id, array $parcours, $nombre = 12 ) {
 	$nombre   = max( 1, min( 100, (int) $nombre ) );
 
 	if ( isset( $parcours['vue'] ) && 'resultats' === $parcours['vue'] ) {
-		$resultats = array_values( array_diff( ditl_boite_filtrer_environnements( ditl_boite_fiches_correspondantes( $parcours ), $parcours ), array( $fiche_id ) ) );
+		$resultats = array_values( array_diff( ditl_boite_appliquer_filtres( ditl_boite_fiches_correspondantes( $parcours ), $parcours ), array( $fiche_id ) ) );
 
 		if ( array() !== $resultats ) {
 			return array_slice( $resultats, 0, $nombre );

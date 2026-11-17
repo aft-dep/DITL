@@ -139,7 +139,7 @@ add_filter( 'astra_single_post_navigation_enabled', 'ditl_boite_front_astra_sans
 
 /**
  * Chaine de requete du parcours de la vue courante, a reporter sur les
- * traductions (reponses, environnements, vue, etape, page ; l'etape n'a pas
+ * traductions (reponses, filtres, vue, etape, page ; l'etape n'a pas
  * de sens sur une fiche, comme dans ditl_boite_url_fiche).
  *
  * @return string Chaine sans "?" ('' hors vue de la boite a outils ou sans
@@ -166,8 +166,8 @@ function ditl_boite_front_chaine_parcours() {
 }
 
 /**
- * Selecteur de langue : conserve le parcours (reponses, environnements,
- * vue, etape, page) vers la traduction de la page Boite a outils ou de la
+ * Selecteur de langue : conserve le parcours (reponses, filtres, vue,
+ * etape, page) vers la traduction de la page Boite a outils ou de la
  * fiche. Les codes etant identiques dans toutes les langues, le moteur de la
  * langue cible ecarte seul ce qui n'y existe pas.
  *
@@ -269,6 +269,7 @@ function ditl_boite_front_icone( $nom ) {
 		'document'   => '<path d="M6.5 3.5h7l4 4v13h-11zM13.5 3.5v4h4M9 12h6M9 15.5h6"/>',
 		'lien'       => '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
 		'croix'      => '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+		'metier'     => '<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20.5a7 7 0 0 1 14 0"/>',
 	);
 
 	if ( ! isset( $traces[ $nom ] ) ) {
@@ -346,7 +347,8 @@ function ditl_boite_front_url_etape( array $parcours, $cle ) {
  *
  * @param array $parcours Parcours.
  * @return array Tableau [metier, tache, difficulte, empechement,
- *               environnements] (chaines, '' si absent).
+ *               environnements, postes] (chaines, '' si absent ; codes des
+ *               filtres separes par des virgules).
  */
 function ditl_boite_front_suivi_parcours( array $parcours ) {
 	$donnees = array();
@@ -355,7 +357,9 @@ function ditl_boite_front_suivi_parcours( array $parcours ) {
 		$donnees[ $cle ] = isset( $parcours['reponses'][ $cle ] ) && $parcours['reponses'][ $cle ] instanceof WP_Term ? ditl_boite_code_terme( $parcours['reponses'][ $cle ] ) : '';
 	}
 
-	$donnees['environnements'] = isset( $parcours['environnements'] ) && is_array( $parcours['environnements'] ) ? implode( ',', array_map( 'strval', array_keys( $parcours['environnements'] ) ) ) : '';
+	foreach ( ditl_boite_filtres() as $filtre ) {
+		$donnees[ $filtre['cle'] ] = isset( $parcours[ $filtre['cle'] ] ) && is_array( $parcours[ $filtre['cle'] ] ) ? implode( ',', array_map( 'strval', array_keys( $parcours[ $filtre['cle'] ] ) ) ) : '';
+	}
 
 	return $donnees;
 }
@@ -459,6 +463,65 @@ function ditl_boite_front_badges_environnements( $post_id, $classe = '' ) {
 }
 
 /**
+ * URL du catalogue "Voir tous les outils" filtre sur un metier (badges de
+ * la fiche), dans la langue courante.
+ *
+ * @param WP_Term $terme Metier (taxonomie ditl_poste).
+ * @return string URL (non echappee), '' si le metier n'a pas de code.
+ */
+function ditl_boite_front_url_poste( WP_Term $terme ) {
+	$code = ditl_boite_code_terme( $terme );
+
+	if ( '' === $code ) {
+		return '';
+	}
+
+	return ditl_boite_url(
+		array(
+			DITL_BOITE_PARAM_POSTE => array( $code ),
+			DITL_BOITE_PARAM_VUE   => 'catalogue',
+		)
+	);
+}
+
+/**
+ * Affiche les badges des metiers d'une fiche (rubrique "Metiers" du bloc
+ * "Informations") : un lien par metier vers "Voir tous les outils" filtre sur
+ * ce metier.
+ *
+ * Accessibilite : le libelle visible ouvre le nom du lien, complete pour les
+ * lecteurs d'ecran par sa destination (RGAA 6.1, WCAG 2.5.3) ; contour et
+ * forme distincts des pastilles colorees des environnements (pas de couleur
+ * par terme) ; anneau de focus commun du site (a11y.css). Un metier sans
+ * code (cas anormal) est affiche sans lien.
+ *
+ * @param int $post_id ID de la fiche.
+ */
+function ditl_boite_front_badges_postes( $post_id ) {
+	$postes = ditl_boite_front_termes_fiche( $post_id, 'ditl_poste' );
+
+	if ( array() === $postes ) {
+		return;
+	}
+
+	$fiche = ditl_boite_front_id_fiche( $post_id );
+	?>
+	<ul class="ditl-fiche__metiers">
+		<?php foreach ( $postes as $terme ) { ?>
+			<?php $url = ditl_boite_front_url_poste( $terme ); ?>
+		<li>
+			<?php if ( '' !== $url ) { ?>
+			<a class="ditl-fiche__metier" href="<?php echo esc_url( $url ); ?>" data-ditl-suivi-clic="metier_fiche" data-ditl-suivi-poste="<?php echo esc_attr( ditl_boite_code_terme( $terme ) ); ?>" data-ditl-suivi-fiche="<?php echo esc_attr( $fiche ); ?>"><?php echo esc_html( $terme->name ); ?><span class="screen-reader-text"> <?php esc_html_e( '(voir tous les outils pour ce métier)', 'ditl' ); ?></span></a>
+			<?php } else { ?>
+			<span class="ditl-fiche__metier ditl-fiche__metier--texte"><?php echo esc_html( $terme->name ); ?></span>
+			<?php } ?>
+		</li>
+		<?php } ?>
+	</ul>
+	<?php
+}
+
+/**
  * Numeros des environnements affiches dans les pastilles des cartes.
  *
  * PROVISOIRE (maquettes finales du 10/11/2026, ou les environnements
@@ -543,7 +606,7 @@ function ditl_boite_front_url_accueil_boite() {
  * ramene "Vos outils" selon le parcours porte par l'URL.
  *
  * - Parcours complet (vue resultats) : "Vos outils", resultats du parcours
- *   (reponses, environnements coches et page conserves).
+ *   (reponses, filtres coches et page conserves).
  * - Vue catalogue : "Tous les outils", catalogue (filtres et page conserves).
  * - Sinon (fiche ouverte sans parcours : recherche du site, lien direct) :
  *   "Tous les outils", catalogue sans filtre, puisqu'il n'y a aucun
@@ -695,39 +758,194 @@ function ditl_boite_front_autres_fiches() {
 }
 
 /**
- * Environnements proposes dans le panneau de filtres de la vue courante.
+ * Choix proposes par un groupe de filtres de la vue courante.
  *
- * Avec DITL_BOITE_MASQUER_CHOIX_VIDES (PROVISOIRE), un environnement sans
- * fiche parmi les fiches correspondantes n'est pas propose, sauf s'il est
- * deja coche (le visiteur doit pouvoir le decocher).
+ * Avec DITL_BOITE_MASQUER_CHOIX_VIDES (PROVISOIRE), un choix sans fiche
+ * parmi les fiches retenues par les autres groupes n'est pas propose, sauf
+ * s'il est deja coche (le visiteur doit pouvoir le decocher).
  *
- * @param array $contexte Contexte (ditl_boite_contexte()).
+ * @param array  $contexte Contexte (ditl_boite_contexte()).
+ * @param string $param    Parametre d'URL du groupe (cle de ditl_boite_filtres()).
  * @return array Tableau [term_id => {terme, nombre, coche}] dans l'ordre des
  *               listes.
  */
-function ditl_boite_front_environnements_proposes( array $contexte ) {
+function ditl_boite_front_filtres_proposes( array $contexte, $param ) {
+	$filtres = ditl_boite_filtres();
+
+	if ( ! is_string( $param ) || ! isset( $filtres[ $param ] ) ) {
+		return array();
+	}
+
+	$cle    = $filtres[ $param ]['cle'];
 	$coches = array();
 
-	foreach ( isset( $contexte['parcours']['environnements'] ) ? (array) $contexte['parcours']['environnements'] : array() as $terme ) {
+	foreach ( isset( $contexte['parcours'][ $cle ] ) ? (array) $contexte['parcours'][ $cle ] : array() as $terme ) {
 		if ( $terme instanceof WP_Term ) {
 			$coches[ (int) $terme->term_id ] = true;
 		}
 	}
 
+	if ( isset( $contexte['filtres'][ $param ] ) ) {
+		$choix = (array) $contexte['filtres'][ $param ];
+	} else {
+		$choix = DITL_BOITE_PARAM_ENV === $param && isset( $contexte['environnements'] ) ? (array) $contexte['environnements'] : array();
+	}
+
 	$proposes = array();
 
-	foreach ( isset( $contexte['environnements'] ) ? (array) $contexte['environnements'] : array() as $term_id => $env ) {
+	foreach ( $choix as $term_id => $possible ) {
 		$coche = isset( $coches[ (int) $term_id ] );
 
-		if ( DITL_BOITE_MASQUER_CHOIX_VIDES && 0 === (int) $env['nombre'] && ! $coche ) {
+		if ( DITL_BOITE_MASQUER_CHOIX_VIDES && 0 === (int) $possible['nombre'] && ! $coche ) {
 			continue;
 		}
 
-		$env['coche']           = $coche;
-		$proposes[ $term_id ] = $env;
+		$possible['coche']    = $coche;
+		$proposes[ $term_id ] = $possible;
 	}
 
 	return $proposes;
+}
+
+/**
+ * Environnements proposes dans le panneau de filtres de la vue courante.
+ *
+ * @param array $contexte Contexte (ditl_boite_contexte()).
+ * @return array Tableau [term_id => {terme, nombre, coche}] dans l'ordre des
+ *               listes (voir ditl_boite_front_filtres_proposes).
+ */
+function ditl_boite_front_environnements_proposes( array $contexte ) {
+	return ditl_boite_front_filtres_proposes( $contexte, DITL_BOITE_PARAM_ENV );
+}
+
+/**
+ * Groupes de filtres a afficher dans le panneau "Filtrer les outils".
+ *
+ * Un groupe sans aucun choix propose n'est pas rendu. Metiers : au
+ * catalogue (tous les metiers), regroupes par famille, dans l'ordre des
+ * familles (premiere question), les metiers sans famille connue en dernier ;
+ * aux resultats (metiers de la famille repondue), une seule liste.
+ *
+ * @param array $contexte Contexte (ditl_boite_contexte()).
+ * @return array Tableau [parametre d'URL => {libelle, sous_groupes}] ;
+ *               sous_groupes = liste de {libelle ('' : pas de sous-titre),
+ *               choix ([term_id => {terme, nombre, coche}])}.
+ */
+function ditl_boite_front_groupes_filtres( array $contexte ) {
+	$libelles = array(
+		DITL_BOITE_PARAM_ENV   => __( 'Environnements', 'ditl' ),
+		DITL_BOITE_PARAM_POSTE => __( 'Métiers', 'ditl' ),
+	);
+	$catalogue = isset( $contexte['parcours']['vue'] ) && 'catalogue' === $contexte['parcours']['vue'];
+	$groupes   = array();
+
+	foreach ( ditl_boite_filtres() as $param => $filtre ) {
+		$proposes = ditl_boite_front_filtres_proposes( $contexte, $param );
+
+		if ( array() === $proposes ) {
+			continue;
+		}
+
+		$sous_groupes = array(
+			array(
+				'libelle' => '',
+				'choix'   => $proposes,
+			),
+		);
+
+		if ( $catalogue && '' !== $filtre['famille'] ) {
+			$sous_groupes = ditl_boite_front_par_famille( $proposes, $filtre['taxonomie'], isset( $contexte['langue'] ) ? $contexte['langue'] : null );
+		}
+
+		$groupes[ $param ] = array(
+			'libelle'      => isset( $libelles[ $param ] ) ? $libelles[ $param ] : $param,
+			'sous_groupes' => $sous_groupes,
+		);
+	}
+
+	return $groupes;
+}
+
+/**
+ * Repartit des choix de filtre par famille (catalogue).
+ *
+ * @param array       $proposes  Choix [term_id => {terme, nombre, coche}].
+ * @param string      $taxonomie Taxonomie des choix (registre : cle famille).
+ * @param string|null $lang      Langue des libelles de famille.
+ * @return array Liste de {libelle, choix}, ordre des familles puis choix
+ *               sans famille connue ("Autres métiers").
+ */
+function ditl_boite_front_par_famille( array $proposes, $taxonomie, $lang = null ) {
+	$taxonomie_famille = ditl_boite_taxonomie_famille( $taxonomie );
+	$lang              = ditl_boite_langue( $lang );
+	$groupes           = array();
+
+	foreach ( '' !== $taxonomie_famille ? ditl_boite_termes_par_code( $taxonomie_famille, $lang ) : array() as $code => $famille ) {
+		if ( 0 === (int) $famille->parent ) {
+			$groupes[ $code ] = array(
+				'libelle' => $famille->name,
+				'choix'   => array(),
+			);
+		}
+	}
+
+	$autres = array();
+
+	foreach ( $proposes as $term_id => $possible ) {
+		$code = ditl_boite_famille_terme( $possible['terme'] );
+
+		if ( '' !== $code && isset( $groupes[ $code ] ) ) {
+			$groupes[ $code ]['choix'][ $term_id ] = $possible;
+		} else {
+			$autres[ $term_id ] = $possible;
+		}
+	}
+
+	$groupes = array_values(
+		array_filter(
+			$groupes,
+			static function ( $groupe ) {
+				return array() !== $groupe['choix'];
+			}
+		)
+	);
+
+	if ( array() !== $autres ) {
+		// Libelle "Autres metiers" seulement a la suite de groupes de famille ;
+		// sans aucun groupe, la liste reste sans sous-titre.
+		$groupes[] = array(
+			'libelle' => array() !== $groupes ? __( 'Autres métiers', 'ditl' ) : '',
+			'choix'   => $autres,
+		);
+	}
+
+	return $groupes;
+}
+
+/**
+ * Nombre de filtres appliques (tous groupes) : bouton "Filtrer les outils
+ * (N)" du telephone, message sans resultat.
+ *
+ * @param array $parcours Parcours.
+ * @return int Nombre de choix coches.
+ */
+function ditl_boite_front_nombre_filtres_actifs( array $parcours ) {
+	$nombre = 0;
+
+	foreach ( ditl_boite_filtres() as $filtre ) {
+		$nombre += isset( $parcours[ $filtre['cle'] ] ) && is_array( $parcours[ $filtre['cle'] ] ) ? count( $parcours[ $filtre['cle'] ] ) : 0;
+	}
+
+	return $nombre;
+}
+
+/**
+ * Arguments de remplacement qui retirent tous les filtres d'un parcours.
+ *
+ * @return array Tableau [parametre d'URL => array()] (ditl_boite_args_parcours).
+ */
+function ditl_boite_front_sans_filtres() {
+	return array_fill_keys( array_keys( ditl_boite_filtres() ), array() );
 }
 
 /**

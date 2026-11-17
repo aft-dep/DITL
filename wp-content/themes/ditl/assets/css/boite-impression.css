@@ -229,6 +229,37 @@ body,
 	overflow-wrap: anywhere;
 }
 
+/* Badges des metiers : texte noir encadre, arrondi (distinct des badges
+ * d'environnement), sans l'adresse du catalogue (lien interne au site). */
+.ditl-boite .ditl-fiche__metiers {
+	display: block;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ditl-boite .ditl-fiche__metiers li {
+	display: inline-block;
+	margin: 0 0.15cm 0.1cm 0;
+}
+
+.ditl-boite .ditl-fiche__metier {
+	display: inline-block;
+	min-height: 0;
+	padding: 0.03cm 0.2cm;
+	border: 1px solid #000;
+	border-radius: 0.3cm;
+	background: #fff !important;
+	color: #000 !important;
+	font-size: 9pt;
+	font-weight: 400;
+	text-decoration: none !important;
+}
+
+.ditl-boite .ditl-fiche__infos a.ditl-fiche__metier::after {
+	content: none;
+}
+
 /* L'adresse lisible affichee a cote du nom ferait doublon. */
 .ditl-fiche__url {
 	display: none !important;

@@ -37,8 +37,9 @@ $ditl_catalogue = 'catalogue' === $ditl_parcours['vue'];
 $ditl_lang      = $ditl_contexte['langue'];
 $ditl_requete   = $ditl_contexte['requete'];
 $ditl_total     = (int) $ditl_contexte['total'];
-$ditl_filtres   = array() !== ditl_boite_front_environnements_proposes( $ditl_contexte );
+$ditl_filtres   = array() !== ditl_boite_front_groupes_filtres( $ditl_contexte );
 $ditl_colonne   = ! $ditl_catalogue || $ditl_filtres;
+$ditl_nb_actifs = ditl_boite_front_nombre_filtres_actifs( $ditl_parcours );
 
 $ditl_suivi = array_merge(
 	array(
@@ -85,10 +86,7 @@ $ditl_suivi = array_merge(
 
 			<div class="ditl-boite__actions">
 				<?php if ( $ditl_filtres ) { ?>
-					<?php
-					// Filtres appliques, rappeles sur le bouton (sinon invisibles une fois la fenetre fermee).
-					$ditl_nb_actifs = isset( $ditl_parcours['environnements'] ) && is_array( $ditl_parcours['environnements'] ) ? count( $ditl_parcours['environnements'] ) : 0;
-					?>
+					<?php // Filtres appliques (tous groupes), rappeles sur le bouton (sinon invisibles une fois la fenetre fermee). ?>
 				<button type="button" class="ditl-boite-bouton ditl-boite-ouvrir" data-ditl-fenetre-ouvrir="filtres" hidden>
 					<?php echo esc_html( $ditl_textes['filtres_titre'] ); ?>
 					<?php if ( $ditl_nb_actifs > 0 ) { ?>
@@ -167,15 +165,15 @@ $ditl_suivi = array_merge(
 			<div class="ditl-boite-vide">
 				<?php if ( ! $ditl_catalogue ) { ?>
 					<?php echo wp_kses( $ditl_textes['aucun_resultat'], ditl_boite_html_autorise() ); ?>
-				<?php } elseif ( array() !== $ditl_parcours['environnements'] ) { ?>
+				<?php } elseif ( $ditl_nb_actifs > 0 ) { ?>
 				<p><?php esc_html_e( 'Aucun outil ne correspond à ces filtres.', 'ditl' ); ?></p>
 				<?php } else { ?>
 				<p><?php esc_html_e( 'Aucun outil n\'est disponible pour le moment.', 'ditl' ); ?></p>
 				<?php } ?>
-				<?php if ( ! $ditl_catalogue || array() !== $ditl_parcours['environnements'] ) { ?>
+				<?php if ( ! $ditl_catalogue || $ditl_nb_actifs > 0 ) { ?>
 				<ul class="ditl-boite-liens">
-					<?php if ( array() !== $ditl_parcours['environnements'] ) { ?>
-					<li><a href="<?php echo esc_url( ditl_boite_url( ditl_boite_args_parcours( $ditl_parcours, array( DITL_BOITE_PARAM_ENV => array(), DITL_BOITE_PARAM_PAGE => '' ) ) ) ); ?>"><?php esc_html_e( 'Retirer les filtres', 'ditl' ); ?></a></li>
+					<?php if ( $ditl_nb_actifs > 0 ) { ?>
+					<li><a href="<?php echo esc_url( ditl_boite_url( ditl_boite_args_parcours( $ditl_parcours, ditl_boite_front_sans_filtres() + array( DITL_BOITE_PARAM_PAGE => '' ) ) ) ); ?>"><?php esc_html_e( 'Retirer les filtres', 'ditl' ); ?></a></li>
 					<?php } ?>
 					<?php if ( ! $ditl_catalogue ) { ?>
 					<li><a href="<?php echo esc_url( ditl_boite_url( array( DITL_BOITE_PARAM_VUE => 'catalogue' ) ) ); ?>" data-ditl-suivi-clic="voir_tous"><?php esc_html_e( 'Voir tous les outils', 'ditl' ); ?></a></li>

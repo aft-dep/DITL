@@ -194,6 +194,7 @@ function ditl_import_libelles_colonnes() {
 		'empechement'       => 'empêchement',
 		'metier'            => 'métier',
 		'tache'             => 'tâche',
+		'postes'            => 'métier (colonne postes)',
 		'environnement'     => 'environnement',
 	);
 }
@@ -311,6 +312,7 @@ function ditl_import_analyser_fiche( $enregistrement, $carte, $schema, $plan ) {
 	ditl_import_analyser_champs( $ligne, $enregistrement, $presentes, $schema, $lang, $regles );
 	ditl_import_analyser_fabricants( $ligne, $enregistrement, $carte, $regles );
 	ditl_import_controler_classement( $ligne );
+	ditl_import_controler_postes( $ligne );
 
 	$ligne['champs'] = array_values( array_unique( $ligne['champs'] ) );
 	sort( $ligne['champs'] );
@@ -726,6 +728,7 @@ function ditl_import_controler_classement( &$ligne ) {
 		'aptitude'          => array( array( 'difficulte', 'empechement' ), 'aucune difficulté ni aucun empêchement (questionnaire).' ),
 		'metier'            => array( array( 'metier', 'tache' ), 'aucun métier ni aucune tâche (questionnaire).' ),
 		'environnement'     => array( array( 'environnement' ), 'aucun environnement (filtre des résultats).' ),
+		'postes'            => array( array( 'postes' ), 'aucun métier dans la colonne postes (filtre « Métiers » des résultats, badges de la fiche).' ),
 	);
 
 	foreach ( $vides as $controle ) {
@@ -742,6 +745,48 @@ function ditl_import_controler_classement( &$ligne ) {
 		if ( $presente && ! $remplie ) {
 			ditl_import_message( $ligne, 'avertissement', $controle[1] );
 		}
+	}
+}
+
+/**
+ * Signale les metiers (colonne postes) dont la famille n'est pas cochee sur
+ * la fiche (colonnes metier / tache) : dans les resultats, le filtre
+ * "Metiers" ne propose que les metiers de la famille choisie, la fiche n'y
+ * sortirait jamais pour ce metier. Avertissement seulement, et seulement si
+ * les colonnes postes et metier ou tache sont presentes dans le fichier.
+ *
+ * @param array $ligne Ligne (par reference).
+ */
+function ditl_import_controler_postes( &$ligne ) {
+	if ( empty( $ligne['termes']['ditl_poste'] ) || ( ! isset( $ligne['codes']['metier'] ) && ! isset( $ligne['codes']['tache'] ) ) ) {
+		return;
+	}
+
+	// Familles de la fiche : familles cochees et familles des taches cochees.
+	$familles = array();
+
+	foreach ( isset( $ligne['termes']['ditl_metier'] ) ? $ligne['termes']['ditl_metier'] : array() as $term_id ) {
+		$terme = get_term( (int) $term_id, 'ditl_metier' );
+
+		if ( $terme instanceof WP_Term ) {
+			$familles[ ditl_boite_code_terme( 0 === (int) $terme->parent ? $terme : (int) $terme->parent ) ] = true;
+		}
+	}
+
+	$hors_famille = array();
+
+	foreach ( $ligne['termes']['ditl_poste'] as $term_id ) {
+		$famille = ditl_boite_famille_terme( (int) $term_id );
+
+		if ( '' === $famille ) {
+			$hors_famille[] = sprintf( '« %s » (sans famille)', ditl_boite_code_terme( (int) $term_id ) );
+		} elseif ( ! isset( $familles[ $famille ] ) ) {
+			$hors_famille[] = sprintf( '« %1$s » (famille %2$s)', ditl_boite_code_terme( (int) $term_id ), $famille );
+		}
+	}
+
+	if ( array() !== $hors_famille ) {
+		ditl_import_message( $ligne, 'avertissement', sprintf( 'métier(s) %s : famille non cochée sur la fiche (colonnes metier / tache), la fiche ne sortira pas dans les résultats de cette famille ; le badge et « Voir tous les outils » restent disponibles.', implode( ', ', $hors_famille ) ) );
 	}
 }
 
@@ -1110,7 +1155,9 @@ function ditl_import_valider_referentiels( &$plan, $csv ) {
  * @param array    $listes         Listes acceptees (ditl_import_listes_referentiels).
  * @param string[] $langues        Langues actives.
  * @return array Ligne { ligne, liste, taxonomie, niveau, code, parent,
- *               couleur, ordre, libelles, titre, id, lang, messages, erreur }.
+ *               famille, couleur, ordre, libelles, titre, id, lang, messages,
+ *               erreur } ; famille = code de la famille (metiers), null si
+ *               la colonne est absente ou sans objet pour la liste.
  */
 function ditl_import_analyser_referentiel( $enregistrement, $carte, $listes, $langues ) {
 	$presentes = $carte['presentes'];
@@ -1121,6 +1168,7 @@ function ditl_import_analyser_referentiel( $enregistrement, $carte, $listes, $la
 		'niveau'    => 1,
 		'code'      => '',
 		'parent'    => '',
+		'famille'   => null,
 		'couleur'   => null,
 		'ordre'     => null,
 		'libelles'  => array(),
@@ -1145,7 +1193,7 @@ function ditl_import_analyser_referentiel( $enregistrement, $carte, $listes, $la
 	$liste = ditl_import_normaliser_entete( $liste_brute );
 
 	if ( ! isset( $listes[ $liste ] ) ) {
-		ditl_import_message( $ligne, 'erreur', sprintf( 'liste « %s » inconnue (attendu : type_compensation, sous_type, difficulte, empechement, metier, tache, environnement).', ditl_import_extrait( $liste_brute, 40 ) ) );
+		ditl_import_message( $ligne, 'erreur', sprintf( 'liste « %s » inconnue (attendu : type_compensation, sous_type, difficulte, empechement, metier, tache, environnement, poste).', ditl_import_extrait( $liste_brute, 40 ) ) );
 		return $ligne;
 	}
 
@@ -1155,6 +1203,7 @@ function ditl_import_analyser_referentiel( $enregistrement, $carte, $listes, $la
 	$definition         = isset( $definitions[ $taxonomie ] ) ? $definitions[ $taxonomie ] : array(
 		'niveaux' => 1,
 		'couleur' => false,
+		'famille' => '',
 	);
 	$ligne['taxonomie'] = $taxonomie;
 	$ligne['liste']     = $liste;
@@ -1194,6 +1243,32 @@ function ditl_import_analyser_referentiel( $enregistrement, $carte, $listes, $la
 
 	$ligne['niveau'] = $niveau;
 	$ligne['parent'] = $parent;
+
+	// Famille (metiers seulement) : code d'une famille de metiers, verifie
+	// ensuite dans le fichier ou en base (ditl_import_controler_referentiels).
+	$famille = ditl_import_valeur( $enregistrement, $presentes, 'famille' );
+
+	if ( null !== $famille ) {
+		$famille = ditl_import_rogner( $famille );
+
+		if ( ! empty( $definition['famille'] ) ) {
+			$propre = '' === $famille ? '' : ditl_import_normaliser_code( $famille );
+
+			if ( '' !== $famille && '' === $propre ) {
+				ditl_import_message( $ligne, 'erreur', sprintf( 'code famille « %s » invalide.', ditl_import_extrait( $famille, 40 ) ) );
+			} else {
+				$ligne['famille'] = $propre;
+
+				if ( '' === $propre ) {
+					ditl_import_message( $ligne, 'avertissement', 'aucune famille (colonne famille) : ce métier n\'apparaîtra que dans « Voir tous les outils », jamais dans les filtres des résultats.' );
+				}
+			}
+		} elseif ( '' !== $famille ) {
+			ditl_import_message( $ligne, 'avertissement', 'famille ignorée (seuls les métiers de la liste « poste » ont une famille).' );
+		}
+	} elseif ( ! empty( $definition['famille'] ) ) {
+		ditl_import_message( $ligne, 'avertissement', 'colonne famille absente du fichier : famille du métier inchangée (aucune à la création).' );
+	}
 
 	// Couleur (environnements seulement).
 	$couleur = ditl_import_valeur( $enregistrement, $presentes, 'couleur' );
@@ -1353,6 +1428,36 @@ function ditl_import_controler_referentiels( &$plan ) {
 			ditl_import_message( $plan['lignes'][ $index ], 'erreur', sprintf( 'parent « %s » introuvable (ni dans le fichier, ni en base).', $ligne['parent'] ) );
 		} elseif ( 0 !== $en_base['parent'] ) {
 			ditl_import_message( $plan['lignes'][ $index ], 'erreur', sprintf( 'parent « %s » lui-même rattaché à un parent (2 niveaux maximum).', $ligne['parent'] ) );
+		}
+	}
+
+	// Familles des metiers : famille de niveau 1 presente dans le fichier ou
+	// en base (code d'un terme de niveau 1 de la taxonomie de famille).
+	foreach ( $plan['lignes'] as $index => $ligne ) {
+		if ( $ligne['erreur'] || null === $ligne['famille'] || '' === $ligne['famille'] ) {
+			continue;
+		}
+
+		$taxonomie_famille = ditl_boite_taxonomie_famille( $ligne['taxonomie'] );
+		$cle               = $taxonomie_famille . '|' . $ligne['famille'];
+
+		if ( isset( $par_code[ $cle ] ) ) {
+			$famille = $plan['lignes'][ $par_code[ $cle ][0] ];
+
+			if ( $famille['erreur'] ) {
+				ditl_import_message( $plan['lignes'][ $index ], 'erreur', sprintf( 'famille « %s » en erreur dans le fichier.', $ligne['famille'] ) );
+			} elseif ( '' !== $famille['parent'] ) {
+				ditl_import_message( $plan['lignes'][ $index ], 'erreur', sprintf( 'famille « %s » : élément de niveau 2 (une tâche), une famille de métiers est attendue.', $ligne['famille'] ) );
+			}
+			continue;
+		}
+
+		$en_base = ditl_import_code_en_base( $taxonomie_famille, $ligne['famille'] );
+
+		if ( null === $en_base ) {
+			ditl_import_message( $plan['lignes'][ $index ], 'erreur', sprintf( 'famille « %s » introuvable (ni dans le fichier, ni en base, liste metier).', $ligne['famille'] ) );
+		} elseif ( 0 !== $en_base['parent'] ) {
+			ditl_import_message( $plan['lignes'][ $index ], 'erreur', sprintf( 'famille « %s » : élément de niveau 2 (une tâche), une famille de métiers est attendue.', $ligne['famille'] ) );
 		}
 	}
 

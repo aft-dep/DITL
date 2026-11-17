@@ -4,7 +4,7 @@
  *
  * Moteur de recherche filtre des fiches outils : questionnaire en etapes
  * (metier, tache, difficulte, empechement), resultats filtrables par
- * environnement, catalogue complet, fiche detail imprimable, suivi des
+ * environnement et par metier, catalogue complet, fiche detail imprimable, suivi des
  * interactions dans Google Analytics.
  *
  * Organisation :

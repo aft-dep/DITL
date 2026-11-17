@@ -17,6 +17,11 @@
 		absente du terme enregistre ; l'alignement entre langues est fait par l'admin de la boite et par l'import.
 	-->
 	<!--
+		Filtre metiers de la boite a outils (avenant du 17/11/2026) : liste des metiers (ditl_poste), chacun rattache a
+		une famille de metiers par la meta de terme _ditl_famille (code neutre d'un terme de niveau 1 de ditl_metier).
+		Meme traitement que les metas de termes de la phase 3 : copy-once, jamais copy (Polylang lit ce fichier).
+	-->
+	<!--
 		Reglementation (phase 6) : fiches pays (ditl_reglementation), 1 publication = 1 pays dans 1 langue.
 		Drapeau = copy (meme image dans toutes les langues, synchronise) ; sections et lien de retour =
 		translate (recopies a la creation d'une traduction, puis propres a chaque langue), JSON dont seules
@@ -35,6 +40,8 @@
 		<taxonomy translate="1">ditl_environnement</taxonomy>
 		<taxonomy translate="1">ditl_type_compensation</taxonomy>
 		<taxonomy translate="1">ditl_sous_type</taxonomy>
+		<!-- Filtre metiers (avenant du 17/11/2026) -->
+		<taxonomy translate="1">ditl_poste</taxonomy>
 	</taxonomies>
 	<custom-fields>
 		<!-- Boite a outils (phase 3) -->
@@ -76,5 +83,7 @@
 		<custom-term-field action="copy-once">_ditl_couleur</custom-term-field>
 		<custom-term-field action="copy-once">_ditl_ordre</custom-term-field>
 		<custom-term-field action="ignore">_ditl_import_terme</custom-term-field>
+		<!-- Filtre metiers (avenant du 17/11/2026) -->
+		<custom-term-field action="copy-once">_ditl_famille</custom-term-field>
 	</custom-term-fields>
 </wpml-config>

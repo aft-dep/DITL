@@ -5,20 +5,23 @@
  * environnements, types et sous-types de compensation).
  *
  * - Champs d'ajout et de modification : code neutre, ordre d'affichage,
- *   couleur du badge (environnements, avec apercu et contraste calcule).
+ *   couleur du badge (environnements, avec apercu et contraste calcule),
+ *   famille de rattachement (metiers : liste des familles de metiers, code
+ *   controle contre cette liste ; un changement du code d'une famille est
+ *   reporte sur les metiers qui y sont rattaches).
  * - Code : controle d'unicite dans la taxonomie et dans chaque langue
  *   concernee (celle du terme et celles de ses traductions, qui partagent
  *   le code) ; un code en doublon n'est pas enregistre et un avertissement
  *   est affiche. Code vide a la creation : repris de la traduction liee,
  *   sinon deduit du libelle (ditl_boite_completer_code_terme, modele.php).
- * - Liste des termes : colonnes Code, Ordre (triable), Couleur.
+ * - Liste des termes : colonnes Code, Ordre (triable), Couleur, Famille.
  * - Niveaux : la liste "Parent" ne propose que le premier niveau (taxonomies
  *   a niveaux) et disparait pour les listes simples ; controle serveur sur
  *   les envois des formulaires de l'admin.
  * - Aide en tete de chaque ecran (description du registre).
  *
- * Ordre d'ecriture et Polylang : les metas neutres (code, ordre, couleur)
- * ne sont PAS synchronisees par Polylang (filtre pll_copy_term_metas de
+ * Ordre d'ecriture et Polylang : les metas neutres (code, ordre, couleur,
+ * famille) ne sont PAS synchronisees par Polylang (filtre pll_copy_term_metas de
  * modele.php : copie a la creation d'une traduction seulement). Les champs
  * sont ecrits a la priorite 950 de create_term / edit_term (apres
  * l'affectation de la langue et des traductions par Polylang, priorite
@@ -50,7 +53,11 @@ function ditl_boite_termes_init() {
 		add_action( "{$taxonomie}_add_form_fields", 'ditl_boite_termes_champs_ajout' );
 		add_action( "{$taxonomie}_edit_form_fields", 'ditl_boite_termes_champs_edition', 10, 2 );
 
-		add_filter( "manage_edit-{$taxonomie}_columns", $definition['couleur'] ? 'ditl_boite_termes_colonnes_couleur' : 'ditl_boite_termes_colonnes' );
+		if ( '' !== $definition['famille'] ) {
+			add_filter( "manage_edit-{$taxonomie}_columns", 'ditl_boite_termes_colonnes_famille' );
+		} else {
+			add_filter( "manage_edit-{$taxonomie}_columns", $definition['couleur'] ? 'ditl_boite_termes_colonnes_couleur' : 'ditl_boite_termes_colonnes' );
+		}
 		add_filter( "manage_edit-{$taxonomie}_sortable_columns", 'ditl_boite_termes_colonnes_triables' );
 		add_filter( "manage_{$taxonomie}_custom_column", 'ditl_boite_termes_colonne_contenu', 10, 3 );
 	}
@@ -75,7 +82,11 @@ function ditl_boite_termes_textes_aide( $taxonomie ) {
 		$textes[] = $taxonomies[ $taxonomie ]['aide'];
 	}
 
-	$textes[] = __( 'Chaque élément est à créer dans toutes les langues du site et à relier à ses traductions : elles partagent le même code, l\'ordre et la couleur.', 'ditl' );
+	if ( '' !== ditl_boite_taxonomie_famille( $taxonomie ) ) {
+		$textes[] = __( 'Chaque élément est à créer dans toutes les langues du site et à relier à ses traductions : elles partagent le même code, l\'ordre et la famille.', 'ditl' );
+	} else {
+		$textes[] = __( 'Chaque élément est à créer dans toutes les langues du site et à relier à ses traductions : elles partagent le même code, l\'ordre et la couleur.', 'ditl' );
+	}
 
 	return $textes;
 }
@@ -133,7 +144,8 @@ function ditl_boite_termes_traductions( $term_id ) {
  * celle de la premiere traduction qui en a une.
  *
  * @param int    $term_id ID du terme (0 : aucune valeur).
- * @param string $cle     Cle de meta (_ditl_code, _ditl_ordre, _ditl_couleur).
+ * @param string $cle     Cle de meta (_ditl_code, _ditl_ordre, _ditl_couleur,
+ *                        _ditl_famille).
  * @return string|null Valeur brute, ou null si ni le terme ni ses
  *                     traductions n'en ont.
  */
@@ -279,9 +291,141 @@ function ditl_boite_termes_message_doublon( $code, $conflits, $suite ) {
 	);
 }
 
+/**
+ * Familles proposees pour le rattachement des termes d'une taxonomie
+ * (termes de niveau 1 de la taxonomie de famille du registre), toutes
+ * langues confondues, une entree par code.
+ *
+ * Libelle : terme de la langue demandee s'il existe, sinon le premier trouve.
+ * Langue non precisee : langue de l'administration de l'utilisateur si le
+ * site la propose, sinon langue par defaut du site. Memorise pour la requete
+ * (colonne de la liste), vide a chaque modification d'un terme.
+ *
+ * @param string $taxonomie Taxonomie rattachee (ex. ditl_poste).
+ * @param string $lang      Langue preferee des libelles ('' : voir ci-dessus).
+ * @return string[] Tableau [code => libelle] dans l'ordre des listes (rang
+ *                  puis libelle) ; vide si la taxonomie n'a pas de famille.
+ */
+function ditl_boite_termes_familles( $taxonomie, $lang = '' ) {
+	static $memo = array();
+
+	if ( null === $taxonomie ) {
+		$memo = array();
+
+		return array();
+	}
+
+	$taxonomie_famille = ditl_boite_taxonomie_famille( $taxonomie );
+
+	if ( '' === $taxonomie_famille ) {
+		return array();
+	}
+
+	$lang = is_string( $lang ) ? $lang : '';
+
+	if ( '' === $lang ) {
+		$lang = substr( (string) get_user_locale(), 0, 2 );
+		$lang = ditl_ml_langue_valide( $lang ) ? $lang : ditl_ml_langue_defaut();
+	}
+
+	$cle = $taxonomie_famille . '|' . $lang;
+
+	if ( isset( $memo[ $cle ] ) ) {
+		return $memo[ $cle ];
+	}
+
+	$args = array(
+		'taxonomy'               => $taxonomie_famille,
+		'hide_empty'             => false,
+		'parent'                 => 0,
+		'update_term_meta_cache' => true,
+	);
+
+	// Polylang : "lang" vide = toutes les langues.
+	if ( 'polylang' === ditl_ml_extension() ) {
+		$args['lang'] = '';
+	}
+
+	$termes   = get_terms( $args );
+	$familles = array();
+	$exactes  = array();
+
+	foreach ( ditl_boite_trier_termes( is_array( $termes ) ? array_filter( $termes, 'ditl_boite_termes_est_terme' ) : array() ) as $terme ) {
+		$code = ditl_boite_code_terme( $terme );
+
+		if ( '' === $code || isset( $exactes[ $code ] ) ) {
+			continue;
+		}
+
+		$exacte = '' !== $lang && ditl_ml_langue_terme( $terme->term_id ) === $lang;
+
+		if ( ! isset( $familles[ $code ] ) || $exacte ) {
+			$familles[ $code ] = wp_specialchars_decode( $terme->name, ENT_QUOTES );
+		}
+
+		if ( $exacte ) {
+			$exactes[ $code ] = true;
+		}
+	}
+
+	$memo[ $cle ] = $familles;
+
+	return $familles;
+}
+
+/**
+ * Vide la memoire des familles (modification d'un terme dans la requete).
+ */
+function ditl_boite_termes_vider_familles() {
+	ditl_boite_termes_familles( null );
+}
+add_action( 'clean_term_cache', 'ditl_boite_termes_vider_familles' );
+
+/**
+ * Indique si une valeur est un terme (filtre de listes).
+ *
+ * @param mixed $terme Valeur.
+ * @return bool True pour un WP_Term.
+ */
+function ditl_boite_termes_est_terme( $terme ) {
+	return $terme instanceof WP_Term;
+}
+
 /* -------------------------------------------------------------------------
  * Champs des formulaires.
  * ---------------------------------------------------------------------- */
+
+/**
+ * Affiche la liste deroulante de la famille de rattachement.
+ *
+ * Une famille enregistree mais absente de la liste (supprimee, code
+ * modifie hors de l'admin) reste affichee et selectionnee : l'enregistrer a
+ * nouveau ne la perd pas sans action de l'utilisateur.
+ *
+ * @param string $taxonomie Taxonomie du terme.
+ * @param string $actuelle  Code de la famille actuelle ('' : aucune).
+ * @param string $lang      Langue preferee des libelles.
+ */
+function ditl_boite_termes_champ_famille( $taxonomie, $actuelle, $lang ) {
+	$familles = ditl_boite_termes_familles( $taxonomie, $lang );
+	$actuelle = ditl_boite_sanitize_code( $actuelle );
+	?>
+	<select id="ditl-famille" name="ditl_famille" aria-describedby="ditl-famille-description">
+		<option value=""<?php selected( '', $actuelle ); ?>><?php esc_html_e( 'Aucune famille', 'ditl' ); ?></option>
+		<?php foreach ( $familles as $code => $libelle ) { ?>
+		<option value="<?php echo esc_attr( (string) $code ); ?>"<?php selected( (string) $code, $actuelle ); ?>><?php echo esc_html( $libelle . ' (' . $code . ')' ); ?></option>
+		<?php } ?>
+		<?php if ( '' !== $actuelle && ! isset( $familles[ $actuelle ] ) ) { ?>
+		<option value="<?php echo esc_attr( $actuelle ); ?>" selected="selected">
+			<?php
+			/* translators: %s : code de la famille enregistree. */
+			echo esc_html( sprintf( __( '%s (famille introuvable)', 'ditl' ), $actuelle ) );
+			?>
+		</option>
+		<?php } ?>
+	</select>
+	<?php
+}
 
 /**
  * Texte du contraste d'un badge.
@@ -333,7 +477,7 @@ function ditl_boite_termes_champ_couleur( $couleur, $libelle ) {
 /**
  * Aides des champs (partagees entre l'ajout et la modification).
  *
- * @param string $champ    "code", "ordre" ou "couleur".
+ * @param string $champ    "code", "ordre", "famille" ou "couleur".
  * @param bool   $creation True pour le formulaire d'ajout.
  * @return string Texte simple.
  */
@@ -348,6 +492,10 @@ function ditl_boite_termes_aide_champ( $champ, $creation ) {
 
 	if ( 'ordre' === $champ ) {
 		return __( 'Rang dans les listes du questionnaire et des filtres : les plus petits nombres en premier, à égalité par ordre alphabétique. 0 par défaut.', 'ditl' );
+	}
+
+	if ( 'famille' === $champ ) {
+		return __( 'Famille de métiers (première question du questionnaire) à laquelle ce métier appartient, identique dans toutes les langues. Dans les résultats, le filtre « Métiers » ne propose que les métiers de la famille choisie ; sans famille, le métier n\'apparaît que dans « Voir tous les outils ».', 'ditl' );
 	}
 
 	return __( 'Code hexadécimal, ex. #00b0cf. Laisser vide : badge sans couleur. La couleur du texte (bleu de la charte, noir ou blanc) est choisie automatiquement pour rester lisible (contraste d\'au moins 4,5:1).', 'ditl' );
@@ -379,6 +527,13 @@ function ditl_boite_termes_champs_ajout( $taxonomie ) {
 		<input type="number" id="ditl-ordre" name="ditl_ordre" class="small-text" value="" step="1" min="-9999" max="9999" placeholder="0" aria-describedby="ditl-ordre-description" />
 		<p class="description" id="ditl-ordre-description"><?php echo esc_html( ditl_boite_termes_aide_champ( 'ordre', true ) ); ?></p>
 	</div>
+	<?php if ( '' !== $taxonomies[ $taxonomie ]['famille'] ) : ?>
+		<div class="form-field term-ditl-famille-wrap">
+			<label for="ditl-famille"><?php esc_html_e( 'Famille de métiers', 'ditl' ); ?></label>
+			<?php ditl_boite_termes_champ_famille( $taxonomie, '', ditl_ml_langue_courante() ); ?>
+			<p class="description" id="ditl-famille-description"><?php echo esc_html( ditl_boite_termes_aide_champ( 'famille', true ) ); ?></p>
+		</div>
+	<?php endif; ?>
 	<?php if ( $taxonomies[ $taxonomie ]['couleur'] ) : ?>
 		<div class="form-field term-ditl-couleur-wrap">
 			<label for="ditl-couleur"><?php esc_html_e( 'Couleur du badge', 'ditl' ); ?></label>
@@ -408,6 +563,7 @@ function ditl_boite_termes_champs_edition( $terme, $taxonomie ) {
 	$code    = ditl_boite_termes_valeur_groupe( $terme->term_id, '_ditl_code' );
 	$ordre   = ditl_boite_termes_valeur_groupe( $terme->term_id, '_ditl_ordre' );
 	$couleur = ditl_boite_termes_valeur_groupe( $terme->term_id, '_ditl_couleur' );
+	$famille = ditl_boite_termes_valeur_groupe( $terme->term_id, '_ditl_famille' );
 
 	?>
 	<tr class="form-field term-ditl-code-wrap">
@@ -425,6 +581,15 @@ function ditl_boite_termes_champs_edition( $terme, $taxonomie ) {
 			<p class="description" id="ditl-ordre-description"><?php echo esc_html( ditl_boite_termes_aide_champ( 'ordre', false ) ); ?></p>
 		</td>
 	</tr>
+	<?php if ( '' !== $taxonomies[ $taxonomie ]['famille'] ) : ?>
+		<tr class="form-field term-ditl-famille-wrap">
+			<th scope="row"><label for="ditl-famille"><?php esc_html_e( 'Famille de métiers', 'ditl' ); ?></label></th>
+			<td>
+				<?php ditl_boite_termes_champ_famille( $taxonomie, null !== $famille ? $famille : '', ditl_ml_langue_terme( $terme->term_id ) ); ?>
+				<p class="description" id="ditl-famille-description"><?php echo esc_html( ditl_boite_termes_aide_champ( 'famille', false ) ); ?></p>
+			</td>
+		</tr>
+	<?php endif; ?>
 	<?php if ( $taxonomies[ $taxonomie ]['couleur'] ) : ?>
 		<tr class="form-field term-ditl-couleur-wrap">
 			<th scope="row"><label for="ditl-couleur"><?php esc_html_e( 'Couleur du badge', 'ditl' ); ?></label></th>
@@ -572,6 +737,176 @@ function ditl_boite_termes_enregistrer_code( $term_id, $taxonomie, $creation ) {
 	}
 
 	update_term_meta( $term_id, '_ditl_code', $code_saisi );
+
+	if ( '' !== $code_actuel ) {
+		ditl_boite_termes_renommer_famille( $term_id, $taxonomie, $code_actuel, $code_saisi );
+	}
+}
+
+/**
+ * Reporte le changement de code d'une famille (terme de niveau 1 d'une
+ * taxonomie de famille du registre) sur les termes qui y sont rattaches,
+ * dans toutes les langues : le rattachement est enregistre par code.
+ *
+ * @param int    $term_id   ID du terme dont le code a change.
+ * @param string $taxonomie Taxonomie du terme.
+ * @param string $ancien    Ancien code.
+ * @param string $nouveau   Nouveau code.
+ */
+function ditl_boite_termes_renommer_famille( $term_id, $taxonomie, $ancien, $nouveau ) {
+	$terme = get_term( $term_id, $taxonomie );
+
+	if ( ! $terme instanceof WP_Term || 0 !== (int) $terme->parent || '' === $ancien || '' === $nouveau ) {
+		return;
+	}
+
+	$total  = 0;
+	$limite = false;
+
+	// Langues du groupe de traductions de la famille : un code n'est unique
+	// qu'a l'interieur de ce groupe, une famille homonyme d'une autre langue
+	// non reliee garde ses rattachements. Sans extension multilingue : aucune
+	// restriction.
+	$langues = array();
+
+	foreach ( array_merge( array( (int) $term_id ), array_values( ditl_boite_termes_traductions( $term_id ) ) ) as $id_groupe ) {
+		$langue = ditl_ml_langue_terme( $id_groupe );
+
+		if ( '' !== $langue ) {
+			$langues[ $langue ] = true;
+		}
+	}
+
+	foreach ( array_keys( ditl_boite_taxonomies() ) as $rattachee ) {
+		if ( ditl_boite_taxonomie_famille( $rattachee ) !== $taxonomie ) {
+			continue;
+		}
+
+		$args = array(
+			'taxonomy'   => $rattachee,
+			'hide_empty' => false,
+			'fields'     => 'ids',
+			'number'     => 500,
+			'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- referentiel de quelques dizaines de termes, ecran d'admin.
+				array(
+					'key'   => '_ditl_famille',
+					'value' => $ancien,
+				),
+			),
+		);
+
+		// Polylang : "lang" vide = toutes les langues.
+		if ( 'polylang' === ditl_ml_extension() ) {
+			$args['lang'] = '';
+		}
+
+		$ids = get_terms( $args );
+		$ids = is_array( $ids ) ? $ids : array();
+
+		if ( count( $ids ) >= 500 ) {
+			$limite = true;
+		}
+
+		// Cibles : les rattaches des langues de la famille, plus leurs
+		// traductions qui portent l'ancien code (une famille sans traduction
+		// dans une langue y garde ses rattaches ; les traductions d'un meme
+		// element doivent garder le meme code).
+		$cibles = array();
+
+		foreach ( $ids as $id ) {
+			$id = (int) $id;
+
+			if ( array() !== $langues && ! isset( $langues[ ditl_ml_langue_terme( $id ) ] ) ) {
+				continue;
+			}
+
+			$cibles[ $id ] = true;
+
+			foreach ( ditl_boite_termes_traductions( $id ) as $traduction_id ) {
+				if ( $ancien === (string) get_term_meta( $traduction_id, '_ditl_famille', true ) ) {
+					$cibles[ (int) $traduction_id ] = true;
+				}
+			}
+		}
+
+		foreach ( array_keys( $cibles ) as $id ) {
+			update_term_meta( (int) $id, '_ditl_famille', $nouveau );
+			++$total;
+		}
+	}
+
+	if ( $limite ) {
+		ditl_boite_admin_avertir(
+			sprintf(
+				/* translators: %s : ancien code de la famille. */
+				__( 'Plus de 500 éléments étaient rattachés à la famille « %s » : seuls les 500 premiers ont été mis à jour, vérifiez la famille des autres.', 'ditl' ),
+				$ancien
+			)
+		);
+	}
+
+	if ( $total > 0 ) {
+		ditl_boite_admin_avertir(
+			sprintf(
+				/* translators: 1 : nombre d'elements, 2 : ancien code, 3 : nouveau code. */
+				_n( '%1$s élément rattaché à la famille « %2$s » a été rattaché au nouveau code « %3$s ».', '%1$s éléments rattachés à la famille « %2$s » ont été rattachés au nouveau code « %3$s ».', $total, 'ditl' ),
+				number_format_i18n( $total ),
+				$ancien,
+				$nouveau
+			)
+		);
+	}
+}
+
+/**
+ * Enregistre la famille de rattachement d'un terme (taxonomies dont le
+ * registre declare une famille).
+ *
+ * Code controle contre la liste des familles (ditl_boite_termes_familles) :
+ * un code inconnu n'est pas enregistre. Champ vide a la creation : famille
+ * du groupe de traductions si elle existe. Un terme sans famille est
+ * signale (il n'apparait que dans le catalogue).
+ *
+ * @param int    $term_id   ID du terme.
+ * @param string $taxonomie Taxonomie du terme.
+ * @param bool   $creation  True a la creation du terme.
+ */
+function ditl_boite_termes_enregistrer_famille( $term_id, $taxonomie, $creation ) {
+	if ( '' === ditl_boite_taxonomie_famille( $taxonomie ) ) {
+		return;
+	}
+
+	$saisie = ditl_boite_termes_champ_poste( 'ditl_famille' );
+
+	if ( null === $saisie ) {
+		return;
+	}
+
+	$code     = ditl_boite_sanitize_code( $saisie );
+	$actuelle = ditl_boite_famille_terme( $term_id );
+
+	if ( '' === $code ) {
+		$groupe = $creation ? ditl_boite_termes_valeur_groupe( $term_id, '_ditl_famille' ) : null;
+		$code   = null !== $groupe ? ditl_boite_sanitize_code( $groupe ) : '';
+	} elseif ( ! array_key_exists( $code, ditl_boite_termes_familles( $taxonomie ) ) && $code !== $actuelle ) {
+		ditl_boite_admin_avertir(
+			sprintf(
+				/* translators: %s : code saisi. */
+				__( 'Famille « %s » introuvable dans la liste des familles de métiers : la famille n\'a pas été modifiée.', 'ditl' ),
+				$code
+			)
+		);
+
+		$code = $actuelle;
+	}
+
+	if ( $code !== $actuelle || ! metadata_exists( 'term', $term_id, '_ditl_famille' ) ) {
+		update_term_meta( $term_id, '_ditl_famille', $code );
+	}
+
+	if ( '' === $code ) {
+		ditl_boite_admin_avertir( __( 'Aucune famille de métiers choisie : ce métier n\'apparaîtra que dans « Voir tous les outils », jamais dans les filtres des résultats.', 'ditl' ) );
+	}
 }
 
 /**
@@ -718,17 +1053,20 @@ function ditl_boite_termes_enregistrer( $term_id, $taxonomie, $creation ) {
 
 	ditl_boite_termes_enregistrer_code( $term_id, $taxonomie, $creation );
 	ditl_boite_termes_enregistrer_ordre_couleur( $term_id, $taxonomie, $creation );
+	ditl_boite_termes_enregistrer_famille( $term_id, $taxonomie, $creation );
 	ditl_boite_termes_propager( $term_id, $taxonomie );
 }
 
 /**
- * Recopie le code, l'ordre et la couleur d'un terme sur ses traductions.
+ * Recopie le code, l'ordre, la couleur et la famille d'un terme sur ses
+ * traductions.
  *
  * Ces valeurs sont identiques dans toutes les langues. La synchronisation
  * automatique de Polylang est coupee (voir ditl_boite_polylang_metas_termes
  * dans modele.php) : la recopie se fait ici, depuis les formulaires de la
  * boite uniquement, valeur par valeur. Un code vide n'est jamais recopie ;
- * une couleur videe volontairement l'est (retrait dans toutes les langues).
+ * une couleur ou une famille videe volontairement l'est (retrait dans toutes
+ * les langues).
  * Le code enregistre a deja ete controle dans les langues des traductions
  * (ditl_boite_termes_doublons_code).
  *
@@ -741,6 +1079,10 @@ function ditl_boite_termes_propager( $term_id, $taxonomie ) {
 
 	if ( ! empty( $taxonomies[ $taxonomie ]['couleur'] ) ) {
 		$cles[] = '_ditl_couleur';
+	}
+
+	if ( ! empty( $taxonomies[ $taxonomie ]['famille'] ) ) {
+		$cles[] = '_ditl_famille';
 	}
 
 	foreach ( ditl_boite_termes_traductions( $term_id ) as $traduction_id ) {
@@ -1081,6 +1423,23 @@ function ditl_boite_termes_colonnes_couleur( $colonnes ) {
 }
 
 /**
+ * Colonnes Code, Ordre et Famille (metiers).
+ *
+ * @param array $colonnes Colonnes existantes.
+ * @return array Colonnes completees.
+ */
+function ditl_boite_termes_colonnes_famille( $colonnes ) {
+	return ditl_boite_termes_inserer_colonnes(
+		$colonnes,
+		array(
+			'ditl_code'    => __( 'Code', 'ditl' ),
+			'ditl_ordre'   => __( 'Ordre', 'ditl' ),
+			'ditl_famille' => __( 'Famille', 'ditl' ),
+		)
+	);
+}
+
+/**
  * Colonne Ordre triable.
  *
  * @param array $colonnes Colonnes triables.
@@ -1112,6 +1471,24 @@ function ditl_boite_termes_colonne_contenu( $contenu, $colonne, $term_id ) {
 
 	if ( 'ditl_ordre' === $colonne ) {
 		return esc_html( (string) ditl_boite_sanitize_ordre( get_term_meta( $term_id, '_ditl_ordre', true ) ) );
+	}
+
+	if ( 'ditl_famille' === $colonne ) {
+		$terme = get_term( $term_id );
+		$code  = ditl_boite_famille_terme( $term_id );
+
+		if ( '' === $code || ! $terme instanceof WP_Term ) {
+			return sprintf( $vide, esc_html__( 'Aucune famille', 'ditl' ) );
+		}
+
+		$familles = ditl_boite_termes_familles( $terme->taxonomy, ditl_ml_langue_terme( $term_id ) );
+
+		if ( ! isset( $familles[ $code ] ) ) {
+			/* translators: %s : code de la famille enregistree. */
+			return esc_html( sprintf( __( '%s (famille introuvable)', 'ditl' ), $code ) );
+		}
+
+		return esc_html( $familles[ $code ] ) . ' <code>' . esc_html( $code ) . '</code>';
 	}
 
 	if ( 'ditl_couleur' === $colonne ) {

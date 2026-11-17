@@ -414,7 +414,7 @@ function ditl_import_admin_accueil() {
 
 	<h2><?php esc_html_e( 'Mode d\'emploi', 'ditl' ); ?></h2>
 	<ol class="ditl-import-aide">
-		<li><?php esc_html_e( 'Importer d\'abord les RÉFÉRENTIELS (listes de choix : types, sous-types, difficultés, empêchements, métiers, tâches, environnements, avec leurs libellés dans chaque langue). Les fiches y font référence par leurs codes.', 'ditl' ); ?></li>
+		<li><?php esc_html_e( 'Importer d\'abord les RÉFÉRENTIELS (listes de choix : types, sous-types, difficultés, empêchements, familles de métiers et tâches, métiers rattachés à leur famille, environnements, avec leurs libellés dans chaque langue). Les fiches y font référence par leurs codes.', 'ditl' ); ?></li>
 		<li><?php esc_html_e( 'Préparer les IMAGES : soit une archive .zip envoyée avec le fichier de fiches, soit (archive trop lourde) un dépôt préalable par la Médiathèque, sous le nom de fichier indiqué dans la colonne image. L\'image est facultative : une cellule image vide laisse l\'illustration de la fiche inchangée (une image se retire dans l\'administration). Les images manquantes peuvent être ajoutées plus tard : compléter les colonnes image et image_alt (texte alternatif) du même fichier et relancer l\'import.', 'ditl' ); ?></li>
 		<li><?php esc_html_e( 'Importer enfin les FICHES. Chaque envoi commence par une analyse complète sans aucune écriture : l\'import ne se lance qu\'après lecture du rapport.', 'ditl' ); ?></li>
 	</ol>

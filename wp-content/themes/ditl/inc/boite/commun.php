@@ -28,6 +28,9 @@
  * - une cle par etape (metier, tache, difficulte, empechement) = code neutre
  *   du terme choisi, identique dans toutes les langues ;
  * - env[]  : codes des environnements coches dans les filtres ;
+ * - poste[] : codes des metiers (taxonomie ditl_poste) coches dans les
+ *            filtres ; "poste" et non "metier", deja pris par l'etape 1
+ *            (famille de metiers) ;
  * - vue    : "resultats" ou "catalogue" (absent = questionnaire) ;
  * - etape  : cle d'une etape deja repondue a afficher pour la modifier ;
  * - pg     : numero de page des resultats.
@@ -48,6 +51,7 @@ define( 'DITL_TPL_BOITE', 'page-templates/boite-a-outils.php' );
 define( 'DITL_BOITE_PARAM_VUE', 'vue' );
 define( 'DITL_BOITE_PARAM_ETAPE', 'etape' );
 define( 'DITL_BOITE_PARAM_ENV', 'env' );
+define( 'DITL_BOITE_PARAM_POSTE', 'poste' );
 define( 'DITL_BOITE_PARAM_PAGE', 'pg' );
 
 /**
@@ -79,6 +83,36 @@ function ditl_boite_etapes() {
 			'taxonomie' => 'ditl_aptitude',
 			'niveau'    => 2,
 			'parent'    => 'difficulte',
+		),
+	);
+}
+
+/**
+ * Groupes de filtres des resultats et du catalogue, dans l'ordre
+ * d'affichage et d'ecriture dans l'URL : un groupe de cases a cocher par
+ * taxonomie. Logique : OU entre les choix d'un groupe, ET entre les groupes.
+ *
+ * Cles de chaque groupe :
+ * - taxonomie : taxonomie de la boite a outils (liste simple) ;
+ * - cle       : cle du parcours portant les termes coches
+ *               (ditl_boite_lire_parcours) ;
+ * - famille   : cle de l'etape dont la reponse limite les choix aux termes
+ *               de cette famille (meta _ditl_famille), hors catalogue ; ''
+ *               sans limitation.
+ *
+ * @return array Tableau [parametre d'URL => {taxonomie, cle, famille}].
+ */
+function ditl_boite_filtres() {
+	return array(
+		DITL_BOITE_PARAM_ENV   => array(
+			'taxonomie' => 'ditl_environnement',
+			'cle'       => 'environnements',
+			'famille'   => '',
+		),
+		DITL_BOITE_PARAM_POSTE => array(
+			'taxonomie' => 'ditl_poste',
+			'cle'       => 'postes',
+			'famille'   => 'metier',
 		),
 	);
 }

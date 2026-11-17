@@ -10,8 +10,10 @@
  * disponible). Puis H1, etiquettes (types de compensation, sous-type),
  * illustration, "Apport de la compensation"
  * (contenu), "Points de vigilance", colonne "Informations" (rubriques vides
- * non rendues), carrousel "Explorer mes autres outils"
- * (ditl_boite_autres_fiches, sans defilement automatique).
+ * non rendues ; rubrique "Metiers" : badges cliquables vers "Voir tous les
+ * outils" filtre sur ce metier, avenant du 17/11/2026), carrousel "Explorer
+ * mes autres outils" (ditl_boite_autres_fiches, sans defilement
+ * automatique).
  *
  * PROVISOIRE (a valider, Access42 laisse le choix) : la colonne
  * "Informations" est placee APRES le corps de la fiche dans le DOM ; elle
@@ -80,6 +82,7 @@ get_header(); ?>
 				$ditl_aptitudes  = ditl_boite_front_termes_fiche( $ditl_post_id, 'ditl_aptitude' );
 				$ditl_types_comp = ditl_boite_front_termes_fiche( $ditl_post_id, 'ditl_type_compensation' );
 				$ditl_envs       = ditl_boite_front_termes_fiche( $ditl_post_id, 'ditl_environnement' );
+				$ditl_postes     = ditl_boite_front_termes_fiche( $ditl_post_id, 'ditl_poste' );
 				$ditl_autres     = ditl_boite_front_autres_fiches();
 
 				// Aptitudes : difficultes (niveau 1) et leurs empechements coches.
@@ -143,7 +146,7 @@ get_header(); ?>
 				}
 
 				// Colonne "Informations" rendue seulement si une rubrique a du contenu.
-				$ditl_a_infos = array() !== $ditl_types_comp || array() !== $ditl_difficultes || '' !== $ditl_apt_texte || array() !== $ditl_envs || array() !== $ditl_liste_fabricants || '' !== trim( wp_strip_all_tags( $ditl_descriptif ) ) || array() !== $ditl_liste_sources;
+				$ditl_a_infos = array() !== $ditl_types_comp || array() !== $ditl_difficultes || '' !== $ditl_apt_texte || array() !== $ditl_postes || array() !== $ditl_envs || array() !== $ditl_liste_fabricants || '' !== trim( wp_strip_all_tags( $ditl_descriptif ) ) || array() !== $ditl_liste_sources;
 
 				$ditl_contenu = apply_filters( 'the_content', get_the_content() ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- filtre du coeur.
 
@@ -303,6 +306,16 @@ get_header(); ?>
 												<?php if ( '' !== $ditl_apt_texte ) { ?>
 												<p><?php echo nl2br( esc_html( $ditl_apt_texte ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- texte echappe, seuls les br sont ajoutes. ?></p>
 												<?php } ?>
+											</div>
+										</div>
+										<?php } ?>
+
+										<?php if ( array() !== $ditl_postes ) { ?>
+										<div class="ditl-fiche__rubrique">
+											<?php echo ditl_boite_front_icone( 'metier' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
+											<div class="ditl-fiche__rubrique-corps">
+												<h3 class="ditl-fiche__rubrique-titre"><?php echo esc_html( _n( 'Métier', 'Métiers', count( $ditl_postes ), 'ditl' ) ); ?></h3>
+												<?php ditl_boite_front_badges_postes( $ditl_post_id ); ?>
 											</div>
 										</div>
 										<?php } ?>

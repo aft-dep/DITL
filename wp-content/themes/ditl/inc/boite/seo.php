@@ -5,7 +5,7 @@
  * Page Boite a outils SANS parametre du parcours : rien ne change (titre,
  * robots et canonical habituels : c'est la seule URL a indexer).
  *
- * Page Boite a outils AVEC au moins un parametre du parcours (etapes, env,
+ * Page Boite a outils AVEC au moins un parametre du parcours (etapes, env, poste,
  * vue, etape, pg), meme vide :
  * - meta robots "noindex, follow" : les combinaisons de reponses et de
  *   filtres ne doivent pas encombrer l'index, les liens vers les fiches

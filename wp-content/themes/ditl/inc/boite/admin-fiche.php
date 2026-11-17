@@ -13,8 +13,9 @@
  *   texte alternatif de l'illustration. Contrat des metas : modele.php ;
  * - metaboxes des taxonomies : cases a cocher natives, arbre conserve (les
  *   termes coches ne remontent pas en tete), rappel de la regle de marquage
- *   sous les taxonomies a niveaux, champ "Parent" de l'ajout rapide limite
- *   au premier niveau (masque pour les listes simples).
+ *   sous les taxonomies a niveaux et sous les metiers (lien avec la famille),
+ *   champ "Parent" de l'ajout rapide limite au premier niveau (masque pour
+ *   les listes simples).
  *
  * Elements communs (utilises aussi par admin-termes.php et admin-page.php) :
  * - avertissements differes (transient par utilisateur, affiches une fois) ;
@@ -359,11 +360,16 @@ add_filter( 'post_edit_category_parent_dropdown_args', 'ditl_boite_fiche_parent_
  * Rappel de la regle de marquage d'une taxonomie a niveaux.
  *
  * @param string $taxonomie Taxonomie de la boite a outils.
- * @return string Texte d'aide (vide pour une liste simple).
+ * @return string Texte d'aide (vide pour une liste simple sans regle
+ *                particuliere).
  */
 function ditl_boite_fiche_aide_marquage( $taxonomie ) {
 	if ( 'ditl_metier' === $taxonomie ) {
-		return __( 'Cochez la tâche la plus précise. Un métier coché seul, sans tâche, vaut pour toutes ses tâches.', 'ditl' );
+		return __( 'Cochez la tâche la plus précise. Une famille de métiers cochée seule, sans tâche, vaut pour toutes ses tâches.', 'ditl' );
+	}
+
+	if ( 'ditl_poste' === $taxonomie ) {
+		return __( 'Cochez les métiers concernés (filtre « Métiers » et badges de la fiche). Les résultats ne proposent que les métiers de la famille choisie : cochez aussi cette famille, ou une de ses tâches, dans « Familles de métiers et tâches ».', 'ditl' );
 	}
 
 	if ( 'ditl_aptitude' === $taxonomie ) {

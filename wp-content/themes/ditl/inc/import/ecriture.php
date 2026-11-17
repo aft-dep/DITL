@@ -45,7 +45,8 @@
  * remplacee par UNE purge en fin de lot si une fiche publiee a ete ecrite.
  *
  * Referentiels : un terme par langue active (slug "{code}-{lang}"), metas
- * _ditl_code / _ditl_couleur / _ditl_ordre posees dans CHAQUE langue (elles
+ * _ditl_code / _ditl_couleur / _ditl_ordre / _ditl_famille (metiers, si la
+ * colonne famille est presente) posees dans CHAQUE langue (elles
  * ne sont pas synchronisees entre traductions), marqueur _ditl_import_terme
  * sur tout terme cree ou mis a jour, parent = terme du code parent dans la
  * meme langue, traductions liees ; jamais de suppression.
@@ -1165,6 +1166,7 @@ function ditl_import_traiter_referentiel( $ligne, $simulation ) {
 	$taxonomie    = $ligne['taxonomie'];
 	$definitions  = ditl_boite_taxonomies();
 	$a_couleur    = ! empty( $definitions[ $taxonomie ]['couleur'] );
+	$a_famille    = ! empty( $definitions[ $taxonomie ]['famille'] );
 	$creations    = 0;
 	$mises_a_jour = 0;
 	$termes       = array();
@@ -1194,6 +1196,10 @@ function ditl_import_traiter_referentiel( $ligne, $simulation ) {
 
 		if ( $a_couleur && null !== $ligne['couleur'] ) {
 			$metas['_ditl_couleur'] = $ligne['couleur'];
+		}
+
+		if ( $a_famille && isset( $ligne['famille'] ) && null !== $ligne['famille'] ) {
+			$metas['_ditl_famille'] = $ligne['famille'];
 		}
 
 		if ( ! $terme instanceof WP_Term ) {
@@ -1531,7 +1537,7 @@ function ditl_import_purger_referentiels( $simulation ) {
  */
 function ditl_import_exporter_referentiels() {
 	$langues = ditl_ml_langues();
-	$entetes = array_merge( array( 'taxonomie', 'code', 'parent', 'couleur', 'ordre' ), $langues );
+	$entetes = array_merge( array( 'taxonomie', 'code', 'parent', 'famille', 'couleur', 'ordre' ), $langues );
 	$lignes  = array();
 
 	foreach ( ditl_import_taxonomies() as $taxonomie ) {
@@ -1559,6 +1565,7 @@ function ditl_import_exporter_referentiels() {
 					$codes[ $code ] = array(
 						'niveau'   => '' === $parent ? 1 : 2,
 						'parent'   => $parent,
+						'famille'  => ditl_boite_famille_terme( $terme ),
 						'couleur'  => (string) get_term_meta( $terme->term_id, '_ditl_couleur', true ),
 						'ordre'    => (int) get_term_meta( $terme->term_id, '_ditl_ordre', true ),
 						'libelles' => array(),
@@ -1580,7 +1587,7 @@ function ditl_import_exporter_referentiels() {
 		);
 
 		foreach ( $codes as $code => $infos ) {
-			$ligne = array( ditl_import_nom_liste( $taxonomie, $infos['niveau'] ), $code, $infos['parent'], $infos['couleur'], (string) $infos['ordre'] );
+			$ligne = array( ditl_import_nom_liste( $taxonomie, $infos['niveau'] ), $code, $infos['parent'], $infos['famille'], $infos['couleur'], (string) $infos['ordre'] );
 
 			foreach ( $langues as $lang ) {
 				$ligne[] = isset( $infos['libelles'][ $lang ] ) ? $infos['libelles'][ $lang ] : '';

@@ -7,9 +7,11 @@
  * en une passe, avec un rapport ligne par ligne puis un recapitulatif.
  *
  * Deux fichiers (format detaille dans inc/import/schema.php) :
- * - referentiels : taxonomie;code;parent;couleur;fr;en;de;es;pt (+ ordre
- *   optionnel). Un terme par langue active, slug "{code}-{lang}", metas
- *   _ditl_code / _ditl_couleur / _ditl_ordre posees dans chaque langue,
+ * - referentiels : taxonomie;code;parent;couleur;fr;en;de;es;pt (+ ordre et
+ *   famille optionnels ; famille = code de la famille de metiers d'une ligne
+ *   de la liste "poste"). Un terme par langue active, slug "{code}-{lang}",
+ *   metas _ditl_code / _ditl_couleur / _ditl_ordre / _ditl_famille posees
+ *   dans chaque langue,
  *   marqueur _ditl_import_terme, traductions liees. Jamais de suppression
  *   d'un terme absent du fichier. Un fichier exporte depuis l'ecran
  *   d'administration se reimporte tel quel (neutralisation des formules

@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: DiTL\n"
-"PO-Revision-Date: 2026-11-17 12:00+0000\n"
+"PO-Revision-Date: 2026-11-17 18:00+0000\n"
 "Last-Translator: DiTL\n"
 "Language-Team: Português\n"
 "Language: pt_PT\n"
@@ -58,186 +58,182 @@ msgid "Revenir à la page d'accueil"
 msgstr "Voltar à página inicial"
 
 #. translators: %d : numero d'ordre du fabricant.
-#: inc/boite/admin-fiche.php:232
+#: inc/boite/admin-fiche.php:233
 #, php-format
 msgid "Fabricant %d"
 msgstr ""
 
 #. translators: %d : numero d'ordre du fabricant.
-#: inc/boite/admin-fiche.php:234
+#: inc/boite/admin-fiche.php:235
 #, php-format
 msgid "Monter le fabricant %d"
 msgstr ""
 
 #. translators: %d : numero d'ordre du fabricant.
-#: inc/boite/admin-fiche.php:236
+#: inc/boite/admin-fiche.php:237
 #, php-format
 msgid "Descendre le fabricant %d"
 msgstr ""
 
 #. translators: %d : numero d'ordre du fabricant.
-#: inc/boite/admin-fiche.php:238
+#: inc/boite/admin-fiche.php:239
 #, php-format
 msgid "Supprimer le fabricant %d"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:239
+#: inc/boite/admin-fiche.php:240
 msgid "Ligne de fabricant ajoutée."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:240
+#: inc/boite/admin-fiche.php:241
 msgid "Fabricant retiré."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:241
+#: inc/boite/admin-fiche.php:242
 msgid "Fabricant déplacé."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:242
+#: inc/boite/admin-fiche.php:243
 msgid "Nombre maximal de fabricants atteint."
 msgstr ""
 
 #. translators: 1 : ratio de contraste (ex. 8,59), 2 : couleur du texte (ex. texte noir).
-#: inc/boite/admin-fiche.php:244
-#: inc/boite/admin-termes.php:306
+#: inc/boite/admin-fiche.php:245
+#: inc/boite/admin-termes.php:443
 #, php-format
 msgid "Contraste du texte : %1$s:1 (%2$s, choisi automatiquement)."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:245
-#: inc/boite/admin-termes.php:299
+#: inc/boite/admin-fiche.php:246
+#: inc/boite/admin-termes.php:436
 msgid "texte bleu de la charte"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:246
-#: inc/boite/admin-termes.php:300
+#: inc/boite/admin-fiche.php:247
+#: inc/boite/admin-termes.php:437
 msgid "texte blanc"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:247
-#: inc/boite/admin-termes.php:301
+#: inc/boite/admin-fiche.php:248
+#: inc/boite/admin-termes.php:438
 msgid "texte noir"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:248
-#: inc/boite/admin-termes.php:294
+#: inc/boite/admin-fiche.php:249
+#: inc/boite/admin-termes.php:431
 msgid "Aucune couleur : le badge garde le style par défaut."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:249
+#: inc/boite/admin-fiche.php:250
 msgid "Couleur non valide : saisir un code hexadécimal, ex. #00b0cf."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:250
-#: inc/boite/admin-termes.php:385
+#: inc/boite/admin-fiche.php:251
+#: inc/boite/admin-termes.php:533
 msgid "Exemple"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:288
+#: inc/boite/admin-fiche.php:289
 msgid "Nom de l'outil (ex. Rallonges de pédales)"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:307
-#: single-ditl_ressource.php:241
+#: inc/boite/admin-fiche.php:308
+#: single-ditl_ressource.php:244
 msgid "Apport de la compensation"
 msgstr "Contributo da compensação"
 
-#: inc/boite/admin-fiche.php:308
+#: inc/boite/admin-fiche.php:309
 msgid "Texte principal de la fiche : ce que l'outil apporte à la personne et dans quelle situation il l'aide. Les autres rubriques se remplissent dans le bloc « Informations de la fiche », sous l'éditeur."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:366
-msgid "Cochez la tâche la plus précise. Un métier coché seul, sans tâche, vaut pour toutes ses tâches."
-msgstr ""
-
-#: inc/boite/admin-fiche.php:370
+#: inc/boite/admin-fiche.php:376
 msgid "Cochez l'empêchement le plus précis. Une difficulté cochée seule, sans empêchement, vaut pour tous ses empêchements."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:376
+#: inc/boite/admin-fiche.php:382
 msgid "Cochez l'élément le plus précis. Un élément de premier niveau coché seul vaut pour tous ses sous-éléments."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:460
+#: inc/boite/admin-fiche.php:466
 msgid "Informations de la fiche"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:508
+#: inc/boite/admin-fiche.php:514
 msgid "Nom du fabricant"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:512
+#: inc/boite/admin-fiche.php:518
 msgid "Site web (adresse)"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:516
+#: inc/boite/admin-fiche.php:522
 msgid "Monter"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:517
+#: inc/boite/admin-fiche.php:523
 msgid "Descendre"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:518
+#: inc/boite/admin-fiche.php:524
 msgid "Supprimer"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:546
+#: inc/boite/admin-fiche.php:552
 msgid "Aptitude concernée (phrase)"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:548
+#: inc/boite/admin-fiche.php:554
 msgid "Phrase affichée dans le bloc « Informations » de la fiche, ex. « Compréhension écrite (lecture) mais également visuelle ». Texte simple."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:552
-#: single-ditl_ressource.php:347
+#: inc/boite/admin-fiche.php:558
+#: single-ditl_ressource.php:360
 msgid "Descriptif technique"
 msgstr "Descrição técnica"
 
-#: inc/boite/admin-fiche.php:554
+#: inc/boite/admin-fiche.php:560
 msgid "Fonctionnement et caractéristiques de l'outil, affichés dans le bloc « Informations ». Mise en forme : gras, italique, listes, liens."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:558
-#: single-ditl_ressource.php:253
+#: inc/boite/admin-fiche.php:564
+#: single-ditl_ressource.php:256
 msgid "Points de vigilance"
 msgstr "Pontos de atenção"
 
-#: inc/boite/admin-fiche.php:560
+#: inc/boite/admin-fiche.php:566
 msgid "Précautions, limites et conditions de mise en place de l'outil. Mise en forme : gras, italique, listes, liens."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:564
+#: inc/boite/admin-fiche.php:570
 msgid "Fabricants"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:565
+#: inc/boite/admin-fiche.php:571
 msgid "Nom et site web de chaque fabricant ou distributeur, dans l'ordre d'affichage. Une ligne laissée vide est ignorée."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:571
+#: inc/boite/admin-fiche.php:577
 msgid "Ajouter un fabricant"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:578
+#: inc/boite/admin-fiche.php:584
 msgid "Sources"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:580
+#: inc/boite/admin-fiche.php:586
 msgid "Une adresse web par ligne (https://...). Les lignes vides sont ignorées ; une adresse non valide est signalée et n'est pas enregistrée."
 msgstr ""
 
-#: inc/boite/admin-fiche.php:584
+#: inc/boite/admin-fiche.php:590
 msgid "Texte alternatif de l'illustration"
 msgstr ""
 
-#: inc/boite/admin-fiche.php:586
+#: inc/boite/admin-fiche.php:592
 msgid "Décrit l'illustration (bloc « Illustration de la fiche ») pour les personnes qui ne la voient pas. Laisser vide si l'image est purement décorative ; à traduire dans chaque langue."
 msgstr ""
 
 #. translators: %s : liste des adresses refusees.
-#: inc/boite/admin-fiche.php:789
+#: inc/boite/admin-fiche.php:795
 #, php-format
 msgid "Adresse(s) non valide(s), non enregistrée(s) : %s. Une adresse web commence par https:// ou http://."
 msgstr ""
@@ -312,417 +308,411 @@ msgstr ""
 msgid "Résultats et catalogue"
 msgstr ""
 
-#: inc/boite/admin-termes.php:78
+#: inc/boite/admin-termes.php:88
 msgid "Chaque élément est à créer dans toutes les langues du site et à relier à ses traductions : elles partagent le même code, l'ordre et la couleur."
 msgstr ""
 
 #. translators: 1 : code, 2 : liste des elements qui l'utilisent, 3 : conclusion.
-#: inc/boite/admin-termes.php:275
+#: inc/boite/admin-termes.php:287
 #, php-format
 msgid "Le code « %1$s » est déjà utilisé par %2$s dans cette liste. %3$s"
 msgstr ""
 
-#: inc/boite/admin-termes.php:324
+#: inc/boite/admin-termes.php:461
 msgid "Choisir la couleur dans la palette"
 msgstr ""
 
-#: inc/boite/admin-termes.php:342
+#: inc/boite/admin-termes.php:479
 msgid "Identifiant neutre, identique dans toutes les langues, utilisé par l'import et les adresses du questionnaire. Minuscules, chiffres, « _ » et « - »."
 msgstr ""
 
-#: inc/boite/admin-termes.php:345
+#: inc/boite/admin-termes.php:482
 msgid "Laisser vide pour le remplir automatiquement (code de la traduction liée, sinon déduit du libellé)."
 msgstr ""
 
-#: inc/boite/admin-termes.php:346
+#: inc/boite/admin-termes.php:483
 msgid "À ne pas modifier une fois le site en ligne : les adresses déjà partagées et les statistiques en dépendent. Le changement s'applique aussi aux traductions."
 msgstr ""
 
-#: inc/boite/admin-termes.php:350
+#: inc/boite/admin-termes.php:487
 msgid "Rang dans les listes du questionnaire et des filtres : les plus petits nombres en premier, à égalité par ordre alphabétique. 0 par défaut."
 msgstr ""
 
-#: inc/boite/admin-termes.php:353
+#: inc/boite/admin-termes.php:494
 msgid "Code hexadécimal, ex. #00b0cf. Laisser vide : badge sans couleur. La couleur du texte (bleu de la charte, noir ou blanc) est choisie automatiquement pour rester lisible (contraste d'au moins 4,5:1)."
 msgstr ""
 
-#: inc/boite/admin-termes.php:373
-#: inc/boite/admin-termes.php:414
-#: inc/boite/admin-termes.php:1060
-#: inc/boite/admin-termes.php:1076
+#: inc/boite/admin-termes.php:514
+#: inc/boite/admin-termes.php:563
+#: inc/boite/admin-termes.php:1343
+#: inc/boite/admin-termes.php:1359
+#: inc/boite/admin-termes.php:1376
 msgid "Code"
 msgstr ""
 
-#: inc/boite/admin-termes.php:374
+#: inc/boite/admin-termes.php:515
 msgid "automatique"
 msgstr ""
 
-#: inc/boite/admin-termes.php:378
-#: inc/boite/admin-termes.php:422
+#: inc/boite/admin-termes.php:519
+#: inc/boite/admin-termes.php:571
 msgid "Ordre d'affichage"
 msgstr ""
 
-#: inc/boite/admin-termes.php:384
-#: inc/boite/admin-termes.php:430
+#: inc/boite/admin-termes.php:532
+#: inc/boite/admin-termes.php:588
 msgid "Couleur du badge"
 msgstr ""
 
 #. translators: 1 : code saisi, 2 : code retenu.
-#: inc/boite/admin-termes.php:503
+#: inc/boite/admin-termes.php:661
 #, php-format
 msgid "Le code « %1$s » a été normalisé en « %2$s » (minuscules, chiffres, « _ » et « - » uniquement)."
 msgstr ""
 
 #. translators: 1 : code saisi, 2 : code des traductions.
-#: inc/boite/admin-termes.php:517
+#: inc/boite/admin-termes.php:675
 #, php-format
 msgid "Le code « %1$s » n'a pas été retenu : une traduction porte le même code que l'élément d'origine (« %2$s »). Pour changer le code de tout le groupe, modifiez-le une fois l'élément créé."
 msgstr ""
 
-#: inc/boite/admin-termes.php:527
+#: inc/boite/admin-termes.php:685
 msgid "Il a tout de même été repris des traductions : corrigez le code de l'un des deux éléments."
 msgstr ""
 
 #. translators: %s : code conserve.
-#: inc/boite/admin-termes.php:545
+#: inc/boite/admin-termes.php:703
 #, php-format
 msgid "Le code ne peut pas être vidé : le code « %s » a été conservé."
 msgstr ""
 
-#: inc/boite/admin-termes.php:566
+#: inc/boite/admin-termes.php:724
 msgid "Il n'a pas été enregistré : un code automatique a été attribué, à vérifier dans la colonne Code."
 msgstr ""
 
-#: inc/boite/admin-termes.php:567
+#: inc/boite/admin-termes.php:725
 msgid "Il n'a pas été enregistré : l'ancien code est conservé."
 msgstr ""
 
 #. translators: %s : valeur saisie.
-#: inc/boite/admin-termes.php:600
+#: inc/boite/admin-termes.php:876
 #, php-format
 msgid "Ordre d'affichage non valide (« %s ») : 0 a été enregistré."
 msgstr ""
 
 #. translators: %s : valeur saisie.
-#: inc/boite/admin-termes.php:630
+#: inc/boite/admin-termes.php:906
 #, php-format
 msgid "Couleur non valide (« %s ») : saisir un code hexadécimal, ex. #00b0cf. La couleur n'a pas été modifiée."
 msgstr ""
 
-#: inc/boite/admin-termes.php:815
+#: inc/boite/admin-termes.php:1098
 msgid "Ce code a été déduit du libellé : modifiez-le sur l'un des deux éléments."
 msgstr ""
 
-#: inc/boite/admin-termes.php:838
+#: inc/boite/admin-termes.php:1121
 msgid "Élément ajouté, avec un avertissement :"
 msgstr ""
 
-#: inc/boite/admin-termes.php:892
+#: inc/boite/admin-termes.php:1175
 msgid "Cette liste n'a qu'un niveau : un élément ne peut pas avoir de parent."
 msgstr ""
 
-#: inc/boite/admin-termes.php:898
+#: inc/boite/admin-termes.php:1181
 msgid "Le parent choisi est déjà un élément de second niveau : choisissez un élément de premier niveau."
 msgstr ""
 
-#: inc/boite/admin-termes.php:914
+#: inc/boite/admin-termes.php:1197
 msgid "Cet élément a des sous-éléments : il ne peut pas être rattaché à un parent."
 msgstr ""
 
-#: inc/boite/admin-termes.php:972
+#: inc/boite/admin-termes.php:1255
 msgid "Le parent n'a pas été modifié."
 msgstr ""
 
-#: inc/boite/admin-termes.php:1061
-#: inc/boite/admin-termes.php:1077
+#: inc/boite/admin-termes.php:1344
+#: inc/boite/admin-termes.php:1360
+#: inc/boite/admin-termes.php:1377
 msgid "Ordre"
 msgstr ""
 
-#: inc/boite/admin-termes.php:1078
+#: inc/boite/admin-termes.php:1361
 msgid "Couleur"
 msgstr ""
 
-#: inc/boite/admin-termes.php:1110
+#: inc/boite/admin-termes.php:1410
 msgid "Aucun code"
 msgstr ""
 
-#: inc/boite/admin-termes.php:1121
+#: inc/boite/admin-termes.php:1439
 msgid "Aucune couleur"
 msgstr ""
 
-#: inc/boite/commun.php:94
-#: inc/boite/modele.php:132
+#: inc/boite/commun.php:128
+#: inc/boite/modele.php:184
 msgid "Boîte à outils"
 msgstr "Caixa de ferramentas"
 
-#: inc/boite/commun.php:97
+#: inc/boite/commun.php:131
+#: inc/boite/modele.php:133
+#: single-ditl_ressource.php:317
 msgid "Métier"
-msgstr "Profissão"
+msgid_plural "Métiers"
+msgstr[0] "Profissão"
+msgstr[1] "Profissões"
 
-#: inc/boite/commun.php:98
+#: inc/boite/commun.php:132
 msgid "Quel est le métier concerné par la situation ?"
 msgstr "Qual é a profissão envolvida na situação?"
 
-#: inc/boite/commun.php:99
+#: inc/boite/commun.php:133
 msgid "Vous avez repéré une situation de travail ou de formation qui pourrait nécessiter un aménagement. Sélectionnez le métier concerné puis laissez-vous guider par les questions d'exploration pour découvrir des adaptations possibles à mettre en œuvre."
 msgstr "Identificou uma situação de trabalho ou de formação que pode exigir uma adaptação. Selecione a profissão em causa e deixe-se guiar pelas perguntas de exploração para descobrir adaptações possíveis."
 
-#: inc/boite/commun.php:100
+#: inc/boite/commun.php:134
 msgid "Sélectionnez votre métier :"
 msgstr "Selecione a sua profissão:"
 
-#: inc/boite/commun.php:103
+#: inc/boite/commun.php:137
 msgid "Tâche"
 msgstr "Tarefa"
 
-#: inc/boite/commun.php:104
+#: inc/boite/commun.php:138
 msgid "Quelle tâche est concernée dans cette situation ?"
 msgstr "Que tarefa está envolvida nesta situação?"
 
-#: inc/boite/commun.php:105
+#: inc/boite/commun.php:139
 msgid "Le métier que vous avez choisi est composé de différentes tâches à réaliser. Dans cette étape, identifiez la tâche qui pose problème dans la situation concernée puis sélectionnez-la dans la liste proposée. Si plusieurs tâches sont concernées, il sera nécessaire de réaliser plusieurs recherches."
 msgstr "A profissão escolhida é composta por diferentes tarefas. Nesta etapa, identifique a tarefa que coloca dificuldades na situação em causa e selecione-a na lista proposta. Se estiverem envolvidas várias tarefas, será necessário fazer várias pesquisas."
 
-#: inc/boite/commun.php:106
+#: inc/boite/commun.php:140
 msgid "Sélectionnez votre tâche :"
 msgstr "Selecione a sua tarefa:"
 
-#: inc/boite/commun.php:109
+#: inc/boite/commun.php:143
 msgid "Difficulté"
 msgstr "Dificuldade"
 
-#: inc/boite/commun.php:110
+#: inc/boite/commun.php:144
 msgid "Quelle difficulté d'aptitude impacte la réalisation de cette tâche ?"
 msgstr "Que dificuldade de aptidão afeta a realização desta tarefa?"
 
-#: inc/boite/commun.php:114
+#: inc/boite/commun.php:148
 msgid "Une difficulté d'aptitude correspond à une limitation de la capacité à accomplir une tâche. Il est possible que plusieurs aptitudes viennent impacter une même tâche : il sera alors nécessaire de réaliser plusieurs recherches (une par aptitude concernée)."
 msgstr "Uma dificuldade de aptidão corresponde a uma limitação da capacidade de realizar uma tarefa. É possível que várias aptidões afetem uma mesma tarefa: nesse caso, será necessário fazer várias pesquisas (uma por cada aptidão em causa)."
 
-#: inc/boite/commun.php:119
+#: inc/boite/commun.php:153
 msgid "Sélectionnez votre difficulté d'aptitude :"
 msgstr "Selecione a dificuldade de aptidão:"
 
-#: inc/boite/commun.php:122
+#: inc/boite/commun.php:156
 msgid "Empêchement"
 msgstr "Impedimento"
 
-#: inc/boite/commun.php:123
+#: inc/boite/commun.php:157
 msgid "Comment ou où cela se manifeste-t-il ?"
 msgstr "Como ou onde se manifesta?"
 
-#: inc/boite/commun.php:124
+#: inc/boite/commun.php:158
 msgid "Cette liste permet de préciser l'aptitude concernée par la difficulté dans la réalisation de la tâche."
 msgstr "Esta lista permite especificar a aptidão afetada pela dificuldade na realização da tarefa."
 
-#: inc/boite/commun.php:125
+#: inc/boite/commun.php:159
 msgid "Sélectionnez votre empêchement :"
 msgstr "Selecione o impedimento:"
 
-#: inc/boite/commun.php:128
+#: inc/boite/commun.php:162
 msgid "Vos solutions"
 msgstr "As suas soluções"
 
-#: inc/boite/commun.php:129
+#: inc/boite/commun.php:163
 msgid "Vos outils"
 msgstr "As suas ferramentas"
 
-#: inc/boite/commun.php:130
+#: inc/boite/commun.php:164
 msgid "Votre profil"
 msgstr "O seu perfil"
 
-#: inc/boite/commun.php:131
+#: inc/boite/commun.php:165
 msgid "Filtrer les outils"
 msgstr "Filtrar as ferramentas"
 
-#: inc/boite/commun.php:132
+#: inc/boite/commun.php:166
 msgid "Aucun outil ne correspond à cette situation pour le moment. Vous pouvez modifier une de vos réponses ou consulter tous les outils."
 msgstr "De momento, nenhuma ferramenta corresponde a esta situação. Pode alterar uma das suas respostas ou consultar todas as ferramentas."
 
-#: inc/boite/commun.php:133
+#: inc/boite/commun.php:167
 msgid "Tous les outils"
 msgstr "Todas as ferramentas"
 
-#: inc/boite/front.php:452
-#: inc/boite/modele.php:92
-#: single-ditl_ressource.php:314
+#: inc/boite/front.php:456
+#: inc/boite/modele.php:109
+#: single-ditl_ressource.php:327
 msgid "Environnement"
 msgid_plural "Environnements"
 msgstr[0] "Ambiente"
 msgstr[1] "Ambientes"
 
-#: inc/boite/front.php:513
+#: inc/boite/front.php:576
 msgid "Environnement :"
 msgstr "Ambiente:"
 
-#: inc/boite/front.php:591
+#: inc/boite/front.php:654
 msgid "Fil d'Ariane"
 msgstr "Navegação estrutural"
 
-#: inc/boite/modele.php:77
-msgid "Métiers et tâches"
-msgstr "Profissões e tarefas"
-
-#: inc/boite/modele.php:78
-msgid "Métier ou tâche"
-msgstr "Profissão ou tarefa"
-
-#: inc/boite/modele.php:79
-msgid "Premier niveau : les métiers. Second niveau : les tâches de chaque métier (choisir le métier comme parent)."
-msgstr "Primeiro nível: as profissões. Segundo nível: as tarefas de cada profissão (escolher a profissão como superior)."
-
-#: inc/boite/modele.php:84
+#: inc/boite/modele.php:100
 msgid "Difficultés et empêchements"
 msgstr "Dificuldades e impedimentos"
 
-#: inc/boite/modele.php:85
+#: inc/boite/modele.php:101
 msgid "Difficulté ou empêchement"
 msgstr "Dificuldade ou impedimento"
 
-#: inc/boite/modele.php:86
+#: inc/boite/modele.php:102
 msgid "Premier niveau : les difficultés d'aptitude. Second niveau : les empêchements de chaque difficulté (choisir la difficulté comme parent)."
 msgstr "Primeiro nível: as dificuldades de aptidão. Segundo nível: os impedimentos de cada dificuldade (escolher a dificuldade como superior)."
 
-#: inc/boite/modele.php:91
-#: template-parts/boite/filtres.php:52
+#: inc/boite/front.php:836
+#: inc/boite/modele.php:108
 msgid "Environnements"
 msgstr "Ambientes"
 
-#: inc/boite/modele.php:93
+#: inc/boite/modele.php:110
 msgid "Environnements de travail, utilisés comme filtre des résultats."
 msgstr "Ambientes de trabalho, utilizados como filtro dos resultados."
 
-#: inc/boite/modele.php:98
+#: inc/boite/modele.php:116
 msgid "Types de compensation"
 msgstr "Tipos de compensação"
 
-#: inc/boite/modele.php:99
-#: single-ditl_ressource.php:208
-#: single-ditl_ressource.php:270
+#: inc/boite/modele.php:117
+#: single-ditl_ressource.php:211
+#: single-ditl_ressource.php:273
 msgid "Type de compensation"
 msgid_plural "Types de compensation"
 msgstr[0] "Tipo de compensação"
 msgstr[1] "Tipos de compensação"
 
-#: inc/boite/modele.php:105
+#: inc/boite/modele.php:124
 msgid "Sous-types"
 msgstr "Subtipos"
 
-#: inc/boite/modele.php:106
+#: inc/boite/modele.php:125
 msgid "Sous-type"
 msgstr "Subtipo"
 
-#: inc/boite/modele.php:130
+#: inc/boite/modele.php:182
 msgid "Fiches outils"
 msgstr "Fichas de ferramentas"
 
-#: inc/boite/modele.php:131
+#: inc/boite/modele.php:183
 msgid "Fiche outil"
 msgstr "Ficha de ferramenta"
 
-#: inc/boite/modele.php:133
+#: inc/boite/modele.php:185
 msgid "Toutes les fiches"
 msgstr "Todas as fichas"
 
-#: inc/boite/modele.php:134
+#: inc/boite/modele.php:186
 msgid "Ajouter une fiche"
 msgstr "Adicionar uma ficha"
 
-#: inc/boite/modele.php:135
+#: inc/boite/modele.php:187
 msgid "Ajouter une fiche outil"
 msgstr "Adicionar uma ficha de ferramenta"
 
-#: inc/boite/modele.php:136
+#: inc/boite/modele.php:188
 msgid "Modifier la fiche outil"
 msgstr "Editar a ficha de ferramenta"
 
-#: inc/boite/modele.php:137
+#: inc/boite/modele.php:189
 msgid "Nouvelle fiche outil"
 msgstr "Nova ficha de ferramenta"
 
-#: inc/boite/modele.php:138
+#: inc/boite/modele.php:190
 msgid "Voir la fiche"
 msgstr "Ver a ficha"
 
-#: inc/boite/modele.php:139
+#: inc/boite/modele.php:191
 msgid "Voir les fiches"
 msgstr "Ver as fichas"
 
-#: inc/boite/modele.php:140
+#: inc/boite/modele.php:192
 msgid "Rechercher une fiche"
 msgstr "Pesquisar uma ficha"
 
-#: inc/boite/modele.php:141
+#: inc/boite/modele.php:193
 msgid "Aucune fiche trouvée."
 msgstr "Nenhuma ficha encontrada."
 
-#: inc/boite/modele.php:142
+#: inc/boite/modele.php:194
 msgid "Aucune fiche dans la corbeille."
 msgstr "Nenhuma ficha no lixo."
 
-#: inc/boite/modele.php:143
+#: inc/boite/modele.php:195
 msgid "Illustration de la fiche"
 msgstr "Ilustração da ficha"
 
-#: inc/boite/modele.php:144
+#: inc/boite/modele.php:196
 msgid "Choisir l'illustration"
 msgstr "Escolher a ilustração"
 
-#: inc/boite/modele.php:145
+#: inc/boite/modele.php:197
 msgid "Retirer l'illustration"
 msgstr "Remover a ilustração"
 
-#: inc/boite/modele.php:146
+#: inc/boite/modele.php:198
 msgid "Utiliser comme illustration"
 msgstr "Usar como ilustração"
 
-#: inc/boite/modele.php:147
+#: inc/boite/modele.php:199
 msgid "Fiche publiée."
 msgstr "Ficha publicada."
 
-#: inc/boite/modele.php:148
+#: inc/boite/modele.php:200
 msgid "Fiche mise à jour."
 msgstr "Ficha atualizada."
 
 #. translators: %s : nom de la liste (ex. Environnements).
-#: inc/boite/modele.php:176
+#: inc/boite/modele.php:228
 #, php-format
 msgid "Tous : %s"
 msgstr "Todos: %s"
 
-#: inc/boite/modele.php:177
+#: inc/boite/modele.php:229
 msgid "Modifier"
 msgstr "Editar"
 
-#: inc/boite/modele.php:178
+#: inc/boite/modele.php:230
 msgid "Mettre à jour"
 msgstr "Atualizar"
 
-#: inc/boite/modele.php:179
+#: inc/boite/modele.php:231
 msgid "Ajouter"
 msgstr "Adicionar"
 
-#: inc/boite/modele.php:180
+#: inc/boite/modele.php:232
 msgid "Libellé"
 msgstr "Etiqueta"
 
-#: inc/boite/modele.php:181
+#: inc/boite/modele.php:233
 msgid "Parent (niveau 1)"
 msgstr "Superior (nível 1)"
 
-#: inc/boite/modele.php:182
+#: inc/boite/modele.php:234
 msgid "Parent (niveau 1) :"
 msgstr "Superior (nível 1):"
 
-#: inc/boite/modele.php:183
+#: inc/boite/modele.php:235
 msgid "Rechercher"
 msgstr "Pesquisar"
 
-#: inc/boite/modele.php:184
+#: inc/boite/modele.php:236
 msgid "Aucun élément."
 msgstr "Nenhum elemento."
 
-#: inc/boite/modele.php:185
+#: inc/boite/modele.php:237
 msgid "Retour à la liste"
 msgstr "Voltar à lista"
 
@@ -738,9 +728,9 @@ msgstr "nenhum resultado"
 
 #. translators: %s : nombre de resultats.
 #: inc/boite/seo.php:121
-#: template-parts/boite/filtres.php:37
-#: template-parts/boite/liste.php:74
-#: template-parts/boite/liste.php:118
+#: template-parts/boite/filtres.php:42
+#: template-parts/boite/liste.php:75
+#: template-parts/boite/liste.php:131
 #, php-format
 msgid "%s résultat"
 msgid_plural "%s résultats"
@@ -750,7 +740,7 @@ msgstr[1] "%s resultados"
 #. translators: 1: titre de la liste (ex. Vos outils), 2: nombre de resultats (ex. 3 resultats).
 #. translators: 1: difficulte d'aptitude, 2: empechements separes par des virgules.
 #: inc/boite/seo.php:128
-#: single-ditl_ressource.php:290
+#: single-ditl_ressource.php:293
 #, php-format
 msgid "%1$s : %2$s"
 msgstr "%1$s: %2$s"
@@ -765,62 +755,62 @@ msgstr "%1$s, página %2$s"
 msgid "Gabarit Boite a outils"
 msgstr ""
 
-#: single-ditl_ressource.php:184
-#: template-parts/boite/liste.php:61
+#: single-ditl_ressource.php:187
+#: template-parts/boite/liste.php:62
 msgid "Accueil de la boîte à outils"
 msgstr "Início da caixa de ferramentas"
 
-#: single-ditl_ressource.php:197
+#: single-ditl_ressource.php:200
 msgid "Imprimer la fiche produit"
 msgstr "Imprimir a ficha do produto"
 
-#: single-ditl_ressource.php:264
+#: single-ditl_ressource.php:267
 msgid "Informations"
 msgstr "Informações"
 
-#: single-ditl_ressource.php:280
+#: single-ditl_ressource.php:283
 msgid "Aptitude"
 msgstr "Aptidão"
 
-#: single-ditl_ressource.php:324
+#: single-ditl_ressource.php:337
 msgid "Fabricant"
 msgid_plural "Fabricants"
 msgstr[0] "Fabricante"
 msgstr[1] "Fabricantes"
 
-#: single-ditl_ressource.php:357
+#: single-ditl_ressource.php:370
 msgid "Source"
 msgid_plural "Sources"
 msgstr[0] "Fonte"
 msgstr[1] "Fontes"
 
-#: single-ditl_ressource.php:373
+#: single-ditl_ressource.php:386
 msgid "Explorer mes autres outils"
 msgstr "Explorar as minhas outras ferramentas"
 
-#: single-ditl_ressource.php:373
+#: single-ditl_ressource.php:386
 msgid "Explorer d'autres outils"
 msgstr "Explorar outras ferramentas"
 
-#: single-ditl_ressource.php:378
+#: single-ditl_ressource.php:391
 msgid "carrousel"
 msgstr "carrossel"
 
 #. translators: 1: rang de l'outil, 2: nombre d'outils.
-#: single-ditl_ressource.php:392
+#: single-ditl_ressource.php:405
 #, php-format
 msgid "Outil %1$d sur %2$d"
 msgstr "Ferramenta %1$d de %2$d"
 
-#: single-ditl_ressource.php:416
+#: single-ditl_ressource.php:429
 msgid "Outils précédents"
 msgstr "Ferramentas anteriores"
 
-#: single-ditl_ressource.php:419
+#: single-ditl_ressource.php:432
 msgid "Outils suivants"
 msgstr "Ferramentas seguintes"
 
-#: single-ditl_ressource.php:429
+#: single-ditl_ressource.php:442
 msgid "Adresse de la fiche :"
 msgstr "Endereço da ficha:"
 
@@ -873,12 +863,12 @@ msgstr "Resposta:"
 msgid "(disponible une fois toutes les questions répondues)"
 msgstr "(disponível depois de responder a todas as perguntas)"
 
-#: template-parts/boite/filtres.php:34
+#: template-parts/boite/filtres.php:39
 msgid "Aucun résultat"
 msgstr "Nenhum resultado"
 
 #. translators: %s : nombre de filtres appliques.
-#: template-parts/boite/liste.php:99
+#: template-parts/boite/liste.php:97
 #, php-format
 msgid "(%s filtre actif)"
 msgid_plural "(%s filtres actifs)"
@@ -886,40 +876,40 @@ msgstr[0] "(%s filtro ativo)"
 msgstr[1] "(%s filtros ativos)"
 
 #. translators: %s : nombre d'outils.
-#: template-parts/boite/filtres.php:60
+#: template-parts/boite/filtres.php:70
 #, php-format
 msgid "%s outil"
 msgid_plural "%s outils"
 msgstr[0] "%s ferramenta"
 msgstr[1] "%s ferramentas"
 
-#: template-parts/boite/filtres.php:74
+#: template-parts/boite/filtres.php:88
 msgid "Appliquer les filtres"
 msgstr "Aplicar os filtros"
 
-#: template-parts/boite/liste.php:92
+#: template-parts/boite/liste.php:105
 msgid "Faire le questionnaire"
 msgstr "Fazer o questionário"
 
-#: template-parts/boite/liste.php:94
-#: template-parts/boite/liste.php:166
+#: template-parts/boite/liste.php:107
+#: template-parts/boite/liste.php:179
 #: template-parts/boite/questionnaire.php:173
 msgid "Voir tous les outils"
 msgstr "Ver todas as ferramentas"
 
-#: template-parts/boite/liste.php:156
+#: template-parts/boite/liste.php:169
 msgid "Aucun outil ne correspond à ces filtres."
 msgstr "Nenhuma ferramenta corresponde a estes filtros."
 
-#: template-parts/boite/liste.php:158
+#: template-parts/boite/liste.php:171
 msgid "Aucun outil n'est disponible pour le moment."
 msgstr "De momento, não há nenhuma ferramenta disponível."
 
-#: template-parts/boite/liste.php:163
+#: template-parts/boite/liste.php:176
 msgid "Retirer les filtres"
 msgstr "Remover os filtros"
 
-#: template-parts/boite/liste.php:167
+#: template-parts/boite/liste.php:180
 msgid "Recommencer le questionnaire"
 msgstr "Recomeçar o questionário"
 
@@ -999,16 +989,16 @@ msgid "Erreur"
 msgstr "Erro"
 
 #. translators: %s : lien vers les concepts cles du modele MDH-PPH (site du RIPPH).
-#: inc/boite/commun.php:116
+#: inc/boite/commun.php:150
 #, php-format
 msgid "Pour en savoir plus sur cette notion : %s."
 msgstr "Para saber mais sobre este conceito: %s."
 
-#: inc/boite/commun.php:117
+#: inc/boite/commun.php:151
 msgid "concepts clés du modèle MDH-PPH, sur le site du RIPPH (en anglais)"
 msgstr "conceitos-chave do modelo HDM-DCP, no sítio web do RIPPH (em inglês)"
 
-#: inc/boite/front.php:623
+#: inc/boite/front.php:686
 msgctxt "fenetre de la boite a outils"
 msgid "Fermer"
 msgstr "Fechar"
@@ -1029,3 +1019,93 @@ msgstr "(pergunta %d)"
 msgctxt "navigation du questionnaire"
 msgid "Suivant"
 msgstr "Seguinte"
+
+#: inc/boite/admin-fiche.php:368
+msgid "Cochez la tâche la plus précise. Une famille de métiers cochée seule, sans tâche, vaut pour toutes ses tâches."
+msgstr ""
+
+#: inc/boite/admin-fiche.php:372
+msgid "Cochez les métiers concernés (filtre « Métiers » et badges de la fiche). Les résultats ne proposent que les métiers de la famille choisie : cochez aussi cette famille, ou une de ses tâches, dans « Familles de métiers et tâches »."
+msgstr ""
+
+#: inc/boite/admin-termes.php:86
+msgid "Chaque élément est à créer dans toutes les langues du site et à relier à ses traductions : elles partagent le même code, l'ordre et la famille."
+msgstr ""
+
+#: inc/boite/admin-termes.php:407
+#: inc/boite/admin-termes.php:1422
+msgid "Aucune famille"
+msgstr ""
+
+#. translators: %s : code de la famille enregistree.
+#: inc/boite/admin-termes.php:415
+#: inc/boite/admin-termes.php:1429
+#, php-format
+msgid "%s (famille introuvable)"
+msgstr ""
+
+#: inc/boite/admin-termes.php:491
+msgid "Famille de métiers (première question du questionnaire) à laquelle ce métier appartient, identique dans toutes les langues. Dans les résultats, le filtre « Métiers » ne propose que les métiers de la famille choisie ; sans famille, le métier n'apparaît que dans « Voir tous les outils »."
+msgstr ""
+
+#: inc/boite/admin-termes.php:525
+#: inc/boite/admin-termes.php:579
+msgid "Famille de métiers"
+msgstr ""
+
+#. translators: 1 : nombre d'elements, 2 : ancien code, 3 : nouveau code.
+#: inc/boite/admin-termes.php:793
+#, php-format
+msgid "%1$s élément rattaché à la famille « %2$s » a été rattaché au nouveau code « %3$s »."
+msgid_plural "%1$s éléments rattachés à la famille « %2$s » ont été rattachés au nouveau code « %3$s »."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s : code saisi.
+#: inc/boite/admin-termes.php:836
+#, php-format
+msgid "Famille « %s » introuvable dans la liste des familles de métiers : la famille n'a pas été modifiée."
+msgstr ""
+
+#: inc/boite/admin-termes.php:849
+msgid "Aucune famille de métiers choisie : ce métier n'apparaîtra que dans « Voir tous les outils », jamais dans les filtres des résultats."
+msgstr ""
+
+#: inc/boite/admin-termes.php:1378
+msgid "Famille"
+msgstr ""
+
+#: inc/boite/front.php:514
+msgid "(voir tous les outils pour ce métier)"
+msgstr "(ver todas as ferramentas para esta profissão)"
+
+#: inc/boite/front.php:837
+#: inc/boite/modele.php:132
+msgid "Métiers"
+msgstr "Profissões"
+
+#: inc/boite/front.php:915
+msgid "Autres métiers"
+msgstr "Outras profissões"
+
+#: inc/boite/modele.php:92
+msgid "Familles de métiers et tâches"
+msgstr "Famílias profissionais e tarefas"
+
+#: inc/boite/modele.php:93
+msgid "Famille de métiers ou tâche"
+msgstr "Família profissional ou tarefa"
+
+#: inc/boite/modele.php:94
+msgid "Premier niveau : les familles de métiers (étape « Métier » du questionnaire). Second niveau : les tâches de chaque famille (choisir la famille comme parent). Les métiers précis de chaque famille se gèrent dans la liste « Métiers »."
+msgstr "Primeiro nível: as famílias profissionais (etapa «Profissão» do questionário). Segundo nível: as tarefas de cada família (escolher a família como superior). As profissões específicas de cada família são geridas na lista «Profissões»."
+
+#: inc/boite/modele.php:134
+msgid "Métiers précis (ex. cariste, conducteur autocar), rattachés chacun à une famille de métiers : filtre « Métiers » des résultats et de « Voir tous les outils », badges de la fiche. Dans les résultats, seuls les métiers de la famille choisie à la première question sont proposés."
+msgstr "Profissões específicas (p. ex. operador de empilhador, motorista de autocarro), ligadas cada uma a uma família profissional: filtro «Profissões» dos resultados e de «Ver todas as ferramentas», distintivos da ficha. Nos resultados, só são propostas as profissões da família escolhida na primeira pergunta."
+
+#. translators: %s : ancien code de la famille.
+#: inc/boite/admin-termes.php:842
+#, php-format
+msgid "Plus de 500 éléments étaient rattachés à la famille « %s » : seuls les 500 premiers ont été mis à jour, vérifiez la famille des autres."
+msgstr "Mais de 500 elementos estavam associados à família «%s»: apenas os 500 primeiros foram atualizados, verifique a família dos restantes."

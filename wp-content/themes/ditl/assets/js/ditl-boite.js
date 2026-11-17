@@ -29,8 +29,10 @@
  *  ditl_boite_choix           | changement d'une liste du questionnaire   | etape, valeur
  *  ditl_boite_etape           | envoi d'une etape (bouton Valider)        | etape, numero, valeur
  *  ditl_boite_resultats       | affichage des resultats ou du catalogue   | vue, nb_resultats, page, metier, tache,
- *                             |                                           | difficulte, empechement, environnements
- *  ditl_boite_filtres         | envoi des filtres (Appliquer les filtres) | vue, environnements, nb_environnements
+ *                             |                                           | difficulte, empechement, environnements,
+ *                             |                                           | postes
+ *  ditl_boite_filtres         | envoi des filtres (Appliquer les filtres) | vue, environnements, nb_environnements,
+ *                             |                                           | postes, nb_postes
  *  ditl_boite_modifier        | lien "Modifier" d'une reponse             | etape, vue
  *  ditl_boite_reinitialiser   | lien "Reinitialiser / Recommencer"        | vue
  *  ditl_boite_voir_tous       | lien "Voir tous les outils"               | vue
@@ -39,10 +41,13 @@
  *                             | commande du navigateur)                   |
  *  ditl_fiche_lien_externe    | clic sur un lien fabricant ou source      | fiche, domaine
  *  ditl_fiche_autres_outils   | clic sur une carte du carrousel           | fiche (fiche ouverte), position
+ *  ditl_fiche_metier          | clic sur un badge "Metiers" de la fiche   | fiche, poste
  *
  * Valeurs : etape = metier | tache | difficulte | empechement ; valeur,
- * metier, tache, difficulte, empechement = code neutre du terme ;
- * environnements = codes separes par des virgules ; vue = questionnaire |
+ * metier (famille de metiers), tache, difficulte, empechement = code neutre
+ * du terme ; environnements, postes (metiers precis du filtre "Metiers",
+ * taxonomie ditl_poste) = codes separes par des virgules ; poste = code
+ * d'un metier ; vue = questionnaire |
  * resultats | catalogue | fiche ; fiche = identifiant neutre de la fiche
  * (groupe de l'import CSV, sinon "p" + ID de la plus ancienne traduction).
  *
@@ -121,7 +126,8 @@
 			tache: vue.tache || '',
 			difficulte: vue.difficulte || '',
 			empechement: vue.empechement || '',
-			environnements: vue.environnements || ''
+			environnements: vue.environnements || '',
+			postes: vue.postes || ''
 		} );
 	}
 
@@ -143,10 +149,23 @@
 		}
 	} );
 
+	// Codes des cases cochees d'un groupe de filtres (nom du parametre d'URL).
+	function codesCoches( formulaire, nom ) {
+		var coches = formulaire.querySelectorAll( 'input[type="checkbox"][name="' + nom + '[]"]:checked' );
+		var codes  = [];
+		var i;
+
+		for ( i = 0; i < coches.length; i++ ) {
+			codes.push( coches[ i ].value );
+		}
+
+		return codes;
+	}
+
 	document.addEventListener( 'submit', function ( event ) {
 		var formulaire = event.target;
 		var type       = attribut( formulaire, 'data-ditl-suivi-formulaire' );
-		var liste, coches, codes, i;
+		var liste, environnements, postes;
 
 		if ( 'etape' === type ) {
 			liste = formulaire.querySelector( 'select[data-ditl-suivi-liste]' );
@@ -157,17 +176,15 @@
 				valeur: liste ? liste.value : ''
 			} );
 		} else if ( 'filtres' === type ) {
-			coches = formulaire.querySelectorAll( 'input[type="checkbox"]:checked' );
-			codes  = [];
-
-			for ( i = 0; i < coches.length; i++ ) {
-				codes.push( coches[ i ].value );
-			}
+			environnements = codesCoches( formulaire, 'env' );
+			postes         = codesCoches( formulaire, 'poste' );
 
 			envoyer( 'ditl_boite_filtres', {
 				vue: vue.vue || '',
-				environnements: codes.join( ',' ),
-				nb_environnements: codes.length
+				environnements: environnements.join( ',' ),
+				nb_environnements: environnements.length,
+				postes: postes.join( ',' ),
+				nb_postes: postes.length
 			} );
 		}
 	} );
@@ -208,6 +225,13 @@
 				envoyer( 'ditl_fiche_autres_outils', {
 					fiche: attribut( lien, 'data-ditl-suivi-fiche' ),
 					position: parseInt( attribut( lien, 'data-ditl-suivi-position' ), 10 ) || 0
+				} );
+				break;
+
+			case 'metier_fiche':
+				envoyer( 'ditl_fiche_metier', {
+					fiche: attribut( lien, 'data-ditl-suivi-fiche' ) || vue.fiche || '',
+					poste: attribut( lien, 'data-ditl-suivi-poste' )
 				} );
 				break;
 
