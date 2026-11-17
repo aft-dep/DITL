@@ -1107,3 +1107,9 @@ msgstr ""
 #, php-format
 msgid "Plus de 500 éléments étaient rattachés à la famille « %s » : seuls les 500 premiers ont été mis à jour, vérifiez la famille des autres."
 msgstr ""
+
+#. translators: %s : nom du gabarit de la page.
+#: inc/editeur-pages.php:107
+#, php-format
+msgid "Cette page utilise le gabarit « %s » : son contenu se modifie dans les champs ci-dessous (bannière et sections propres au gabarit), puis avec le bouton « Mettre à jour ». Ce gabarit n'a pas de zone de texte libre."
+msgstr ""

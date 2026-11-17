@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'DITL_THEME_VERSION', '0.38.0' );
+define( 'DITL_THEME_VERSION', '0.38.1' );
 
 /*
  * Metaboxes des gabarits sur mesure (remplacement progressif d'Elementor).
@@ -112,6 +112,14 @@ require_once get_stylesheet_directory() . '/inc/elearning.php';
  * administration des contenus (inc/boite/, point d'entree boite.php).
  */
 require_once get_stylesheet_directory() . '/inc/boite/boite.php';
+
+/*
+ * Ecran d'edition des pages a gabarit sur mesure : pas d'editeur de blocs
+ * (son contenu n'est pas affiche par ces gabarits), message vers les champs.
+ */
+if ( is_admin() ) {
+	require_once get_stylesheet_directory() . '/inc/editeur-pages.php';
+}
 
 /*
  * Import des fiches outils et des referentiels de la boite a outils par CSV
