@@ -10,6 +10,15 @@
  * colonnes, la grille CSS place l'en-tete au-dessus des cartes : l'ordre de
  * lecture reste en-tete, filtres, resultats, a l'ecran comme au clavier.
  *
+ * Telephone (maquettes mobiles du 17/11/2026, assets/css/boite.css section
+ * "Telephone") : titre a gauche et nombre de resultats dessous (copie
+ * aria-hidden du titre H2 des cartes, masque visuellement a cette taille),
+ * bouton "Votre profil" a droite, puis "Filtrer les outils" et le lien vers
+ * l'autre vue cote a cote. Les deux boutons ouvrent des fenetres modales
+ * (dialog, assets/js/ditl-boite.js) qui accueillent les blocs de la colonne ;
+ * ils restent masques sans JavaScript, et la colonne reste alors dans la page.
+ * Sur bureau et tablette, ces ajouts sont masques (rendu inchange).
+ *
  * Arguments : contexte (ditl_boite_contexte()).
  *
  * Compatibilite requise : PHP 7.4 (production actuelle) et PHP 8.x (cible).
@@ -57,19 +66,50 @@ $ditl_suivi = array_merge(
 			);
 			?>
 
-			<h1 class="ditl-boite__titre-liste"><?php echo esc_html( $ditl_catalogue ? $ditl_textes['catalogue_titre'] : $ditl_textes['resultats_titre'] ); ?></h1>
+			<div class="ditl-boite__tete">
+				<div class="ditl-boite__tete-titre">
+					<h1 class="ditl-boite__titre-liste"><?php echo esc_html( $ditl_catalogue ? $ditl_textes['catalogue_titre'] : $ditl_textes['resultats_titre'] ); ?></h1>
+					<?php if ( $ditl_total > 0 ) { ?>
+					<?php // Nombre sous le titre, telephone seulement : copie visuelle du titre H2 des cartes (qui seul est annonce). ?>
+					<p class="ditl-boite__nombre" aria-hidden="true"><?php echo esc_html( sprintf( _n( '%s résultat', '%s résultats', $ditl_total, 'ditl' ), number_format_i18n( $ditl_total ) ) ); ?></p>
+					<?php } ?>
+				</div>
+				<?php if ( ! $ditl_catalogue ) { ?>
+				<button type="button" class="ditl-boite-bouton ditl-boite-bouton--contour ditl-boite-ouvrir" data-ditl-fenetre-ouvrir="profil" hidden><?php echo esc_html( $ditl_textes['profil_titre'] ); ?></button>
+				<?php } ?>
+			</div>
 
 			<?php if ( $ditl_catalogue && '' !== trim( wp_strip_all_tags( (string) $ditl_textes['catalogue_intro'] ) ) ) { ?>
 			<div class="ditl-boite__intro"><?php echo wp_kses( $ditl_textes['catalogue_intro'], ditl_boite_html_autorise() ); ?></div>
 			<?php } ?>
 
-			<p class="ditl-boite__autre-vue">
-				<?php if ( $ditl_catalogue ) { ?>
-				<a class="ditl-boite-bouton ditl-boite-bouton--petit" href="<?php echo esc_url( ditl_boite_url( array() ) ); ?>"><?php esc_html_e( 'Faire le questionnaire', 'ditl' ); ?></a>
-				<?php } else { ?>
-				<a class="ditl-boite-bouton ditl-boite-bouton--petit" href="<?php echo esc_url( ditl_boite_url( array( DITL_BOITE_PARAM_VUE => 'catalogue' ) ) ); ?>" data-ditl-suivi-clic="voir_tous"><?php esc_html_e( 'Voir tous les outils', 'ditl' ); ?></a>
+			<div class="ditl-boite__actions">
+				<?php if ( $ditl_filtres ) { ?>
+					<?php
+					// Filtres appliques, rappeles sur le bouton (sinon invisibles une fois la fenetre fermee).
+					$ditl_nb_actifs = isset( $ditl_parcours['environnements'] ) && is_array( $ditl_parcours['environnements'] ) ? count( $ditl_parcours['environnements'] ) : 0;
+					?>
+				<button type="button" class="ditl-boite-bouton ditl-boite-ouvrir" data-ditl-fenetre-ouvrir="filtres" hidden>
+					<?php echo esc_html( $ditl_textes['filtres_titre'] ); ?>
+					<?php if ( $ditl_nb_actifs > 0 ) { ?>
+					<span aria-hidden="true">(<?php echo esc_html( number_format_i18n( $ditl_nb_actifs ) ); ?>)</span>
+					<span class="screen-reader-text">
+						<?php
+						/* translators: %s : nombre de filtres appliques. */
+						echo esc_html( sprintf( _n( '(%s filtre actif)', '(%s filtres actifs)', $ditl_nb_actifs, 'ditl' ), number_format_i18n( $ditl_nb_actifs ) ) );
+						?>
+					</span>
+					<?php } ?>
+				</button>
 				<?php } ?>
-			</p>
+				<p class="ditl-boite__autre-vue">
+					<?php if ( $ditl_catalogue ) { ?>
+					<a class="ditl-boite-bouton ditl-boite-bouton--petit" href="<?php echo esc_url( ditl_boite_url( array() ) ); ?>"><?php esc_html_e( 'Faire le questionnaire', 'ditl' ); ?></a>
+					<?php } else { ?>
+					<a class="ditl-boite-bouton ditl-boite-bouton--petit" href="<?php echo esc_url( ditl_boite_url( array( DITL_BOITE_PARAM_VUE => 'catalogue' ) ) ); ?>" data-ditl-suivi-clic="voir_tous"><?php esc_html_e( 'Voir tous les outils', 'ditl' ); ?></a>
+					<?php } ?>
+				</p>
+			</div>
 		</div>
 
 		<?php if ( $ditl_colonne ) { ?>
@@ -148,4 +188,15 @@ $ditl_suivi = array_merge(
 		</div>
 
 	</div>
+
+	<?php
+	// Fenetres des blocs de la colonne (telephone, voir ditl_boite_front_fenetre).
+	if ( ! $ditl_catalogue ) {
+		ditl_boite_front_fenetre( 'profil', 'ditl-boite-profil-titre' );
+	}
+
+	if ( $ditl_filtres ) {
+		ditl_boite_front_fenetre( 'filtres', 'ditl-boite-filtres-titre' );
+	}
+	?>
 </div>

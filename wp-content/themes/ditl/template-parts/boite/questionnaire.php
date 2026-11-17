@@ -9,6 +9,14 @@
  * GET (etiquette visible, liste deroulante native, bouton Valider), liens
  * "Question precedente" / "Question suivante".
  *
+ * Telephone (maquettes mobiles du 17/11/2026, assets/css/boite.css section
+ * "Telephone") : colonne laterale masquee, sauf le H1 qui reste lu par les
+ * lecteurs d'ecran ; "Question N sur M" devient une etiquette precedee du
+ * titre de la boite a outils (prefixe aria-hidden : le H1 l'annonce deja) ;
+ * rappel de la reponse precedente masque (profil des resultats et lien
+ * Precedent) ; navigation "Precedent" / "Suivant" dont le nom accessible
+ * commence par le texte visible, complete du numero de la question.
+ *
  * Le formulaire ne transmet que les reponses des etapes PRECEDENTES et la
  * nouvelle reponse : modifier une reponse reinitialise les suivantes (regle
  * de la maquette p. 13). Quand le parcours est complet, le moteur affiche
@@ -102,7 +110,8 @@ $ditl_suivi = array(
 				<div class="ditl-boite-question__entete">
 					<h2 class="ditl-boite-question__titre" id="ditl-boite-question-titre"><?php echo esc_html( wp_strip_all_tags( $ditl_textes_q['question'] ) ); ?></h2>
 					<p class="ditl-boite-question__numero">
-						<?php
+						<?php // Prefixe affiche sur telephone seulement, ou le H1 est masque visuellement (il reste annonce, d'ou aria-hidden ici). ?>
+						<span class="ditl-boite-question__prefixe" aria-hidden="true"><?php echo esc_html( wp_strip_all_tags( $ditl_textes['titre'] ) ); ?> - </span><?php
 						/* translators: 1: numero de la question, 2: nombre total de questions. */
 						echo esc_html( sprintf( __( 'Question %1$d sur %2$d', 'ditl' ), $ditl_numero, $ditl_total ) );
 						?>
@@ -169,19 +178,39 @@ $ditl_suivi = array(
 
 			<?php if ( '' !== $ditl_prec || ( $ditl_actuelle instanceof WP_Term && '' !== $ditl_suiv ) ) { ?>
 			<ul class="ditl-boite-navigation">
+				<?php
+				// Deux libelles par lien : "Question precedente / suivante" (bureau et
+				// tablette) ou "Precedent / Suivant" + numero en texte masque (telephone,
+				// WCAG 2.5.3 : le nom accessible commence par le texte visible) ; le
+				// libelle inutilise est en display:none, donc absent du nom accessible.
+				?>
 				<?php if ( '' !== $ditl_prec ) { ?>
 				<li class="ditl-boite-navigation__precedente">
 					<a href="<?php echo esc_url( ditl_boite_front_url_etape( $ditl_parcours, $ditl_prec ) ); ?>">
-						<?php esc_html_e( 'Question précédente', 'ditl' ); ?>
+						<span class="ditl-boite-navigation__long"><?php esc_html_e( 'Question précédente', 'ditl' ); ?></span>
+						<span class="ditl-boite-navigation__court"><?php echo esc_html_x( 'Précédent', 'navigation du questionnaire', 'ditl' ); ?> <span class="screen-reader-text">
+						<?php
+						/* translators: %d : numero de la question visee. */
+						echo esc_html( sprintf( __( '(question %d)', 'ditl' ), ditl_boite_numero_etape( $ditl_prec ) ) );
+						?>
+						</span></span>
 						<?php echo ditl_boite_front_icone( 'haut' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
+						<?php echo ditl_boite_front_icone( 'gauche' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
 					</a>
 				</li>
 				<?php } ?>
 				<?php if ( $ditl_actuelle instanceof WP_Term && '' !== $ditl_suiv ) { ?>
 				<li class="ditl-boite-navigation__suivante">
 					<a href="<?php echo esc_url( ditl_boite_front_url_etape( $ditl_parcours, $ditl_suiv ) ); ?>">
-						<?php esc_html_e( 'Question suivante', 'ditl' ); ?>
+						<span class="ditl-boite-navigation__long"><?php esc_html_e( 'Question suivante', 'ditl' ); ?></span>
+						<span class="ditl-boite-navigation__court"><?php echo esc_html_x( 'Suivant', 'navigation du questionnaire', 'ditl' ); ?> <span class="screen-reader-text">
+						<?php
+						/* translators: %d : numero de la question visee. */
+						echo esc_html( sprintf( __( '(question %d)', 'ditl' ), ditl_boite_numero_etape( $ditl_suiv ) ) );
+						?>
+						</span></span>
 						<?php echo ditl_boite_front_icone( 'bas' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
+						<?php echo ditl_boite_front_icone( 'droite' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?>
 					</a>
 				</li>
 				<?php } ?>

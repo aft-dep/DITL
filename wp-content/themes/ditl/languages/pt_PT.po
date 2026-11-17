@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: DiTL\n"
-"PO-Revision-Date: 2026-11-10 12:00+0000\n"
+"PO-Revision-Date: 2026-11-17 12:00+0000\n"
 "Last-Translator: DiTL\n"
 "Language-Team: Português\n"
 "Language: pt_PT\n"
@@ -495,55 +495,55 @@ msgstr "Dificuldade"
 msgid "Quelle difficulté d'aptitude impacte la réalisation de cette tâche ?"
 msgstr "Que dificuldade de aptidão afeta a realização desta tarefa?"
 
-#: inc/boite/commun.php:111
+#: inc/boite/commun.php:114
 msgid "Une difficulté d'aptitude correspond à une limitation de la capacité à accomplir une tâche. Il est possible que plusieurs aptitudes viennent impacter une même tâche : il sera alors nécessaire de réaliser plusieurs recherches (une par aptitude concernée)."
 msgstr "Uma dificuldade de aptidão corresponde a uma limitação da capacidade de realizar uma tarefa. É possível que várias aptidões afetem uma mesma tarefa: nesse caso, será necessário fazer várias pesquisas (uma por cada aptidão em causa)."
 
-#: inc/boite/commun.php:112
+#: inc/boite/commun.php:119
 msgid "Sélectionnez votre difficulté d'aptitude :"
 msgstr "Selecione a dificuldade de aptidão:"
 
-#: inc/boite/commun.php:115
+#: inc/boite/commun.php:122
 msgid "Empêchement"
 msgstr "Impedimento"
 
-#: inc/boite/commun.php:116
+#: inc/boite/commun.php:123
 msgid "Comment ou où cela se manifeste-t-il ?"
 msgstr "Como ou onde se manifesta?"
 
-#: inc/boite/commun.php:117
+#: inc/boite/commun.php:124
 msgid "Cette liste permet de préciser l'aptitude concernée par la difficulté dans la réalisation de la tâche."
 msgstr "Esta lista permite especificar a aptidão afetada pela dificuldade na realização da tarefa."
 
-#: inc/boite/commun.php:118
+#: inc/boite/commun.php:125
 msgid "Sélectionnez votre empêchement :"
 msgstr "Selecione o impedimento:"
 
-#: inc/boite/commun.php:121
+#: inc/boite/commun.php:128
 msgid "Vos solutions"
 msgstr "As suas soluções"
 
-#: inc/boite/commun.php:122
+#: inc/boite/commun.php:129
 msgid "Vos outils"
 msgstr "As suas ferramentas"
 
-#: inc/boite/commun.php:123
+#: inc/boite/commun.php:130
 msgid "Votre profil"
 msgstr "O seu perfil"
 
-#: inc/boite/commun.php:124
+#: inc/boite/commun.php:131
 msgid "Filtrer les outils"
 msgstr "Filtrar as ferramentas"
 
-#: inc/boite/commun.php:125
+#: inc/boite/commun.php:132
 msgid "Aucun outil ne correspond à cette situation pour le moment. Vous pouvez modifier une de vos réponses ou consulter tous les outils."
 msgstr "De momento, nenhuma ferramenta corresponde a esta situação. Pode alterar uma das suas respostas ou consultar todas as ferramentas."
 
-#: inc/boite/commun.php:126
+#: inc/boite/commun.php:133
 msgid "Tous les outils"
 msgstr "Todas as ferramentas"
 
-#: inc/boite/front.php:450
+#: inc/boite/front.php:452
 #: inc/boite/modele.php:92
 #: single-ditl_ressource.php:314
 msgid "Environnement"
@@ -551,11 +551,11 @@ msgid_plural "Environnements"
 msgstr[0] "Ambiente"
 msgstr[1] "Ambientes"
 
-#: inc/boite/front.php:511
+#: inc/boite/front.php:513
 msgid "Environnement :"
 msgstr "Ambiente:"
 
-#: inc/boite/front.php:589
+#: inc/boite/front.php:591
 msgid "Fil d'Ariane"
 msgstr "Navegação estrutural"
 
@@ -584,7 +584,7 @@ msgid "Premier niveau : les difficultés d'aptitude. Second niveau : les empêch
 msgstr "Primeiro nível: as dificuldades de aptidão. Segundo nível: os impedimentos de cada dificuldade (escolher a dificuldade como superior)."
 
 #: inc/boite/modele.php:91
-#: template-parts/boite/filtres.php:49
+#: template-parts/boite/filtres.php:52
 msgid "Environnements"
 msgstr "Ambientes"
 
@@ -738,8 +738,9 @@ msgstr "nenhum resultado"
 
 #. translators: %s : nombre de resultats.
 #: inc/boite/seo.php:121
-#: template-parts/boite/filtres.php:34
-#: template-parts/boite/liste.php:93
+#: template-parts/boite/filtres.php:37
+#: template-parts/boite/liste.php:74
+#: template-parts/boite/liste.php:118
 #, php-format
 msgid "%s résultat"
 msgid_plural "%s résultats"
@@ -765,7 +766,7 @@ msgid "Gabarit Boite a outils"
 msgstr ""
 
 #: single-ditl_ressource.php:184
-#: template-parts/boite/liste.php:52
+#: template-parts/boite/liste.php:61
 msgid "Accueil de la boîte à outils"
 msgstr "Início da caixa de ferramentas"
 
@@ -857,14 +858,14 @@ msgstr "Pergunta %d, por responder:"
 
 #. translators: %s : libelle court de la question (ex. Metier).
 #: template-parts/boite/etapier.php:74
-#: template-parts/boite/profil.php:48
-#: template-parts/boite/questionnaire.php:93
+#: template-parts/boite/profil.php:51
+#: template-parts/boite/questionnaire.php:101
 #, php-format
 msgid "Modifier la réponse à la question %s"
 msgstr "Alterar a resposta à pergunta %s"
 
 #: template-parts/boite/etapier.php:81
-#: template-parts/boite/questionnaire.php:87
+#: template-parts/boite/questionnaire.php:95
 msgid "Réponse :"
 msgstr "Resposta:"
 
@@ -872,45 +873,53 @@ msgstr "Resposta:"
 msgid "(disponible une fois toutes les questions répondues)"
 msgstr "(disponível depois de responder a todas as perguntas)"
 
-#: template-parts/boite/filtres.php:31
+#: template-parts/boite/filtres.php:34
 msgid "Aucun résultat"
 msgstr "Nenhum resultado"
 
+#. translators: %s : nombre de filtres appliques.
+#: template-parts/boite/liste.php:99
+#, php-format
+msgid "(%s filtre actif)"
+msgid_plural "(%s filtres actifs)"
+msgstr[0] "(%s filtro ativo)"
+msgstr[1] "(%s filtros ativos)"
+
 #. translators: %s : nombre d'outils.
-#: template-parts/boite/filtres.php:57
+#: template-parts/boite/filtres.php:60
 #, php-format
 msgid "%s outil"
 msgid_plural "%s outils"
 msgstr[0] "%s ferramenta"
 msgstr[1] "%s ferramentas"
 
-#: template-parts/boite/filtres.php:71
+#: template-parts/boite/filtres.php:74
 msgid "Appliquer les filtres"
 msgstr "Aplicar os filtros"
 
-#: template-parts/boite/liste.php:68
+#: template-parts/boite/liste.php:92
 msgid "Faire le questionnaire"
 msgstr "Fazer o questionário"
 
-#: template-parts/boite/liste.php:70
-#: template-parts/boite/liste.php:141
-#: template-parts/boite/questionnaire.php:164
+#: template-parts/boite/liste.php:94
+#: template-parts/boite/liste.php:166
+#: template-parts/boite/questionnaire.php:173
 msgid "Voir tous les outils"
 msgstr "Ver todas as ferramentas"
 
-#: template-parts/boite/liste.php:131
+#: template-parts/boite/liste.php:156
 msgid "Aucun outil ne correspond à ces filtres."
 msgstr "Nenhuma ferramenta corresponde a estes filtros."
 
-#: template-parts/boite/liste.php:133
+#: template-parts/boite/liste.php:158
 msgid "Aucun outil n'est disponible pour le moment."
 msgstr "De momento, não há nenhuma ferramenta disponível."
 
-#: template-parts/boite/liste.php:138
+#: template-parts/boite/liste.php:163
 msgid "Retirer les filtres"
 msgstr "Remover os filtros"
 
-#: template-parts/boite/liste.php:142
+#: template-parts/boite/liste.php:167
 msgid "Recommencer le questionnaire"
 msgstr "Recomeçar o questionário"
 
@@ -932,54 +941,54 @@ msgid "Page suivante"
 msgstr "Página seguinte"
 
 #. translators: %s : libelle court de la question (ex. Metier).
-#: template-parts/boite/profil.php:39
+#: template-parts/boite/profil.php:42
 #, php-format
 msgid "%s :"
 msgstr "%s:"
 
-#: template-parts/boite/profil.php:59
+#: template-parts/boite/profil.php:62
 msgid "Réinitialiser le questionnaire"
 msgstr "Reiniciar o questionário"
 
-#: template-parts/boite/questionnaire.php:70
+#: template-parts/boite/questionnaire.php:78
 msgid "Retourner à l'accueil de la boîte à outils"
 msgstr "Voltar ao início da caixa de ferramentas"
 
 #. translators: %s : libelle court de la question (ex. Tache).
-#: template-parts/boite/questionnaire.php:78
+#: template-parts/boite/questionnaire.php:86
 #, php-format
 msgid "La réponse transmise pour la question « %s » n'est pas disponible : choisissez une réponse dans la liste."
 msgstr "A resposta enviada para a pergunta «%s» não está disponível: escolha uma resposta da lista."
 
 #. translators: 1: numero de la question, 2: nombre total de questions.
-#: template-parts/boite/questionnaire.php:107
+#: template-parts/boite/questionnaire.php:116
 #, php-format
 msgid "Question %1$d sur %2$d"
 msgstr "Pergunta %1$d de %2$d"
 
-#: template-parts/boite/questionnaire.php:149
+#: template-parts/boite/questionnaire.php:158
 msgid "Valider"
 msgstr "Validar"
 
 #. translators: %d : numero de la question.
-#: template-parts/boite/questionnaire.php:152
+#: template-parts/boite/questionnaire.php:161
 #, php-format
 msgid "ma réponse à la question %d"
 msgstr "a minha resposta à pergunta %d"
 
-#: template-parts/boite/questionnaire.php:159
+#: template-parts/boite/questionnaire.php:168
 msgid "Aucun choix n'est disponible pour cette question pour le moment."
 msgstr "De momento, não há nenhuma opção disponível para esta pergunta."
 
-#: template-parts/boite/questionnaire.php:162
+#: template-parts/boite/questionnaire.php:171
 msgid "Modifier la réponse précédente"
 msgstr "Alterar a resposta anterior"
 
-#: template-parts/boite/questionnaire.php:175
+#: template-parts/boite/questionnaire.php:190
 msgid "Question précédente"
 msgstr "Pergunta anterior"
 
-#: template-parts/boite/questionnaire.php:183
+#: template-parts/boite/questionnaire.php:205
 msgid "Question suivante"
 msgstr "Pergunta seguinte"
 
@@ -988,3 +997,35 @@ msgstr "Pergunta seguinte"
 msgctxt "illustration 404"
 msgid "Erreur"
 msgstr "Erro"
+
+#. translators: %s : lien vers les concepts cles du modele MDH-PPH (site du RIPPH).
+#: inc/boite/commun.php:116
+#, php-format
+msgid "Pour en savoir plus sur cette notion : %s."
+msgstr "Para saber mais sobre este conceito: %s."
+
+#: inc/boite/commun.php:117
+msgid "concepts clés du modèle MDH-PPH, sur le site du RIPPH (en anglais)"
+msgstr "conceitos-chave do modelo HDM-DCP, no sítio web do RIPPH (em inglês)"
+
+#: inc/boite/front.php:623
+msgctxt "fenetre de la boite a outils"
+msgid "Fermer"
+msgstr "Fechar"
+
+#: template-parts/boite/questionnaire.php:191
+msgctxt "navigation du questionnaire"
+msgid "Précédent"
+msgstr "Anterior"
+
+#. translators: %d : numero de la question visee.
+#: template-parts/boite/questionnaire.php:194
+#: template-parts/boite/questionnaire.php:209
+#, php-format
+msgid "(question %d)"
+msgstr "(pergunta %d)"
+
+#: template-parts/boite/questionnaire.php:206
+msgctxt "navigation du questionnaire"
+msgid "Suivant"
+msgstr "Seguinte"

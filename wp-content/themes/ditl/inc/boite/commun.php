@@ -108,7 +108,14 @@ function ditl_boite_textes_defaut() {
 			'difficulte'  => array(
 				'court'     => __( 'Difficulté', 'ditl' ),
 				'question'  => __( 'Quelle difficulté d\'aptitude impacte la réalisation de cette tâche ?', 'ditl' ),
-				'aide'      => '<p>' . __( 'Une difficulté d\'aptitude correspond à une limitation de la capacité à accomplir une tâche. Il est possible que plusieurs aptitudes viennent impacter une même tâche : il sera alors nécessaire de réaliser plusieurs recherches (une par aptitude concernée).', 'ditl' ) . '</p>',
+				// Lien de reference des maquettes (desktop et mobile) : intitule
+				// explicite plutot que l'URL brute (RGAA 6.1), page en anglais
+				// signalee dans l'intitule et par hreflang, meme onglet.
+				'aide'      => '<p>' . __( 'Une difficulté d\'aptitude correspond à une limitation de la capacité à accomplir une tâche. Il est possible que plusieurs aptitudes viennent impacter une même tâche : il sera alors nécessaire de réaliser plusieurs recherches (une par aptitude concernée).', 'ditl' ) . "</p>\n<p>" . sprintf(
+					/* translators: %s : lien vers les concepts cles du modele MDH-PPH (site du RIPPH). */
+					esc_html__( 'Pour en savoir plus sur cette notion : %s.', 'ditl' ),
+					'<a href="https://ripph.qc.ca/en/hdm-dcp-model/key-concepts/" hreflang="en">' . esc_html__( 'concepts clés du modèle MDH-PPH, sur le site du RIPPH (en anglais)', 'ditl' ) . '</a>'
+				) . '</p>',
 				'etiquette' => __( 'Sélectionnez votre difficulté d\'aptitude :', 'ditl' ),
 			),
 			'empechement' => array(

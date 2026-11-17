@@ -5,6 +5,9 @@
  * Liste des reponses (intitule de la question annonce aux lecteurs
  * d'ecran), lien "Modifier" par reponse (icone crayon, nom accessible
  * complet), lien "Reinitialiser le questionnaire" (page sans parametre).
+ * Sur telephone, le bloc s'affiche dans une fenetre modale (attribut
+ * data-ditl-fenetre-bloc, voir ditl_boite_front_fenetre) ; le titre (ID
+ * fixe) nomme alors la fenetre.
  *
  * Arguments : contexte (ditl_boite_contexte()).
  *
@@ -21,8 +24,8 @@ $ditl_contexte = isset( $args['contexte'] ) && is_array( $args['contexte'] ) ? $
 $ditl_parcours = $ditl_contexte['parcours'];
 $ditl_textes   = $ditl_contexte['textes'];
 ?>
-<div class="ditl-boite-bloc ditl-boite-profil">
-	<h2 class="ditl-boite-bloc__titre"><?php echo esc_html( $ditl_textes['profil_titre'] ); ?></h2>
+<div class="ditl-boite-bloc ditl-boite-profil" data-ditl-fenetre-bloc="profil">
+	<h2 class="ditl-boite-bloc__titre" id="ditl-boite-profil-titre"><?php echo esc_html( $ditl_textes['profil_titre'] ); ?></h2>
 	<ul class="ditl-boite-profil__liste">
 		<?php
 		foreach ( array_keys( ditl_boite_etapes() ) as $ditl_cle ) {

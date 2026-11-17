@@ -8,6 +8,9 @@
  * en role="status" (annonce par le titre de page au rechargement).
  * Avec DITL_BOITE_MASQUER_CHOIX_VIDES (PROVISOIRE), un environnement sans
  * fiche parmi les resultats n'est pas propose, sauf s'il est deja coche.
+ * Sur telephone, le bloc s'affiche dans une fenetre modale (attribut
+ * data-ditl-fenetre-bloc, voir ditl_boite_front_fenetre) ; le titre (ID
+ * fixe) nomme alors la fenetre.
  *
  * Arguments : contexte (ditl_boite_contexte()).
  *
@@ -34,7 +37,7 @@ if ( 0 === $ditl_total ) {
 	$ditl_compteur = sprintf( _n( '%s résultat', '%s résultats', $ditl_total, 'ditl' ), number_format_i18n( $ditl_total ) );
 }
 ?>
-<div class="ditl-boite-bloc ditl-boite-filtres">
+<div class="ditl-boite-bloc ditl-boite-filtres" data-ditl-fenetre-bloc="filtres">
 	<h2 class="ditl-boite-bloc__titre" id="ditl-boite-filtres-titre"><?php echo esc_html( $ditl_textes['filtres_titre'] ); ?></h2>
 
 	<form class="ditl-boite-filtres__formulaire" method="get" action="<?php echo esc_url( ditl_boite_url( array() ) ); ?>" data-ditl-suivi-formulaire="filtres">

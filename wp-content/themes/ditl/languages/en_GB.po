@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: DiTL\n"
-"PO-Revision-Date: 2026-11-10 12:00+0000\n"
+"PO-Revision-Date: 2026-11-17 12:00+0000\n"
 "Last-Translator: DiTL\n"
 "Language-Team: English (UK)\n"
 "Language: en_GB\n"
@@ -494,55 +494,55 @@ msgstr "Difficulty"
 msgid "Quelle difficulté d'aptitude impacte la réalisation de cette tâche ?"
 msgstr "Which ability difficulty affects how this task is carried out?"
 
-#: inc/boite/commun.php:111
+#: inc/boite/commun.php:114
 msgid "Une difficulté d'aptitude correspond à une limitation de la capacité à accomplir une tâche. Il est possible que plusieurs aptitudes viennent impacter une même tâche : il sera alors nécessaire de réaliser plusieurs recherches (une par aptitude concernée)."
 msgstr "An ability difficulty is a limitation in the capacity to carry out a task. Several abilities may affect the same task: you will then need to carry out several searches (one for each ability concerned)."
 
-#: inc/boite/commun.php:112
+#: inc/boite/commun.php:119
 msgid "Sélectionnez votre difficulté d'aptitude :"
 msgstr "Select the ability difficulty:"
 
-#: inc/boite/commun.php:115
+#: inc/boite/commun.php:122
 msgid "Empêchement"
 msgstr "Impairment"
 
-#: inc/boite/commun.php:116
+#: inc/boite/commun.php:123
 msgid "Comment ou où cela se manifeste-t-il ?"
 msgstr "How or where does this manifest itself?"
 
-#: inc/boite/commun.php:117
+#: inc/boite/commun.php:124
 msgid "Cette liste permet de préciser l'aptitude concernée par la difficulté dans la réalisation de la tâche."
 msgstr "This list lets you specify the ability affected by the difficulty in carrying out the task."
 
-#: inc/boite/commun.php:118
+#: inc/boite/commun.php:125
 msgid "Sélectionnez votre empêchement :"
 msgstr "Select the impairment:"
 
-#: inc/boite/commun.php:121
+#: inc/boite/commun.php:128
 msgid "Vos solutions"
 msgstr "Your solutions"
 
-#: inc/boite/commun.php:122
+#: inc/boite/commun.php:129
 msgid "Vos outils"
 msgstr "Your tools"
 
-#: inc/boite/commun.php:123
+#: inc/boite/commun.php:130
 msgid "Votre profil"
 msgstr "Your profile"
 
-#: inc/boite/commun.php:124
+#: inc/boite/commun.php:131
 msgid "Filtrer les outils"
 msgstr "Filter the tools"
 
-#: inc/boite/commun.php:125
+#: inc/boite/commun.php:132
 msgid "Aucun outil ne correspond à cette situation pour le moment. Vous pouvez modifier une de vos réponses ou consulter tous les outils."
 msgstr "No tool matches this situation yet. You can change one of your answers or browse all the tools."
 
-#: inc/boite/commun.php:126
+#: inc/boite/commun.php:133
 msgid "Tous les outils"
 msgstr "All tools"
 
-#: inc/boite/front.php:450
+#: inc/boite/front.php:452
 #: inc/boite/modele.php:92
 #: single-ditl_ressource.php:314
 msgid "Environnement"
@@ -550,11 +550,11 @@ msgid_plural "Environnements"
 msgstr[0] "Environment"
 msgstr[1] "Environments"
 
-#: inc/boite/front.php:511
+#: inc/boite/front.php:513
 msgid "Environnement :"
 msgstr "Environment:"
 
-#: inc/boite/front.php:589
+#: inc/boite/front.php:591
 msgid "Fil d'Ariane"
 msgstr "Breadcrumb"
 
@@ -583,7 +583,7 @@ msgid "Premier niveau : les difficultés d'aptitude. Second niveau : les empêch
 msgstr "First level: ability difficulties. Second level: the impairments of each difficulty (choose the difficulty as parent)."
 
 #: inc/boite/modele.php:91
-#: template-parts/boite/filtres.php:49
+#: template-parts/boite/filtres.php:52
 msgid "Environnements"
 msgstr "Environments"
 
@@ -737,8 +737,9 @@ msgstr "no results"
 
 #. translators: %s : nombre de resultats.
 #: inc/boite/seo.php:121
-#: template-parts/boite/filtres.php:34
-#: template-parts/boite/liste.php:93
+#: template-parts/boite/filtres.php:37
+#: template-parts/boite/liste.php:74
+#: template-parts/boite/liste.php:118
 #, php-format
 msgid "%s résultat"
 msgid_plural "%s résultats"
@@ -764,7 +765,7 @@ msgid "Gabarit Boite a outils"
 msgstr ""
 
 #: single-ditl_ressource.php:184
-#: template-parts/boite/liste.php:52
+#: template-parts/boite/liste.php:61
 msgid "Accueil de la boîte à outils"
 msgstr "Toolbox home"
 
@@ -856,14 +857,14 @@ msgstr "Question %d, upcoming:"
 
 #. translators: %s : libelle court de la question (ex. Metier).
 #: template-parts/boite/etapier.php:74
-#: template-parts/boite/profil.php:48
-#: template-parts/boite/questionnaire.php:93
+#: template-parts/boite/profil.php:51
+#: template-parts/boite/questionnaire.php:101
 #, php-format
 msgid "Modifier la réponse à la question %s"
 msgstr "Change your answer for %s"
 
 #: template-parts/boite/etapier.php:81
-#: template-parts/boite/questionnaire.php:87
+#: template-parts/boite/questionnaire.php:95
 msgid "Réponse :"
 msgstr "Answer:"
 
@@ -871,45 +872,53 @@ msgstr "Answer:"
 msgid "(disponible une fois toutes les questions répondues)"
 msgstr "(available once all questions have been answered)"
 
-#: template-parts/boite/filtres.php:31
+#: template-parts/boite/filtres.php:34
 msgid "Aucun résultat"
 msgstr "No results"
 
+#. translators: %s : nombre de filtres appliques.
+#: template-parts/boite/liste.php:99
+#, php-format
+msgid "(%s filtre actif)"
+msgid_plural "(%s filtres actifs)"
+msgstr[0] "(%s active filter)"
+msgstr[1] "(%s active filters)"
+
 #. translators: %s : nombre d'outils.
-#: template-parts/boite/filtres.php:57
+#: template-parts/boite/filtres.php:60
 #, php-format
 msgid "%s outil"
 msgid_plural "%s outils"
 msgstr[0] "%s tool"
 msgstr[1] "%s tools"
 
-#: template-parts/boite/filtres.php:71
+#: template-parts/boite/filtres.php:74
 msgid "Appliquer les filtres"
 msgstr "Apply filters"
 
-#: template-parts/boite/liste.php:68
+#: template-parts/boite/liste.php:92
 msgid "Faire le questionnaire"
 msgstr "Take the questionnaire"
 
-#: template-parts/boite/liste.php:70
-#: template-parts/boite/liste.php:141
-#: template-parts/boite/questionnaire.php:164
+#: template-parts/boite/liste.php:94
+#: template-parts/boite/liste.php:166
+#: template-parts/boite/questionnaire.php:173
 msgid "Voir tous les outils"
 msgstr "See all tools"
 
-#: template-parts/boite/liste.php:131
+#: template-parts/boite/liste.php:156
 msgid "Aucun outil ne correspond à ces filtres."
 msgstr "No tool matches these filters."
 
-#: template-parts/boite/liste.php:133
+#: template-parts/boite/liste.php:158
 msgid "Aucun outil n'est disponible pour le moment."
 msgstr "No tools are available yet."
 
-#: template-parts/boite/liste.php:138
+#: template-parts/boite/liste.php:163
 msgid "Retirer les filtres"
 msgstr "Clear filters"
 
-#: template-parts/boite/liste.php:142
+#: template-parts/boite/liste.php:167
 msgid "Recommencer le questionnaire"
 msgstr "Start the questionnaire again"
 
@@ -931,54 +940,54 @@ msgid "Page suivante"
 msgstr "Next page"
 
 #. translators: %s : libelle court de la question (ex. Metier).
-#: template-parts/boite/profil.php:39
+#: template-parts/boite/profil.php:42
 #, php-format
 msgid "%s :"
 msgstr "%s:"
 
-#: template-parts/boite/profil.php:59
+#: template-parts/boite/profil.php:62
 msgid "Réinitialiser le questionnaire"
 msgstr "Reset the questionnaire"
 
-#: template-parts/boite/questionnaire.php:70
+#: template-parts/boite/questionnaire.php:78
 msgid "Retourner à l'accueil de la boîte à outils"
 msgstr "Back to the toolbox home"
 
 #. translators: %s : libelle court de la question (ex. Tache).
-#: template-parts/boite/questionnaire.php:78
+#: template-parts/boite/questionnaire.php:86
 #, php-format
 msgid "La réponse transmise pour la question « %s » n'est pas disponible : choisissez une réponse dans la liste."
 msgstr "The answer given for the “%s” question is not available: please choose an answer from the list."
 
 #. translators: 1: numero de la question, 2: nombre total de questions.
-#: template-parts/boite/questionnaire.php:107
+#: template-parts/boite/questionnaire.php:116
 #, php-format
 msgid "Question %1$d sur %2$d"
 msgstr "Question %1$d of %2$d"
 
-#: template-parts/boite/questionnaire.php:149
+#: template-parts/boite/questionnaire.php:158
 msgid "Valider"
 msgstr "Confirm"
 
 #. translators: %d : numero de la question.
-#: template-parts/boite/questionnaire.php:152
+#: template-parts/boite/questionnaire.php:161
 #, php-format
 msgid "ma réponse à la question %d"
 msgstr "my answer to question %d"
 
-#: template-parts/boite/questionnaire.php:159
+#: template-parts/boite/questionnaire.php:168
 msgid "Aucun choix n'est disponible pour cette question pour le moment."
 msgstr "No choices are available for this question at the moment."
 
-#: template-parts/boite/questionnaire.php:162
+#: template-parts/boite/questionnaire.php:171
 msgid "Modifier la réponse précédente"
 msgstr "Change the previous answer"
 
-#: template-parts/boite/questionnaire.php:175
+#: template-parts/boite/questionnaire.php:190
 msgid "Question précédente"
 msgstr "Previous question"
 
-#: template-parts/boite/questionnaire.php:183
+#: template-parts/boite/questionnaire.php:205
 msgid "Question suivante"
 msgstr "Next question"
 
@@ -987,3 +996,35 @@ msgstr "Next question"
 msgctxt "illustration 404"
 msgid "Erreur"
 msgstr "Error"
+
+#. translators: %s : lien vers les concepts cles du modele MDH-PPH (site du RIPPH).
+#: inc/boite/commun.php:116
+#, php-format
+msgid "Pour en savoir plus sur cette notion : %s."
+msgstr "To find out more about this concept: %s."
+
+#: inc/boite/commun.php:117
+msgid "concepts clés du modèle MDH-PPH, sur le site du RIPPH (en anglais)"
+msgstr "key concepts of the HDM-DCP model, on the RIPPH website"
+
+#: inc/boite/front.php:623
+msgctxt "fenetre de la boite a outils"
+msgid "Fermer"
+msgstr "Close"
+
+#: template-parts/boite/questionnaire.php:191
+msgctxt "navigation du questionnaire"
+msgid "Précédent"
+msgstr "Previous"
+
+#. translators: %d : numero de la question visee.
+#: template-parts/boite/questionnaire.php:194
+#: template-parts/boite/questionnaire.php:209
+#, php-format
+msgid "(question %d)"
+msgstr "(question %d)"
+
+#: template-parts/boite/questionnaire.php:206
+msgctxt "navigation du questionnaire"
+msgid "Suivant"
+msgstr "Next"

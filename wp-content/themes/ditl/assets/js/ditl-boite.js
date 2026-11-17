@@ -7,6 +7,9 @@
  * - le bouton "Imprimer la fiche" (masque tant que le script n'a pas tourne) ;
  * - la colonne "Informations" de la fiche collante au defilement, au-dessus
  *   de 1024 px et seulement si elle tient dans la fenetre ;
+ * - sur telephone (resultats et catalogue), les fenetres modales "Votre
+ *   profil" et "Filtrer les outils" (dialog natif) ; sans ce script ou sans
+ *   dialog, les blocs restent dans la page ;
  * - le suivi des interactions dans Google Analytics 4.
  *
  * Suivi d'audience : evenements envoyes par window.gtag( 'event', ... ) et
@@ -274,4 +277,209 @@
 		window.addEventListener( 'load', planifier );
 		ajuster();
 	}
+
+	/* -- Resultats et catalogue : fenetres "Votre profil" et "Filtrer les outils" -- */
+
+	/*
+	 * Telephone uniquement (maquettes mobiles du 17/11/2026). Chaque bouton
+	 * [data-ditl-fenetre-ouvrir] ouvre le dialog de meme nom (gabarit :
+	 * ditl_boite_front_fenetre) et y DEPLACE le bloc de la colonne
+	 * [data-ditl-fenetre-bloc] : un seul formulaire, cases et suivi
+	 * d'audience inchanges. showModal assure le piegeage du focus, la touche
+	 * Echap et l'inertie du reste de la page. A l'ouverture, le titre du bloc
+	 * passe en H1 (hierarchie propre a la fenetre, revue Access42) et recoit
+	 * le focus ; a la fermeture (bouton Fermer, Echap, clic sur le fond), le
+	 * bloc reprend sa place, son titre redevient H2 et le focus revient sur
+	 * le bouton. Passage au-dela du seuil (rotation, redimensionnement) avec
+	 * une fenetre ouverte : elle se ferme et le bloc revient dans la colonne,
+	 * focus conserve sur l'element actif.
+	 */
+	var TELEPHONE = 'screen and (max-width: 767.98px)'; // Seuil de la section "Telephone" de boite.css.
+
+	function changerBalise( element, balise ) {
+		var nouveau = document.createElement( balise );
+		var i;
+
+		for ( i = 0; i < element.attributes.length; i++ ) {
+			nouveau.setAttribute( element.attributes[ i ].name, element.attributes[ i ].value );
+		}
+
+		while ( element.firstChild ) {
+			nouveau.appendChild( element.firstChild );
+		}
+
+		element.parentNode.replaceChild( nouveau, element );
+
+		return nouveau;
+	}
+
+	function creerFenetre( declencheur, dialogue, contenu, bloc, requete ) {
+		var fenetre       = { declencheur: declencheur, bloc: bloc };
+		var marqueur      = null;
+		var titre         = null;
+		var focusAvant    = null;
+		var appuiSurFond  = false;
+
+		function horsDuCadre( event ) {
+			var r = dialogue.getBoundingClientRect();
+
+			return event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom;
+		}
+
+		fenetre.ouvrir = function () {
+			if ( dialogue.open || ! requete.matches ) {
+				return;
+			}
+
+			marqueur = document.createComment( ' ditl-fenetre ' );
+			bloc.parentNode.insertBefore( marqueur, bloc );
+			contenu.appendChild( bloc );
+
+			titre = bloc.querySelector( '.ditl-boite-bloc__titre' );
+
+			if ( titre ) {
+				if ( 'H2' === titre.tagName ) {
+					titre = changerBalise( titre, 'h1' );
+				}
+
+				titre.setAttribute( 'tabindex', '-1' );
+			}
+
+			document.documentElement.classList.add( 'ditl-boite-fenetre-ouverte' );
+			dialogue.showModal();
+
+			if ( titre ) {
+				titre.focus();
+			}
+		};
+
+		fenetre.fermer = function () {
+			if ( dialogue.open ) {
+				focusAvant = document.activeElement;
+				dialogue.close();
+			}
+		};
+
+		// Remise en place (evenement close : bouton, Echap ou fermeture forcee).
+		dialogue.addEventListener( 'close', function () {
+			var avant = focusAvant;
+			var cible = avant && bloc.contains( avant ) && avant !== titre ? avant : null;
+
+			focusAvant = null;
+
+			if ( ! marqueur ) {
+				return;
+			}
+
+			if ( titre ) {
+				titre.removeAttribute( 'tabindex' );
+
+				if ( 'H1' === titre.tagName ) {
+					changerBalise( titre, 'h2' );
+				}
+
+				titre = null;
+			}
+
+			marqueur.parentNode.insertBefore( bloc, marqueur );
+			marqueur.parentNode.removeChild( marqueur );
+			marqueur = null;
+			document.documentElement.classList.remove( 'ditl-boite-fenetre-ouverte' );
+
+			if ( requete.matches ) {
+				declencheur.focus();
+			} else if ( avant ) {
+				// Fermeture forcee par le passage au bureau : le focus etait sur
+				// "Fermer" ou sur le titre (hors du bloc remis en place) -> premier
+				// element focalisable du bloc, pour ne pas le perdre sur body.
+				cible = cible || bloc.querySelector( 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled])' );
+
+				if ( cible ) {
+					cible.focus();
+				}
+			}
+		} );
+
+		declencheur.addEventListener( 'click', fenetre.ouvrir );
+
+		dialogue.querySelector( '[data-ditl-fenetre-fermer]' ).addEventListener( 'click', fenetre.fermer );
+
+		// Tab dans la fenetre : la navigation native du dialog suffit. Tant que
+		// le bandeau de cookies attend une reponse, son piege a focus (ecouteur
+		// sur document) renverrait Tab vers ce bandeau, inerte ici : le focus
+		// resterait bloque. La touche ne remonte donc pas au-dela du dialog.
+		dialogue.addEventListener( 'keydown', function ( event ) {
+			if ( 'Tab' === event.key ) {
+				event.stopPropagation();
+			}
+		} );
+
+		// Clic sur le fond grise : fermeture (appui ET relachement hors du cadre).
+		dialogue.addEventListener( 'pointerdown', function ( event ) {
+			appuiSurFond = event.target === dialogue && horsDuCadre( event );
+		} );
+
+		dialogue.addEventListener( 'click', function ( event ) {
+			if ( appuiSurFond && event.target === dialogue && horsDuCadre( event ) ) {
+				fenetre.fermer();
+			}
+
+			appuiSurFond = false;
+		} );
+
+		return fenetre;
+	}
+
+	( function () {
+		var liste = document.querySelector( '.ditl-boite--liste' );
+		var fenetres = [];
+		var requete, declencheurs, i, nom, dialogue, contenu, bloc;
+
+		if ( ! liste || ! window.matchMedia || 'function' !== typeof window.HTMLDialogElement || 'function' !== typeof window.HTMLDialogElement.prototype.showModal ) {
+			return;
+		}
+
+		requete      = window.matchMedia( TELEPHONE );
+		declencheurs = liste.querySelectorAll( '[data-ditl-fenetre-ouvrir]' );
+
+		for ( i = 0; i < declencheurs.length; i++ ) {
+			nom      = declencheurs[ i ].getAttribute( 'data-ditl-fenetre-ouvrir' );
+			dialogue = liste.querySelector( 'dialog[data-ditl-fenetre="' + nom + '"]' );
+			contenu  = dialogue ? dialogue.querySelector( '[data-ditl-fenetre-contenu]' ) : null;
+			bloc     = liste.querySelector( '[data-ditl-fenetre-bloc="' + nom + '"]' );
+
+			if ( contenu && bloc && dialogue.querySelector( '[data-ditl-fenetre-fermer]' ) ) {
+				fenetres.push( creerFenetre( declencheurs[ i ], dialogue, contenu, bloc, requete ) );
+				declencheurs[ i ].removeAttribute( 'hidden' );
+				dialogue.removeAttribute( 'hidden' );
+			}
+		}
+
+		if ( 0 === fenetres.length ) {
+			return;
+		}
+
+		// La colonne n'est retiree de l'affichage (boite.css) qu'une fois les
+		// fenetres pretes.
+		liste.classList.add( 'ditl-boite--fenetres' );
+
+		function surChangement() {
+			var j, actif = document.activeElement;
+
+			for ( j = 0; j < fenetres.length; j++ ) {
+				if ( ! requete.matches ) {
+					fenetres[ j ].fermer();
+				} else if ( actif && fenetres[ j ].bloc.contains( actif ) ) {
+					// Passage au telephone, focus dans la colonne qui disparait.
+					fenetres[ j ].declencheur.focus();
+				}
+			}
+		}
+
+		if ( requete.addEventListener ) {
+			requete.addEventListener( 'change', surChangement );
+		} else if ( requete.addListener ) {
+			requete.addListener( surChangement );
+		}
+	}() );
 } )();

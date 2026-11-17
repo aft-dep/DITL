@@ -10,7 +10,8 @@
  * - Feuilles et scripts charges UNIQUEMENT sur ces deux vues :
  *   assets/css/boite.css, assets/css/boite-impression.css (media print),
  *   assets/js/ditl-boite.js (pied de page : bouton imprimer, colonne
- *   "Informations" collante, suivi d'audience), assets/js/ditl-carousel.js
+ *   "Informations" collante, fenetres "Votre profil" et "Filtrer les
+ *   outils" sur telephone, suivi d'audience), assets/js/ditl-carousel.js
  *   sur une fiche qui propose d'autres outils.
  * - Mise en page Astra : sans barre laterale, pleine largeur (le gabarit
  *   gere ses conteneurs), sans titre, image ni navigation d'article d'Astra.
@@ -267,6 +268,7 @@ function ditl_boite_front_icone( $nom ) {
 		'usine'      => '<path d="M3.5 20.5V10l5 3V10l5 3V6.5h4l1 14H3.5z"/>',
 		'document'   => '<path d="M6.5 3.5h7l4 4v13h-11zM13.5 3.5v4h4M9 12h6M9 15.5h6"/>',
 		'lien'       => '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+		'croix'      => '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
 	);
 
 	if ( ! isset( $traces[ $nom ] ) ) {
@@ -593,6 +595,38 @@ function ditl_boite_front_fil_ariane( array $elements ) {
 			<?php } ?>
 		</ol>
 	</nav>
+	<?php
+}
+
+/**
+ * Affiche une fenetre modale vide des resultats et du catalogue (maquettes
+ * mobiles du 17/11/2026 : "Votre profil", "Filtrer les outils").
+ *
+ * Sur telephone, assets/js/ditl-boite.js y deplace le bloc de la colonne
+ * laterale (attribut data-ditl-fenetre-bloc de meme nom) a l'ouverture
+ * (showModal : focus piege, Echap, reste de la page inerte) et le remet a sa
+ * place a la fermeture : un seul exemplaire du formulaire, etat des cases
+ * conserve. Le titre du bloc nomme la fenetre (aria-labelledby). Attribut
+ * hidden retire par le script seulement si le navigateur gere dialog : sans
+ * JavaScript ou sans dialog, rien n'apparait et les blocs restent dans la
+ * page.
+ *
+ * @param string $nom      Nom de la fenetre (profil | filtres).
+ * @param string $id_titre ID du titre du bloc.
+ */
+function ditl_boite_front_fenetre( $nom, $id_titre ) {
+	?>
+	<dialog class="ditl-boite-fenetre" data-ditl-fenetre="<?php echo esc_attr( $nom ); ?>" aria-labelledby="<?php echo esc_attr( $id_titre ); ?>" hidden>
+		<div class="ditl-boite-fenetre__cadre">
+			<div class="ditl-boite-fenetre__barre">
+				<button type="button" class="ditl-boite-fenetre__fermer" data-ditl-fenetre-fermer>
+					<?php echo esc_html_x( 'Fermer', 'fenetre de la boite a outils', 'ditl' ); ?>
+					<span class="ditl-boite-fenetre__croix"><?php echo ditl_boite_front_icone( 'croix' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG statique. ?></span>
+				</button>
+			</div>
+			<div class="ditl-boite-fenetre__contenu" data-ditl-fenetre-contenu></div>
+		</div>
+	</dialog>
 	<?php
 }
 

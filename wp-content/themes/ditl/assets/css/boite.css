@@ -3,7 +3,8 @@
  * (questionnaire, resultats, catalogue) et de la fiche outil.
  *
  * Mise en page et hierarchie des maquettes finales DESKTOP du 10/11/2026
- * (le mobile suivra ; d'ici la, une colonne sans casse sous 1025 px), avec
+ * (une colonne sans casse sous 1025 px) et des maquettes MOBILES du
+ * 17/11/2026 (section "Telephone" en fin de fichier, sous 768 px), avec
  * la charte actuelle du site (titres Exo, texte Arial, bleu #1E448F). Les
  * couleurs attendent la decision du client apres la revue Access42 : elles
  * sont TOUTES regroupees dans les proprietes personnalisees ci-dessous, un
@@ -1451,4 +1452,520 @@
 
 .ditl-boite--protege .ditl-boite__titre {
 	color: var(--ditl-boite-bleu);
+}
+
+/* ---------------------------------------------------------------------------
+ * Elements propres au telephone, masques au-dela (section "Telephone")
+ * ------------------------------------------------------------------------ */
+
+.ditl-boite-question__prefixe,
+.ditl-boite-navigation__court,
+.ditl-boite-navigation .ditl-boite-icone--gauche,
+.ditl-boite-navigation .ditl-boite-icone--droite,
+.ditl-boite__nombre,
+.ditl-boite .ditl-boite-ouvrir {
+	display: none;
+}
+
+/* Bouton a contour (declencheur "Votre profil"). */
+.ditl-boite .ditl-boite-bouton--contour {
+	border: 1px solid var(--ditl-boite-bleu);
+	background-color: var(--ditl-boite-surface);
+	color: var(--ditl-boite-bleu);
+}
+
+.ditl-boite .ditl-boite-bouton--contour:hover,
+.ditl-boite .ditl-boite-bouton--contour:focus {
+	background-color: var(--ditl-boite-fond);
+	color: var(--ditl-boite-bleu-fonce);
+}
+
+/* ---------------------------------------------------------------------------
+ * Fenetres modales "Votre profil" et "Filtrer les outils" (telephone)
+ *
+ * dialog natif ouvert par showModal (assets/js/ditl-boite.js), qui y deplace
+ * le bloc de la colonne laterale. Aucune regle display sur le dialog : son
+ * etat ferme reste celui du navigateur. Defilement interne si le contenu
+ * depasse l'ecran ; fond grise (::backdrop, maquette p. 12 et 14). Tailles
+ * en rem calees sur la racine d'Astra a 360 px (voir section "Telephone").
+ * ------------------------------------------------------------------------ */
+
+html.ditl-boite-fenetre-ouverte {
+	overflow: hidden;
+}
+
+.ditl-boite .ditl-boite-fenetre {
+	width: calc(100% - 2.25rem);
+	max-width: 30rem;
+	max-height: calc(100% - 2.25rem);
+	margin: auto;
+	padding: 0;
+	/* Bordure transparente : visible en mode contraste eleve, qui retire
+	   l'ombre portee. */
+	border: 1px solid transparent;
+	border-radius: 0.75rem;
+	background-color: var(--ditl-boite-surface);
+	box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.3);
+	color: var(--ditl-boite-texte);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.ditl-boite-fenetre::backdrop {
+	background-color: rgba(38, 44, 51, 0.6);
+}
+
+.ditl-boite-fenetre__cadre {
+	padding: 1rem 1.75rem 1.75rem;
+}
+
+.ditl-boite-fenetre__barre {
+	display: flex;
+	justify-content: flex-end;
+	margin: 0 -0.75rem 0.25rem 0;
+}
+
+/* "Fermer" + croix dans un rond bleu : un seul bouton (cible de 44 px). */
+.ditl-boite .ditl-boite-fenetre__fermer {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-height: 3.25rem;
+	margin: 0;
+	padding: 0 0 0 0.5rem;
+	border: 0;
+	border-radius: 1.625rem;
+	background-color: transparent;
+	color: var(--ditl-boite-texte-doux);
+	font-family: inherit;
+	font-size: 1.1875rem;
+	font-weight: 400;
+	letter-spacing: normal;
+	line-height: 1.3;
+	text-transform: none;
+	cursor: pointer;
+}
+
+.ditl-boite .ditl-boite-fenetre__fermer:hover,
+.ditl-boite .ditl-boite-fenetre__fermer:focus {
+	background-color: transparent;
+	color: var(--ditl-boite-texte);
+}
+
+.ditl-boite-fenetre__croix {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 3.25rem;
+	height: 3.25rem;
+	border-radius: 50%;
+	background-color: var(--ditl-boite-bleu);
+	color: var(--ditl-boite-sur-bleu);
+}
+
+.ditl-boite-fenetre__fermer:hover .ditl-boite-fenetre__croix {
+	background-color: var(--ditl-boite-bleu-fonce);
+}
+
+.ditl-boite-fenetre__croix .ditl-boite-icone {
+	width: 2rem;
+	height: 2rem;
+	vertical-align: 0;
+	stroke-width: 3;
+}
+
+@media (forced-colors: active) {
+	.ditl-boite-fenetre__croix {
+		border: 1px solid ButtonText;
+	}
+}
+
+/* Blocs deplaces dans la fenetre : titre (H1 le temps de l'ouverture),
+ * lignes separees par un filet, cibles de 44 px, boutons pleine largeur. */
+.ditl-boite .ditl-boite-fenetre .ditl-boite-bloc__titre {
+	margin: 0 0 0.5rem;
+	padding: 0;
+	border: 0;
+	font-size: 2rem;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.ditl-boite .ditl-boite-fenetre .ditl-boite-profil__liste {
+	margin: 0 0 1.5rem;
+}
+
+.ditl-boite-fenetre .ditl-boite-profil__reponse {
+	justify-content: space-between;
+	gap: 0.75rem;
+	min-height: 4.5rem;
+	padding: 0.375rem 0;
+	font-size: 1.1875rem;
+	line-height: 1.4;
+}
+
+.ditl-boite-fenetre .ditl-boite-profil__reponse + .ditl-boite-profil__reponse,
+.ditl-boite-fenetre .ditl-boite-filtre + .ditl-boite-filtre {
+	border-top: 1px solid var(--ditl-boite-texte-doux);
+}
+
+.ditl-boite .ditl-boite-fenetre .ditl-boite-modifier {
+	flex-shrink: 0;
+	min-width: 3.25rem;
+	min-height: 3.25rem;
+}
+
+.ditl-boite .ditl-boite-fenetre .ditl-boite-modifier .ditl-boite-icone {
+	width: 1.75rem;
+	height: 1.75rem;
+}
+
+/* Filtres : libelle a gauche, case a droite (maquette p. 14) ; la ligne
+ * entiere est cliquable (etiquette etendue). Ordre du DOM inchange. */
+.ditl-boite-fenetre .ditl-boite-filtre {
+	flex-direction: row-reverse;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+	padding: 0;
+	font-size: 1.1875rem;
+}
+
+.ditl-boite-fenetre .ditl-boite-filtre label {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 1.25rem 0;
+}
+
+.ditl-boite-fenetre .ditl-boite-filtre input[type="checkbox"] {
+	width: 1.75rem;
+	height: 1.75rem;
+	margin: 0;
+}
+
+.ditl-boite-fenetre .ditl-boite-filtres__actions {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 0.5rem;
+	margin-top: 1.25rem;
+}
+
+.ditl-boite-fenetre .ditl-boite-compteur {
+	font-size: 1.0625rem;
+	text-align: center;
+}
+
+.ditl-boite .ditl-boite-fenetre .ditl-boite-profil__reinitialiser .ditl-boite-bouton,
+.ditl-boite .ditl-boite-fenetre .ditl-boite-filtres__actions .ditl-boite-bouton {
+	width: 100%;
+	min-height: 3.25rem;
+	font-family: 'Exo', sans-serif;
+	font-size: 1.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Telephone (maquettes mobiles du 17/11/2026, ecrans 360 x 640)
+ *
+ * Sous 768 px : meme seuil que les tailles de titres ci-dessus et que le
+ * carrousel de la fiche. La tablette (768 a 1024 px) garde la mise en page
+ * une colonne et le bureau (au-dela de 1024 px) n'est pas touche. "screen"
+ * seulement : l'impression garde sa feuille (boite-impression.css), quelle
+ * que soit la largeur du papier. Seuil repris par assets/js/ditl-boite.js
+ * (fenetres) : a modifier aux deux endroits.
+ *
+ * Unites : Astra ramene la racine a 85,5 % sous 545 px, soit 1rem = 13,68 px
+ * a 360 px (15 px au-dela). Les tailles ci-dessous sont calees sur la
+ * maquette a 360 px (3,25rem = 44 px de cible tactile) et grandissent avec la
+ * racine et les preferences du visiteur.
+ * ------------------------------------------------------------------------ */
+
+@media screen and (max-width: 767.98px) {
+
+	/* -- Questionnaire --------------------------------------------------- */
+
+	/* Colonne laterale retiree de l'affichage : ni etapier ni "Vos
+	   solutions" ; le H1 reste lu par les lecteurs d'ecran (masque
+	   visuellement), l'etiquette de la question en reprend le texte. */
+	.ditl-boite--questionnaire .ditl-boite__colonne {
+		padding: 0;
+		background: none;
+		box-shadow: none;
+		clip-path: none;
+	}
+
+	.ditl-boite--questionnaire .ditl-boite-etapier,
+	.ditl-boite--questionnaire .ditl-boite-solutions,
+	.ditl-boite-rappel {
+		display: none;
+	}
+
+	.ditl-boite--questionnaire .ditl-boite__titre,
+	.ditl-boite .ditl-boite-cartes__compteur {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		border: 0;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		clip-path: inset(50%);
+		white-space: nowrap;
+	}
+
+	.ditl-boite--questionnaire .ditl-boite__principal {
+		padding: 1rem 0 2.5rem;
+	}
+
+	/* Retour a l'accueil de la boite : plus grand, grande fleche, gris
+	   (5,5:1 sur le fond), souligne comme tout lien de texte (a11y.css). */
+	.ditl-boite-retour {
+		margin: 0 0 0.75rem;
+		font-size: 1.1875rem;
+	}
+
+	.ditl-boite-retour a {
+		min-height: 3.25rem;
+		color: var(--ditl-boite-texte-doux);
+	}
+
+	.ditl-boite-retour .ditl-boite-icone {
+		width: 1.75rem;
+		height: 1.75rem;
+	}
+
+	/* Message "reponse non disponible" : marge basse (annulee par Astra)
+	   avant l'etiquette encadree. */
+	.ditl-boite .ditl-boite-message {
+		margin-bottom: 1.25rem;
+	}
+
+	/* Etiquette "Boite a outils - Question N sur 4". */
+	.ditl-boite-question__prefixe {
+		display: inline;
+	}
+
+	.ditl-boite .ditl-boite-question__numero {
+		align-self: center;
+		margin: 0 0 1.25rem;
+		padding: 0.35rem 0.875rem;
+		border-radius: var(--ditl-boite-rayon);
+		background-color: var(--ditl-boite-surface);
+		color: var(--ditl-boite-bleu);
+		font-family: 'Exo', sans-serif;
+		font-size: 1.25rem;
+		line-height: 1.35;
+	}
+
+	.ditl-boite .ditl-boite-question__titre {
+		margin-bottom: 1.5rem;
+		font-size: 1.875rem;
+		font-weight: 700;
+		line-height: 1.15;
+	}
+
+	/* Textes a la taille de la maquette (16-17 px a 360 px). */
+	.ditl-boite-question__aide {
+		font-size: 1.1875rem;
+		line-height: 1.5;
+	}
+
+	.ditl-boite-champ__etiquette {
+		font-size: 1.25rem;
+	}
+
+	.ditl-boite .ditl-boite-champ__liste select {
+		font-size: 1.1875rem;
+	}
+
+	/* Valider : pleine largeur, plus grand (toujours visible). */
+	.ditl-boite-formulaire {
+		gap: 0.875rem;
+		margin-top: 2.5rem;
+	}
+
+	.ditl-boite .ditl-boite-formulaire .ditl-boite-bouton {
+		width: 100%;
+		max-width: 36rem;
+		min-height: 3.8rem;
+		padding: 0.4rem 1rem;
+		border-radius: 0.625rem;
+		font-size: 2.25rem;
+		font-weight: 400;
+		line-height: 1.2;
+	}
+
+	/* Navigation : "Precedent" a gauche, "Suivant" a droite, fleches dans
+	   un carre blanc. */
+	.ditl-boite .ditl-boite-navigation {
+		justify-content: space-between;
+		margin-top: 3.5rem;
+	}
+
+	.ditl-boite-navigation__suivante {
+		margin-left: auto;
+	}
+
+	.ditl-boite-navigation__long,
+	.ditl-boite-navigation .ditl-boite-icone--haut,
+	.ditl-boite-navigation .ditl-boite-icone--bas {
+		display: none;
+	}
+
+	.ditl-boite-navigation__court {
+		display: inline;
+	}
+
+	.ditl-boite-navigation .ditl-boite-icone--gauche,
+	.ditl-boite-navigation .ditl-boite-icone--droite {
+		display: inline-block;
+	}
+
+	.ditl-boite-navigation .ditl-boite-icone--gauche {
+		order: -1;
+	}
+
+	.ditl-boite-navigation a {
+		gap: 0.625rem;
+		color: var(--ditl-boite-texte-doux);
+		font-size: 1.1875rem;
+	}
+
+	.ditl-boite-navigation .ditl-boite-icone {
+		width: 3.25rem;
+		height: 3.25rem;
+		padding: 0.75rem;
+	}
+
+	/* -- Resultats et catalogue : en-tete ------------------------------- */
+
+	.ditl-boite--liste .ditl-boite__entete {
+		padding: 1rem 0 0.5rem;
+		text-align: left;
+	}
+
+	/* Fil d'Ariane conserve (a la place du lien de retour de la maquette),
+	   a la taille de ce lien et avec des cibles de 24 px au moins. */
+	.ditl-boite .ditl-boite-ariane__liste {
+		font-size: 1.0625rem;
+	}
+
+	.ditl-boite-ariane__liste a {
+		display: inline-block;
+		padding: 0.25rem 0;
+	}
+
+	.ditl-boite__tete {
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	/* Deux moities egales (base 50 % : le padding des boutons ne
+	   desequilibre pas le partage). */
+	.ditl-boite__tete-titre {
+		flex: 1 1 50%;
+		min-width: 0;
+	}
+
+	.ditl-boite .ditl-boite__titre-liste {
+		margin: 0;
+		font-size: 2.375rem;
+		font-weight: 700;
+		line-height: 1.1;
+	}
+
+	.ditl-boite .ditl-boite__nombre {
+		display: block;
+		margin: 0.125rem 0 0;
+		color: var(--ditl-boite-texte-doux);
+		font-size: 1.25rem;
+		font-weight: 700;
+		line-height: 1.3;
+	}
+
+	.ditl-boite .ditl-boite__intro {
+		margin: 1rem 0 0;
+	}
+
+	.ditl-boite__actions {
+		display: flex;
+		gap: 1.25rem;
+		margin-top: 2rem;
+	}
+
+	.ditl-boite__actions > * {
+		flex: 1 1 50%;
+		min-width: 0;
+	}
+
+	/* Declencheurs des fenetres : seulement si le script les a actives. */
+	.ditl-boite--fenetres .ditl-boite-ouvrir {
+		display: inline-flex;
+	}
+
+	.ditl-boite--fenetres .ditl-boite__tete .ditl-boite-ouvrir {
+		flex: 1 1 50%;
+		min-width: 0;
+	}
+
+	.ditl-boite .ditl-boite__entete .ditl-boite-ouvrir,
+	.ditl-boite .ditl-boite__autre-vue .ditl-boite-bouton {
+		width: 100%;
+		min-height: 3.25rem;
+		padding: 0.375rem 0.5rem;
+		font-family: 'Exo', sans-serif;
+		font-size: 1.1875rem;
+		font-weight: 400;
+		line-height: 1.2;
+	}
+
+	/* Blocs de la colonne dans les fenetres : retires de la page. Sans
+	   JavaScript (classe absente), ils restent affiches comme avant. */
+	.ditl-boite--fenetres .ditl-boite__colonne {
+		display: none;
+	}
+
+	.ditl-boite--liste .ditl-boite__principal {
+		padding-top: 0.75rem;
+	}
+
+	/* -- Cartes : plus grandes (image 16/9 inchangee) ------------------- */
+
+	/* Une colonne jusqu'a 545 px environ, deux au-dela : jamais de carte trop
+	   etroite pour ses textes agrandis. */
+	.ditl-boite .ditl-boite-cartes {
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+	}
+
+	.ditl-boite .ditl-boite-carte__titre {
+		padding: 1.5rem 1rem 0.75rem;
+		font-size: 2.125rem;
+		line-height: 1.1;
+	}
+
+	.ditl-boite-carte__environnements {
+		gap: 0.375rem;
+		padding-bottom: 1.5rem;
+		font-size: 1.25rem;
+	}
+
+	.ditl-boite .ditl-boite-pastilles {
+		gap: 1rem;
+	}
+
+	.ditl-boite .ditl-boite-pastille {
+		min-width: 2.625rem;
+		height: 2.625rem;
+		padding: 0 0.375rem;
+		border-radius: 1.3125rem;
+		font-size: 1.875rem;
+	}
+
+	.ditl-boite-carte__plus {
+		padding: 0.65rem 0.75rem;
+		font-family: 'Exo', sans-serif;
+		font-size: 1.875rem;
+		line-height: 1.3;
+	}
 }
