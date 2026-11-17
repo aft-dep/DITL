@@ -6,7 +6,9 @@
  * l'ouverture / la fermeture : Entree ou Espace sur le bouton, Echap pour
  * refermer et revenir sur le bouton, fermeture quand le focus quitte l'item,
  * etat aria-expanded tenu a jour (y compris quand Astra ouvre le sous-menu
- * par la classe .focus au passage du clavier sur le lien parent).
+ * par la classe .focus au passage du clavier sur le lien parent ou par la
+ * fleche du lien, et apres le recalcul d'Astra qui ignore l'ouverture par ce
+ * script).
  *
  * En mobile, Astra pose aria-expanded sur la cible de l'evenement et oublie
  * de le remettre a false quand le menu se referme : l'etat est realigne sur la
@@ -54,10 +56,58 @@
 	 * Desktop
 	 * ---------------------------------------------------------------- */
 
+	function enfantDe( item, classe ) {
+		var enfants = item.children;
+		for ( var i = 0; i < enfants.length; i++ ) {
+			if ( enfants[ i ].classList.contains( classe ) ) {
+				return enfants[ i ];
+			}
+		}
+		return null;
+	}
+
+	// Ouvert par ce script, par le passage du clavier sur le lien parent (.focus)
+	// ou par Astra (fleche du lien : toggled-on sur le sous-menu).
+	function estOuvertDesktop( item ) {
+		var sousMenu = enfantDe( item, 'sub-menu' );
+		return item.classList.contains( CLASSE_OUVERT ) ||
+			item.classList.contains( 'focus' ) ||
+			item.classList.contains( 'ast-submenu-expanded' ) ||
+			( null !== sousMenu && sousMenu.classList.contains( 'toggled-on' ) );
+	}
+
+	// Seul le bouton est aligne : le lien parent et sa fleche restent geres par
+	// Astra, qui lit l'etat de la fleche pour decider d'ouvrir ou de fermer.
 	function synchroniserDesktop( item ) {
 		var bouton = boutonDe( item );
 		if ( bouton ) {
-			poserEtat( bouton, item.classList.contains( CLASSE_OUVERT ) || item.classList.contains( 'focus' ) );
+			poserEtat( bouton, estOuvertDesktop( item ) );
+		}
+	}
+
+	// Astra observe les classes de l'item et du sous-menu et recalcule
+	// aria-expanded sans connaitre l'ouverture par ce script (il repassait a
+	// "false" juste apres l'ouverture au clavier). On realigne apres lui : la
+	// micro-tache s'execute apres tous les observateurs, quel que soit leur ordre.
+	function suivreAstra( item ) {
+		if ( ! window.MutationObserver ) {
+			return;
+		}
+		var differer = window.queueMicrotask ? function ( f ) {
+			window.queueMicrotask( f );
+		} : function ( f ) {
+			window.setTimeout( f, 0 );
+		};
+		var observateur = new MutationObserver( function () {
+			differer( function () {
+				synchroniserDesktop( item );
+			} );
+		} );
+		var options = { attributes: true, attributeFilter: [ 'class' ] };
+		observateur.observe( item, options );
+		var sousMenu = enfantDe( item, 'sub-menu' );
+		if ( sousMenu ) {
+			observateur.observe( sousMenu, options );
 		}
 	}
 
@@ -82,6 +132,8 @@
 		if ( ! bouton ) {
 			return;
 		}
+
+		suivreAstra( item );
 
 		bouton.addEventListener( 'click', function ( e ) {
 			// Sous le point de rupture, l'en-tete desktop est masque : Astra gere.
